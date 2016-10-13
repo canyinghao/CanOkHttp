@@ -4,30 +4,20 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.canyinghao.canokhttp.CanOkHttp;
-import com.canyinghao.canokhttp.annotation.DownloadStatus;
 import com.canyinghao.canokhttp.annotation.ResultType;
-import com.canyinghao.canokhttp.callback.CanFileCallBack;
 import com.canyinghao.canokhttp.callback.CanSimpleCallBack;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import okhttp3.OkHttpClient;
 
 /**
  * Created by canyinghao on 2016/10/13.
