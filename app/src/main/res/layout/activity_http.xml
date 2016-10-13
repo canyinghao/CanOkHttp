@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="仅网络请求（NETWORK）" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="仅请求一次，直到缓存失效，读取缓存（CACHE）" />
+
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="请求网络失败后读缓存（NETWORK_CACHE）" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="读缓存后请求网络（CACHE_NETWORK）" />
+
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="缓存时间之内仅读缓存，缓存过期请求网络（CACHETIME_NETWORK）" />
+
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="缓存时间之内仅读缓存，缓存过期请求网络，请求失败读取缓存（CACHETIME_NETWORK_CACHE）" />
+
+    <TextView
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="缓存存活时间180s，缓存不请求网络时间60s。180s后，缓存失效。使用CACHETIME_NETWORK与CACHETIME_NETWORK_CACHE时，刚请求过，60s内不请求网络，直接读取缓存。" />
+
+
+    <TextView
+        android:id="@+id/tv_result"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+</LinearLayout>
