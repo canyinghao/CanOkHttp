@@ -1035,12 +1035,15 @@ public final class CanOkHttp {
      */
     private void dealWithException(IOException e) {
 
+        if(e!=null&&!TextUtils.isEmpty(e.getMessage())){
+            okHttpLog(e.getMessage(),false);
+        }
         if (!isNetworkAvailable(mApplication)) {
 
             sendFailMsg(ResultType.FAIL_NO_NETWORK, "FAIL_NO_NETWORK");
         } else if (e instanceof SocketTimeoutException) {
 
-            if (e.getMessage().equals("timeout")) {
+            if ("timeout".equals(e.getMessage())) {
                 sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, "FAIL_WRITE_READ_TIME_OUT");
 
             }else{
