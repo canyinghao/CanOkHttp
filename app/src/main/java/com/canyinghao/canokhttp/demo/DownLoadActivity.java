@@ -2,18 +2,14 @@ package com.canyinghao.canokhttp.demo;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.annotation.DownloadStatus;
 import com.canyinghao.canokhttp.annotation.ResultType;
-import com.canyinghao.canokhttp.callback.CanCallBack;
 import com.canyinghao.canokhttp.callback.CanFileCallBack;
-import com.socks.library.KLog;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -83,7 +79,7 @@ public class DownLoadActivity extends BaseActivity {
             @Override
             public void onFailure(@ResultType int type, String e) {
 
-                KLog.e(type+"  "+e);
+
 
             }
 

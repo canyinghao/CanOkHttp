@@ -1,10 +1,6 @@
 package com.canyinghao.canokhttp;
 
-import android.app.Activity;
-import android.app.Application;
-import android.os.Build;
-import android.os.Bundle;
-import android.support.annotation.RequiresApi;
+import android.support.annotation.NonNull;
 import android.util.SparseArray;
 
 import java.util.Map;
@@ -13,9 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import okhttp3.Call;
 
 /**
- * Created by jianyang on 2016/10/13.
+ * CanCallManager
+ *
+ * @author canyinghao
  */
-
 public final class CanCallManager {
 
 
@@ -28,17 +25,17 @@ public final class CanCallManager {
      * @param tag  请求标识
      * @param call 请求
      */
-     static void putCall(Class<?> tag, Call call) {
+    static void putCall(@NonNull Class<?> tag, @NonNull Call call) {
 
-        if (null != tag) {
-            SparseArray<Call> callList = allCallsMap.get(tag);
-            if (null == callList) {
-                callList = new SparseArray<>();
-            }
-            callList.put(call.hashCode(), call);
-            allCallsMap.put(tag, callList);
 
+        SparseArray<Call> callList = allCallsMap.get(tag);
+        if (null == callList) {
+            callList = new SparseArray<>();
         }
+        callList.put(call.hashCode(), call);
+        allCallsMap.put(tag, callList);
+
+
     }
 
     /**
@@ -46,9 +43,9 @@ public final class CanCallManager {
      *
      * @param tag 请求标识
      */
-    public static void cancelCallByActivityDestroy(Class<?> tag) {
-        if (null == tag)
-            return;
+    public static void cancelCallByActivityDestroy(@NonNull Class<?> tag) {
+
+
         SparseArray<Call> callList = allCallsMap.get(tag);
         if (null != callList) {
             final int len = callList.size();
@@ -69,22 +66,22 @@ public final class CanCallManager {
      * @param tag  请求标识
      * @param call 请求
      */
-     static void cancelCall(Class<?> tag, Call call) {
-
-        if (null != call && null != tag) {
-            SparseArray<Call> callList = allCallsMap.get(tag);
-            if (null != callList) {
-                Call c = callList.get(call.hashCode());
-                if (null != c && !c.isCanceled())
-                    c.cancel();
-                callList.delete(call.hashCode());
-                if (callList.size() == 0) {
-                    allCallsMap.remove(tag);
-                }
+    static void cancelCall(@NonNull Class<?> tag, @NonNull Call call) {
 
 
+        SparseArray<Call> callList = allCallsMap.get(tag);
+        if (null != callList) {
+            Call c = callList.get(call.hashCode());
+            if (null != c && !c.isCanceled())
+                c.cancel();
+            callList.delete(call.hashCode());
+            if (callList.size() == 0) {
+                allCallsMap.remove(tag);
             }
+
+
         }
+
     }
 
 

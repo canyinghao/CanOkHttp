@@ -2,17 +2,15 @@ package com.canyinghao.canokhttp.demo;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.widget.TextView;
 
+import com.canyinghao.canokhttp.CanCallManager;
 import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.annotation.CacheType;
 import com.canyinghao.canokhttp.annotation.ResultType;
-import com.canyinghao.canokhttp.callback.CanCallBack;
 import com.canyinghao.canokhttp.callback.CanSimpleCallBack;
-import com.socks.library.KLog;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -54,6 +52,8 @@ public class HttpActivity extends BaseActivity {
 
         tvResult.setText("");
 
+        CanCallManager.cancelCallByActivityDestroy(getClass());
+
         switch (v.getId()) {
 
             case R.id.btn_1:
@@ -74,7 +74,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onResponse(Object result) {
 
-                                KLog.e(result.toString());
+
 
                                 tvResult.setText(result.toString());
                             }
@@ -82,7 +82,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onFailure(@ResultType int type, String e) {
 
-                                KLog.e(type + "  " + e);
+
                             }
 
 
@@ -108,7 +108,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onResponse(Object result) {
 
-                                KLog.e(result.toString());
+                                
 
                                 tvResult.setText(result.toString());
                             }
@@ -116,7 +116,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onCache(Object result) {
 
-                                KLog.e(result.toString());
+
 
                                 tvResult.setText(result.toString());
                             }
@@ -124,7 +124,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onFailure(@ResultType int type, String e) {
 
-                                KLog.e(type + "  " + e);
+
                             }
 
 
@@ -152,7 +152,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onCache(Object result) {
 
-                                KLog.e(result.toString());
+
 
                                 tvResult.setText(result.toString());
                             }
@@ -160,7 +160,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onResponse(Object result) {
 
-                                KLog.e(result.toString());
+
 
                                 tvResult.setText(result.toString());
                             }
@@ -168,7 +168,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onFailure(@ResultType int type, String e) {
 
-                                KLog.e(type + "  " + e);
+
                             }
 
 
@@ -198,7 +198,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onCache(Object result) {
 
-                                KLog.e(result.toString());
+
 
                                 tvResult.setText(result.toString());
                             }
@@ -206,7 +206,6 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onResponse(Object result) {
 
-                                KLog.e(result.toString());
 
                                 tvResult.setText(result.toString());
                             }
@@ -214,7 +213,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onFailure(@ResultType int type, String e) {
 
-                                KLog.e(type + "  " + e);
+
                             }
 
 
@@ -223,7 +222,7 @@ public class HttpActivity extends BaseActivity {
                 break;
             case R.id.btn_5:
 
-                //   缓存时间之内仅读缓存，缓存过期请求网络（CACHETIME_NETWORK）
+                //   缓存不请求网络的时间之内仅读缓存，过期请求网络（CACHETIME_NETWORK）
 
                 CanOkHttp.getInstance()
 
@@ -243,7 +242,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onCache(Object result) {
 
-                                KLog.e(result.toString());
+
 
                                 tvResult.setText(result.toString());
                             }
@@ -251,7 +250,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onResponse(Object result) {
 
-                                KLog.e(result.toString());
+
 
                                 tvResult.setText(result.toString());
                             }
@@ -259,7 +258,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onFailure(@ResultType int type, String e) {
 
-                                KLog.e(type + "  " + e);
+
                             }
 
 
@@ -271,7 +270,7 @@ public class HttpActivity extends BaseActivity {
 
             case R.id.btn_6:
 
-                //   缓存时间之内仅读缓存，缓存过期请求网络，请求失败读取缓存（CACHETIME_NETWORK_CACHE）
+                //   缓存不请求网络的时间之内仅读缓存，过期请求网络，请求失败读取缓存（CACHETIME_NETWORK_CACHE）
 
                 CanOkHttp.getInstance()
 
@@ -291,7 +290,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onCache(Object result) {
 
-                                KLog.e(result.toString());
+
 
                                 tvResult.setText(result.toString());
                             }
@@ -299,7 +298,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onResponse(Object result) {
 
-                                KLog.e(result.toString());
+
 
                                 tvResult.setText(result.toString());
                             }
@@ -307,7 +306,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onFailure(@ResultType int type, String e) {
 
-                                KLog.e(type + "  " + e);
+
                             }
 
 

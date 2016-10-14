@@ -10,6 +10,7 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.canyinghao.canokhttp.annotation.CacheType;
 import com.canyinghao.canokhttp.annotation.DownloadStatus;
 import com.canyinghao.canokhttp.annotation.ResultType;
 import com.canyinghao.canokhttp.cache.ACache;
@@ -23,7 +24,6 @@ import com.canyinghao.canokhttp.model.FileLoadBean;
 import com.canyinghao.canokhttp.progress.ProgressRequestBody;
 import com.canyinghao.canokhttp.progress.ProgressResponseBody;
 import com.canyinghao.canokhttp.util.CanOkHttpUtil;
-
 import com.socks.library.KLog;
 
 import java.io.BufferedInputStream;
@@ -60,11 +60,10 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-import com.canyinghao.canokhttp.annotation.CacheType;
-
-
 /**
- * Created by jianyang on 2016/10/12.
+ * CanOkHttp
+ *
+ * @author canyinghao
  */
 
 public final class CanOkHttp {
@@ -127,7 +126,7 @@ public final class CanOkHttp {
      *
      * @param msg 日志信息
      */
-    private void showLog(String msg, boolean isResult) {
+    private void okHttpLog(String msg, boolean isResult) {
 
         if (!isDownOrUpLoad && isResult && mCurrentConfig.isJson()) {
             KLog.json(msg);
@@ -185,11 +184,11 @@ public final class CanOkHttp {
         @Override
         public Response intercept(Chain chain) throws IOException {
             long startTime = System.currentTimeMillis();
-            showLog(String.format("%s-URL: %s %n", chain.request().method(),
+            okHttpLog(String.format("%s-URL: %s %n", chain.request().method(),
                     chain.request().url()), false);
             Response res = chain.proceed(chain.request());
             long endTime = System.currentTimeMillis();
-            showLog(String.format("CostTime: %.1fs", (endTime - startTime) / 1000.0), false);
+            okHttpLog(String.format("CostTime: %.1fs", (endTime - startTime) / 1000.0), false);
             return res;
         }
     };
@@ -286,7 +285,7 @@ public final class CanOkHttp {
      * @param value 值
      * @return CanOkHttp
      */
-    public CanOkHttp add(String key, String value) {
+    public CanOkHttp add(@NonNull  String key, @NonNull String value) {
 
 
         paramMap.put(key, value);
@@ -302,7 +301,7 @@ public final class CanOkHttp {
      * @param value 值
      * @return CanOkHttp
      */
-    public CanOkHttp addHeader(String key, String value) {
+    public CanOkHttp addHeader(@NonNull String key, @NonNull String value) {
 
         headerMap.put(key, value);
         return this;
@@ -314,7 +313,7 @@ public final class CanOkHttp {
      * @param url 地址
      * @return CanOkHttp
      */
-    public CanOkHttp url(String url) {
+    public CanOkHttp url(@NonNull String url) {
 
 
         this.url = url;
@@ -413,7 +412,7 @@ public final class CanOkHttp {
      * @param obj 一般用当前的activity
      * @return CanOkHttp
      */
-    public CanOkHttp setTag(Object obj) {
+    public CanOkHttp setTag(@NonNull Object obj) {
 
         mCurrentConfig.setTag(obj);
 
@@ -533,16 +532,16 @@ public final class CanOkHttp {
      * @param filePath  文件路径
      * @param callBack  回调
      */
-    public void uploadFile(String url, String fileParam, String filePath, final CanCallBack callBack) {
+    public void uploadFile(@NonNull String url, @NonNull String fileParam, @NonNull String filePath, @NonNull final CanCallBack callBack) {
 
 
         if (TextUtils.isEmpty(url)) {
-            showLog("文件上传接口地址不能为空", false);
+            okHttpLog("文件上传接口地址不能为空", false);
             return;
         }
 
         if (TextUtils.isEmpty(filePath)) {
-            showLog("文件不存在" + filePath, false);
+            okHttpLog("文件地址不能为空" , false);
             return;
 
         }
@@ -564,7 +563,7 @@ public final class CanOkHttp {
      *
      * @param fileInfo 文件的信息
      */
-    private void upLoadFilePost(FileLoadBean fileInfo) {
+    private void upLoadFilePost(@NonNull FileLoadBean fileInfo) {
 
         try {
             String filePath = fileInfo.filePath;
@@ -575,7 +574,7 @@ public final class CanOkHttp {
             File file = new File(filePath);
 
             if (!file.exists()) {
-                showLog("文件不存在" + filePath, false);
+                okHttpLog("文件不存在" + filePath, false);
                 return;
             }
             MultipartBody.Builder mBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
@@ -590,7 +589,7 @@ public final class CanOkHttp {
                     log.append(logInfo);
                 }
             }
-            showLog(log.toString(), false);
+            okHttpLog(log.toString(), false);
             mBuilder.addFormDataPart(interfaceParamName,
                     file.getName(),
                     RequestBody.create(CanOkHttpUtil.fetchFileMediaType(filePath), file));
@@ -618,7 +617,7 @@ public final class CanOkHttp {
      * @param saveFileName 保存名称
      * @return CanOkHttp
      */
-    public CanOkHttp startDownload(String url, @NonNull final CanCallBack callBack, String saveFileName) {
+    public CanOkHttp startDownload(@NonNull String url, @NonNull final CanCallBack callBack, @NonNull String saveFileName) {
 
         if (downloadStatus != DownloadStatus.DOWNLOADING) {
             downloadStatus = DownloadStatus.DOWNLOADING;
@@ -1038,36 +1037,34 @@ public final class CanOkHttp {
 
         if (!isNetworkAvailable(mApplication)) {
 
-            sendFailMsg(ResultType.FAIL_NO_NETWORK, "");
+            sendFailMsg(ResultType.FAIL_NO_NETWORK, "FAIL_NO_NETWORK");
         } else if (e instanceof SocketTimeoutException) {
 
+            if (e.getMessage().equals("timeout")) {
+                sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, "FAIL_WRITE_READ_TIME_OUT");
 
-            if (e.getMessage().contains("failed to connect to")) {
-                sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, "");
-
-            } else if (e.getMessage().equals("timeout")) {
-                sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, "");
-
+            }else{
+                sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, "FAIL_CONNECTION_TIME_OUT");
             }
 
         } else if (e instanceof UnknownHostException) {
 
-            sendFailMsg(ResultType.FAIL_URL_ERROR, "");
+            sendFailMsg(ResultType.FAIL_URL_ERROR, "FAIL_UNKNOWN_HOST_ERROR");
 
         } else if (e instanceof ConnectException) {
 
-            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, "");
+            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, "FAIL_CONNECTION_TIME_OUT");
 
         } else if (e instanceof UnknownServiceException) {
-            sendFailMsg(ResultType.FAIL_NET_ERROR, "");
+            sendFailMsg(ResultType.FAIL_NET_ERROR, "FAIL_NET_ERROR");
 
         } else if (e instanceof HttpRetryException) {
 
-            sendFailMsg(ResultType.FAIL_NET_ERROR, "");
+            sendFailMsg(ResultType.FAIL_NET_ERROR, "FAIL_NET_ERROR");
         } else {
 
 
-            sendFailMsg(ResultType.FAIL_SOME_WRONG, "");
+            sendFailMsg(ResultType.FAIL_SOME_WRONG, "FAIL_SOME_WRONG");
 
 
         }
@@ -1083,35 +1080,34 @@ public final class CanOkHttp {
         try {
             if (null != res) {
 
-                showLog("HttpStatus: " + res.code(), false);
+                okHttpLog("HttpStatus: " + res.code()+" Message:"+res.message(), false);
 
 
                 switch (res.code()) {
 
-
                     case 404:
 
-                        sendFailMsg(ResultType.FAIL_URL_ERROR, "");
+                        sendFailMsg(ResultType.FAIL_URL_ERROR, "FAIL_URL_ERROR");
                         break;
 
                     case 416:
-                        sendFailMsg(ResultType.FAIL_SOME_WRONG, "");
+                        sendFailMsg(ResultType.FAIL_SOME_WRONG, "FAIL_SOME_WRONG");
                         break;
 
                     case 500:
-                        sendFailMsg(ResultType.FAIL_NO_RESULT, "");
+                        sendFailMsg(ResultType.FAIL_NO_RESULT, "FAIL_NO_RESULT");
                         break;
 
                     case 502:
-                        sendFailMsg(ResultType.FAIL_NET_ERROR, "");
+                        sendFailMsg(ResultType.FAIL_NET_ERROR, "FAIL_NET_ERROR");
                         break;
 
                     case 504:
-                        sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION, "");
+                        sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION, "FAIL_CONNECTION_INTERRUPTION");
                         break;
 
                     default:
-                        sendFailMsg(ResultType.FAIL_NET_ERROR, "");
+                        sendFailMsg(ResultType.FAIL_NET_ERROR, "FAIL_NET_ERROR");
                         break;
 
                 }
@@ -1122,10 +1118,12 @@ public final class CanOkHttp {
 
         } catch (Exception e) {
             e.printStackTrace();
-            sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION, "");
+            sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION, "FAIL_CONNECTION_INTERRUPTION");
         } finally {
-            if (null != res)
+            if (null != res){
                 res.close();
+            }
+
         }
 
 
@@ -1171,19 +1169,24 @@ public final class CanOkHttp {
         }
 
 
-        StringBuilder params = new StringBuilder();
-        params.append(url);
+        StringBuilder paramsUrl = new StringBuilder();
+        paramsUrl.append(url);
         if (isPost) {
             FormBody.Builder builder = new FormBody.Builder();
 
-
+            StringBuilder params = new StringBuilder();
             if (!paramMap.isEmpty()) {
 
                 String logInfo;
                 for (String name : paramMap.keySet()) {
                     builder.add(name, paramMap.get(name));
 
-                    logInfo = "&" + name + "=" + paramMap.get(name);
+                    if(TextUtils.isEmpty(params.toString())){
+                        logInfo = "?" + name + "=" + paramMap.get(name);
+                    }else{
+                        logInfo = "&" + name + "=" + paramMap.get(name);
+                    }
+
                     params.append(logInfo);
                 }
 
@@ -1195,25 +1198,33 @@ public final class CanOkHttp {
                     String logInfo;
                     for (String name : map.keySet()) {
                         builder.add(name, map.get(name));
-                        logInfo = "&" + name + "=" + paramMap.get(name);
+                        if(TextUtils.isEmpty(params.toString())){
+                            logInfo = "?" + name + "=" + paramMap.get(name);
+                        }else{
+                            logInfo = "&" + name + "=" + paramMap.get(name);
+                        }
                         params.append(logInfo);
                     }
 
                 }
             }
 
-
-            showLog(params.toString(), false);
+            paramsUrl.append(params);
+            okHttpLog(paramsUrl.toString(), false);
             requestBuilder
                     .url(url)
                     .post(builder.build());
         } else {
 
-
+            StringBuilder params = new StringBuilder();
             if (!paramMap.isEmpty()) {
                 String logInfo;
                 for (String name : paramMap.keySet()) {
-                    logInfo = "&" + name + "=" + paramMap.get(name);
+                    if(TextUtils.isEmpty(params.toString())){
+                        logInfo = "?" + name + "=" + paramMap.get(name);
+                    }else{
+                        logInfo = "&" + name + "=" + paramMap.get(name);
+                    }
                     params.append(logInfo);
                 }
             }
@@ -1223,17 +1234,23 @@ public final class CanOkHttp {
                 if (map != null && !map.isEmpty()) {
                     String logInfo;
                     for (String name : map.keySet()) {
-                        logInfo = "&" + name + "=" + paramMap.get(name);
+                        if(TextUtils.isEmpty(params.toString())){
+                            logInfo = "?" + name + "=" + paramMap.get(name);
+                        }else{
+                            logInfo = "&" + name + "=" + paramMap.get(name);
+                        }
                         params.append(logInfo);
                     }
 
                 }
             }
 
-            showLog(params.toString(), false);
+            paramsUrl.append(params);
+
+            okHttpLog(paramsUrl.toString(), false);
 
             requestBuilder
-                    .url(params.toString())
+                    .url(paramsUrl.toString())
                     .get();
         }
 
@@ -1242,7 +1259,7 @@ public final class CanOkHttp {
             requestBuilder.addHeader("Connection", "close");
         }
 
-        cache_key = params.toString();
+        cache_key = paramsUrl.toString();
 
         return requestBuilder.build();
 
@@ -1271,7 +1288,7 @@ public final class CanOkHttp {
         File file = new File(saveFileDir, saveFileNameEncrypt);
         if (file.exists() && file.isFile()) {
             long size = file.length();
-            showLog("断点文件下载，节点[" + size + "]", false);
+            okHttpLog("断点文件下载，节点[" + size + "]", false);
             return size;
         }
         return 0L;
@@ -1292,6 +1309,8 @@ public final class CanOkHttp {
      * @param str  失败信息
      */
     private void sendFailMsg(int code, String str) {
+
+        okHttpLog("FailCode:"+code+"  FailMessage:"+str,false);
         Message msg = new OkMessage(OkHandler.RESPONSE_FAIL_CALLBACK,
                 mCanCallBack,
                 code, str)
@@ -1305,7 +1324,7 @@ public final class CanOkHttp {
      * @param str 请求结果
      */
     private void sendResponseMsg(String str) {
-        showLog(str, true);
+        okHttpLog(str, true);
         Message msg = new OkMessage(OkHandler.RESPONSE_CALLBACK,
                 mCanCallBack,
                 str, "")
@@ -1319,7 +1338,7 @@ public final class CanOkHttp {
      * @param str 缓存
      */
     private void sendCacheMsg(String str) {
-        showLog(str, true);
+        okHttpLog(str, true);
         Message msg = new OkMessage(OkHandler.CACHE_CALLBACK,
                 mCanCallBack,
                 str, "")
@@ -1333,9 +1352,28 @@ public final class CanOkHttp {
      * @param filePath 文件路径
      */
     private void sendFileMsg(@DownloadStatus int code, String msgStr, String filePath) {
+        okHttpLog("DownloadStatus:"+code+"  Msg:"+msgStr+"  filePath:"+filePath,false);
         Message msg = new OkMessage(OkHandler.RESPONSE_FILE_CALLBACK,
                 mCanCallBack,
                 code, msgStr, filePath)
+                .build();
+        OkHandler.getInstance().sendMessage(msg);
+    }
+
+
+    /**
+     * 下载进度
+     * @param totalBytesRead 已下载大小
+     * @param contentLength  总大小
+     * @param isDone  是否完成
+     */
+    public void sendProgressMsg(long totalBytesRead,long contentLength,boolean isDone) {
+        okHttpLog("totalBytesRead:"+totalBytesRead+"  contentLength:"+contentLength+"  isDone:"+isDone,false);
+        Message msg = new OkMessage(OkHandler.PROGRESS_CALLBACK,
+                mCanCallBack,
+                totalBytesRead,
+                contentLength,
+                isDone)
                 .build();
         OkHandler.getInstance().sendMessage(msg);
     }
@@ -1346,7 +1384,7 @@ public final class CanOkHttp {
      * @param application Application
      * @param config      CanConfig
      */
-    public static void init(Application application, CanConfig config) {
+    public static void init(@NonNull Application application, CanConfig config) {
 
         if (config == null) {
 
@@ -1365,7 +1403,7 @@ public final class CanOkHttp {
      * @param application Application
      * @return CanConfig
      */
-    public static CanConfig getDefaultConfig(Application application) {
+    public static CanConfig getDefaultConfig(@NonNull Application application) {
 
         CanConfig config = new CanConfig();
 
@@ -1397,7 +1435,7 @@ public final class CanOkHttp {
                 .setReadTimeout(30)
                 .setWriteTimeout(30)
                 .setRetryOnConnectionFailure(false)
-                .setCacheSurvivalTime(5 * ACache.TIME_DAY)
+                .setCacheSurvivalTime(ACache.TIME_DAY)
                 .setCacheNoHttpTime(60)
                 .setCacheType(CacheType.NETWORK)
                 .setNetworkInterceptors(null)

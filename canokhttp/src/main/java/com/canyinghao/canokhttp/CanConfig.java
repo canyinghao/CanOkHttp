@@ -15,12 +15,14 @@ import okhttp3.CookieJar;
 import okhttp3.Interceptor;
 
 /**
- * Created by jianyang on 2016/10/12.
+ * CanConfig
+ *
+ * @author canyinghao
  */
 
 public final class CanConfig {
 
-    public static final int TIME_OUT = 30;
+    private final int TIME_OUT = 30;
     private Application application;
 
 

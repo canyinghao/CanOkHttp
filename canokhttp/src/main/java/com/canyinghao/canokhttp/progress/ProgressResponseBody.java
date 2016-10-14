@@ -1,10 +1,11 @@
 package com.canyinghao.canokhttp.progress;
 
-import android.os.Message;
+import android.support.annotation.NonNull;
+
 import com.canyinghao.canokhttp.CanOkHttp;
-import com.canyinghao.canokhttp.handler.OkHandler;
-import com.canyinghao.canokhttp.handler.OkMessage;
+
 import java.io.IOException;
+
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import okio.Buffer;
@@ -28,7 +29,7 @@ public  class ProgressResponseBody extends ResponseBody {
 
     private CanOkHttp okHttp;
 
-    public ProgressResponseBody(ResponseBody responseBody, CanOkHttp okHttp) {
+    public ProgressResponseBody(@NonNull ResponseBody responseBody, @NonNull  CanOkHttp okHttp) {
         this.responseBody = responseBody;
         this.okHttp = okHttp;
 
@@ -64,13 +65,7 @@ public  class ProgressResponseBody extends ResponseBody {
                 }
                 totalBytesRead += bytesRead != -1 ? bytesRead : 0;
 
-                Message msg = new OkMessage(OkHandler.PROGRESS_CALLBACK,
-                        okHttp.getCanCallBack(),
-                        totalBytesRead,
-                        responseBody.contentLength(),
-                        bytesRead == -1)
-                        .build();
-                OkHandler.getInstance().sendMessage(msg);
+                okHttp.sendProgressMsg(totalBytesRead,contentLength(),bytesRead==-1);
 
                 return bytesRead;
             }
