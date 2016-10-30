@@ -156,12 +156,9 @@ public final class CanConfig {
 
 
     public CanConfig setCacheSurvivalTime(int cacheSurvivalTime) {
-        if (cacheSurvivalTime < 0) {
-
-            cacheSurvivalTime = TIME_OUT;
-        }
 
         this.cacheSurvivalTime = cacheSurvivalTime;
+
         return this;
     }
 

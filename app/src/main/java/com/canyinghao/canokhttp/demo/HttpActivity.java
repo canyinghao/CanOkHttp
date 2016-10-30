@@ -11,6 +11,7 @@ import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.annotation.CacheType;
 import com.canyinghao.canokhttp.annotation.ResultType;
 import com.canyinghao.canokhttp.callback.CanSimpleCallBack;
+import com.socks.library.KLog;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -108,7 +109,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onResponse(Object result) {
 
-                                
+                                KLog.e("onResponse");
 
                                 tvResult.setText(result.toString());
                             }
@@ -116,7 +117,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onCache(Object result) {
 
-
+                                KLog.e("onCache");
 
                                 tvResult.setText(result.toString());
                             }
@@ -151,7 +152,7 @@ public class HttpActivity extends BaseActivity {
 
                             @Override
                             public void onCache(Object result) {
-
+                                KLog.e("onCache");
 
 
                                 tvResult.setText(result.toString());
@@ -160,7 +161,7 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onResponse(Object result) {
 
-
+                                KLog.e("onResponse");
 
                                 tvResult.setText(result.toString());
                             }
@@ -279,9 +280,9 @@ public class HttpActivity extends BaseActivity {
                         .add("sign", "b59bc3ef6191eb9f747dd4e83c99f2a4")
                         .add("format", "json")
                         .add("cache", "CACHETIME_NETWORK_CACHE")
-                        .url( url)
+                        .url(url)
                         .setTag(this)
-                        .setCacheSurvivalTime(180)
+                        .setCacheSurvivalTime(0)
                         .setCacheNoHttpTime(60)
                         .setCacheType(CacheType.CACHETIME_NETWORK_CACHE)
                         .post()
@@ -290,14 +291,14 @@ public class HttpActivity extends BaseActivity {
                             @Override
                             public void onCache(Object result) {
 
-
+                                KLog.e("onCache");
 
                                 tvResult.setText(result.toString());
                             }
 
                             @Override
                             public void onResponse(Object result) {
-
+                                KLog.e("onResponse");
 
 
                                 tvResult.setText(result.toString());

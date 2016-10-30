@@ -285,7 +285,8 @@ public final class CanOkHttp {
      * @param value 值
      * @return CanOkHttp
      */
-    public CanOkHttp add(@NonNull  String key, @NonNull String value) {
+    public CanOkHttp add(@NonNull String key, @NonNull String value) {
+
 
 
         paramMap.put(key, value);
@@ -338,7 +339,12 @@ public final class CanOkHttp {
      */
     public CanOkHttp post(boolean isPublic) {
 
-        mRequest = fetchRequest(true, isPublic);
+        try{
+            mRequest = fetchRequest(true, isPublic);
+        }catch (Exception e){
+           e.printStackTrace();
+        }
+
         initClient();
 
         return this;
@@ -366,7 +372,12 @@ public final class CanOkHttp {
     public CanOkHttp get(boolean isPublic) {
 
 
-        mRequest = fetchRequest(false, isPublic);
+        try{
+            mRequest = fetchRequest(false, isPublic);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
         initClient();
         return this;
     }
@@ -541,7 +552,7 @@ public final class CanOkHttp {
         }
 
         if (TextUtils.isEmpty(filePath)) {
-            okHttpLog("文件地址不能为空" , false);
+            okHttpLog("文件地址不能为空", false);
             return;
 
         }
@@ -785,7 +796,8 @@ public final class CanOkHttp {
 
                 } else if (type == 1) {
 
-                    getACache().put(cache_key, result, mCurrentConfig.getCacheSurvivalTime());
+                    putCache(result);
+
 
                 }
 
@@ -797,8 +809,7 @@ public final class CanOkHttp {
 
                 if (type == 1) {
 
-
-                    getACache().put(cache_key, result, mCurrentConfig.getCacheSurvivalTime());
+                    putCache(result);
 
 
                 } else if (type == 2) {
@@ -836,7 +847,8 @@ public final class CanOkHttp {
 
                 } else if (type == 1) {
 
-                    getACache().put(cache_key, result, mCurrentConfig.getCacheSurvivalTime());
+                    putCache(result);
+
 
                 }
 
@@ -877,9 +889,8 @@ public final class CanOkHttp {
 
 
                 } else if (type == 1) {
+                    putCache(result);
 
-
-                    getACache().put(cache_key, result, mCurrentConfig.getCacheSurvivalTime());
 
                 }
 
@@ -917,8 +928,8 @@ public final class CanOkHttp {
 
                 } else if (type == 1) {
 
+                    putCache(result);
 
-                    getACache().put(cache_key, result, mCurrentConfig.getCacheSurvivalTime());
 
                 } else {
 
@@ -941,6 +952,16 @@ public final class CanOkHttp {
         }
 
         return false;
+    }
+
+    private void putCache(String result) {
+        if (mCurrentConfig.getCacheSurvivalTime() <= 0) {
+
+            getACache().put(cache_key, result);
+        } else {
+            getACache().put(cache_key, result, mCurrentConfig.getCacheSurvivalTime());
+
+        }
     }
 
 
@@ -1035,8 +1056,8 @@ public final class CanOkHttp {
      */
     private void dealWithException(IOException e) {
 
-        if(e!=null&&!TextUtils.isEmpty(e.getMessage())){
-            okHttpLog(e.getMessage(),false);
+        if (e != null && !TextUtils.isEmpty(e.getMessage())) {
+            okHttpLog(e.getMessage(), false);
         }
         if (!isNetworkAvailable(mApplication)) {
 
@@ -1046,7 +1067,7 @@ public final class CanOkHttp {
             if ("timeout".equals(e.getMessage())) {
                 sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, "FAIL_WRITE_READ_TIME_OUT");
 
-            }else{
+            } else {
                 sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, "FAIL_CONNECTION_TIME_OUT");
             }
 
@@ -1083,7 +1104,7 @@ public final class CanOkHttp {
         try {
             if (null != res) {
 
-                okHttpLog("HttpStatus: " + res.code()+" Message:"+res.message(), false);
+                okHttpLog("HttpStatus: " + res.code() + " Message:" + res.message(), false);
 
 
                 switch (res.code()) {
@@ -1123,7 +1144,7 @@ public final class CanOkHttp {
             e.printStackTrace();
             sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION, "FAIL_CONNECTION_INTERRUPTION");
         } finally {
-            if (null != res){
+            if (null != res) {
                 res.close();
             }
 
@@ -1155,6 +1176,7 @@ public final class CanOkHttp {
      */
     private Request fetchRequest(boolean isPost, boolean isGlobal) {
 
+
         Request.Builder requestBuilder = new Request.Builder();
 
         if (!headerMap.isEmpty()) {
@@ -1184,9 +1206,9 @@ public final class CanOkHttp {
                 for (String name : paramMap.keySet()) {
                     builder.add(name, paramMap.get(name));
 
-                    if(TextUtils.isEmpty(params.toString())){
+                    if (TextUtils.isEmpty(params.toString())) {
                         logInfo = "?" + name + "=" + paramMap.get(name);
-                    }else{
+                    } else {
                         logInfo = "&" + name + "=" + paramMap.get(name);
                     }
 
@@ -1201,9 +1223,9 @@ public final class CanOkHttp {
                     String logInfo;
                     for (String name : map.keySet()) {
                         builder.add(name, map.get(name));
-                        if(TextUtils.isEmpty(params.toString())){
+                        if (TextUtils.isEmpty(params.toString())) {
                             logInfo = "?" + name + "=" + paramMap.get(name);
-                        }else{
+                        } else {
                             logInfo = "&" + name + "=" + paramMap.get(name);
                         }
                         params.append(logInfo);
@@ -1223,9 +1245,9 @@ public final class CanOkHttp {
             if (!paramMap.isEmpty()) {
                 String logInfo;
                 for (String name : paramMap.keySet()) {
-                    if(TextUtils.isEmpty(params.toString())){
+                    if (TextUtils.isEmpty(params.toString())) {
                         logInfo = "?" + name + "=" + paramMap.get(name);
-                    }else{
+                    } else {
                         logInfo = "&" + name + "=" + paramMap.get(name);
                     }
                     params.append(logInfo);
@@ -1237,9 +1259,9 @@ public final class CanOkHttp {
                 if (map != null && !map.isEmpty()) {
                     String logInfo;
                     for (String name : map.keySet()) {
-                        if(TextUtils.isEmpty(params.toString())){
+                        if (TextUtils.isEmpty(params.toString())) {
                             logInfo = "?" + name + "=" + paramMap.get(name);
-                        }else{
+                        } else {
                             logInfo = "&" + name + "=" + paramMap.get(name);
                         }
                         params.append(logInfo);
@@ -1313,7 +1335,7 @@ public final class CanOkHttp {
      */
     private void sendFailMsg(int code, String str) {
 
-        okHttpLog("FailCode:"+code+"  FailMessage:"+str,false);
+        okHttpLog("FailCode:" + code + "  FailMessage:" + str, false);
         Message msg = new OkMessage(OkHandler.RESPONSE_FAIL_CALLBACK,
                 mCanCallBack,
                 code, str)
@@ -1355,7 +1377,7 @@ public final class CanOkHttp {
      * @param filePath 文件路径
      */
     private void sendFileMsg(@DownloadStatus int code, String msgStr, String filePath) {
-        okHttpLog("DownloadStatus:"+code+"  Msg:"+msgStr+"  filePath:"+filePath,false);
+        okHttpLog("DownloadStatus:" + code + "  Msg:" + msgStr + "  filePath:" + filePath, false);
         Message msg = new OkMessage(OkHandler.RESPONSE_FILE_CALLBACK,
                 mCanCallBack,
                 code, msgStr, filePath)
@@ -1366,12 +1388,13 @@ public final class CanOkHttp {
 
     /**
      * 下载进度
+     *
      * @param totalBytesRead 已下载大小
      * @param contentLength  总大小
-     * @param isDone  是否完成
+     * @param isDone         是否完成
      */
-    public void sendProgressMsg(long totalBytesRead,long contentLength,boolean isDone) {
-        okHttpLog("totalBytesRead:"+totalBytesRead+"  contentLength:"+contentLength+"  isDone:"+isDone,false);
+    public void sendProgressMsg(long totalBytesRead, long contentLength, boolean isDone) {
+        okHttpLog("totalBytesRead:" + totalBytesRead + "  contentLength:" + contentLength + "  isDone:" + isDone, false);
         Message msg = new OkMessage(OkHandler.PROGRESS_CALLBACK,
                 mCanCallBack,
                 totalBytesRead,
