@@ -288,7 +288,6 @@ public final class CanOkHttp {
     public CanOkHttp add(@NonNull String key, @NonNull String value) {
 
 
-
         paramMap.put(key, value);
 
         return this;
@@ -339,10 +338,10 @@ public final class CanOkHttp {
      */
     public CanOkHttp post(boolean isPublic) {
 
-        try{
+        try {
             mRequest = fetchRequest(true, isPublic);
-        }catch (Exception e){
-           e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         initClient();
@@ -372,9 +371,9 @@ public final class CanOkHttp {
     public CanOkHttp get(boolean isPublic) {
 
 
-        try{
+        try {
             mRequest = fetchRequest(false, isPublic);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -559,6 +558,7 @@ public final class CanOkHttp {
 
         FileLoadBean loadBean = new FileLoadBean(url, fileParam, filePath, true);
 
+
         upLoadFilePost(loadBean);
 
         initClient();
@@ -637,7 +637,14 @@ public final class CanOkHttp {
             completedSize = fetchCompletedSize(fileInfo);
 
             addHeader("RANGE", "bytes=" + completedSize + "-");
+
+            setCacheType(CacheType.NETWORK);
+            setConnectTimeout(30 * 60);
+            setReadTimeout(30 * 60);
+            setWriteTimeout(30 * 60);
+
             url(url);
+
             get();
 
             setCallBack(callBack, fileInfo);
@@ -795,6 +802,19 @@ public final class CanOkHttp {
                     }
 
                 } else if (type == 1) {
+
+                    putCache(result);
+
+
+                }
+
+
+                break;
+
+
+            case CacheType.NET_CACHE:
+
+                if (type == 1) {
 
                     putCache(result);
 
@@ -1008,15 +1028,18 @@ public final class CanOkHttp {
             //下载完成
             if (DownloadStatus.DOWNLOADING == downloadStatus) {
                 downloadStatus = DownloadStatus.COMPLETED;
-                File newFile = new File(fileInfo.saveFileDir, fileInfo.saveFileNameWithExtension);
+                File newFile = new File(fileInfo.saveFileDir, fileInfo.saveFileName);
                 //处理文件已存在逻辑
                 if (newFile.exists() && newFile.isFile()) {
-                    filePath = fileInfo.saveFileDir + fileInfo.saveFileNameCopy;
-                    newFile = new File(fileInfo.saveFileDir, fileInfo.saveFileNameCopy);
+                    File copyFile = new File(fileInfo.saveFileDir, fileInfo.saveFileNameCopy);
+                    boolean isSuccess = newFile.renameTo(copyFile);
                 }
                 File oldFile = new File(fileInfo.saveFileDir, fileInfo.saveFileNameEncrypt);
                 if (oldFile.exists() && oldFile.isFile()) {
-                    oldFile.renameTo(newFile);
+                    boolean isSuccess = oldFile.renameTo(newFile);
+                    if (!isSuccess) {
+                        filePath = oldFile.getAbsolutePath();
+                    }
                 }
 
                 sendFileMsg(DownloadStatus.COMPLETED, "下载成功", filePath);
@@ -1292,24 +1315,40 @@ public final class CanOkHttp {
 
 
     private long fetchCompletedSize(FileLoadBean fileInfo) {
+
+
         String saveFileDir = fileInfo.saveFileDir;
         String saveFileName = fileInfo.saveFileName;
         String url = fileInfo.url;
-        String extension = url.substring(url.lastIndexOf(".") + 1);//扩展名
-        String saveFileNameCopy = saveFileName + "_copy." + extension;
-        saveFileName += "." + extension;
+        String extension = "";
+        if (url.contains(".")) {
+            extension = url.substring(url.lastIndexOf(".") + 1);//扩展名
+            extension = "." + extension;
+        }
+
+
+        String saveFileNameCopy = saveFileName + "_copy" + extension;
+
         saveFileDir = TextUtils.isEmpty(saveFileDir) ? mCurrentConfig.getDownloadFileDir() : saveFileDir;
         mkDirNotExists(saveFileDir);
         fileInfo.saveFileDir = saveFileDir;
         fileInfo.saveFileNameCopy = saveFileNameCopy;
-        fileInfo.saveFileNameWithExtension = saveFileName;
+
         String saveFileNameEncrypt = url;
         try {
             saveFileNameEncrypt = CanOkHttpUtil.MD5StringTo32Bit(url, true);
+            saveFileNameEncrypt += extension;
             fileInfo.saveFileNameEncrypt = saveFileNameEncrypt;
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
+        if (!mCurrentConfig.isDownAccessFile()) {
+            return 0L;
+        }
+
+
         File file = new File(saveFileDir, saveFileNameEncrypt);
         if (file.exists() && file.isFile()) {
             long size = file.length();
@@ -1467,6 +1506,7 @@ public final class CanOkHttp {
                 .setNetworkInterceptors(null)
                 .setInterceptors(null)
                 .setDownloadFileDir(downLoadDir)
+                .setDownAccessFile(false)
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(application)));
 
         return config;

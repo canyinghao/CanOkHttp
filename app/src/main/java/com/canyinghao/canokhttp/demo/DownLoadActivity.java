@@ -27,8 +27,8 @@ public class DownLoadActivity extends BaseActivity {
     @Bind(R.id.tvResult)
     TextView tvResult;
 
-    private String url = "http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4";
-//    private String url = "http://www.canyinghao.com/assets/work/canyinghao/canyinghao.apk";
+//    private String url = "http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4";
+    private String url = "http://www.canyinghao.com/assets/work/canyinghao/canyinghao.apk";
 
 
 

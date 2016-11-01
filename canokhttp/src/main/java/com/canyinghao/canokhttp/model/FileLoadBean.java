@@ -1,8 +1,5 @@
 package com.canyinghao.canokhttp.model;
 
-import com.canyinghao.canokhttp.annotation.DownloadStatus;
-import com.canyinghao.canokhttp.callback.CanCallBack;
-
 import java.io.Serializable;
 
 
@@ -24,7 +21,6 @@ public class FileLoadBean implements Serializable {
     public String saveFileName;
 
 
-    public String saveFileNameWithExtension;//保存文件名称：包含扩展名
     public String saveFileNameCopy;//保存文件备用名称：用于文件名称冲突
     public String saveFileNameEncrypt;//保存文件名称（加密后）
 

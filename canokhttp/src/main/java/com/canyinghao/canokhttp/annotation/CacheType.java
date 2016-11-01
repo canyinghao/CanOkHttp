@@ -10,15 +10,20 @@ import java.lang.annotation.RetentionPolicy;
  *
  * @author canyinghao
  */
-@IntDef({CacheType.NETWORK, CacheType.CACHE, CacheType.NETWORK_CACHE,
+@IntDef({CacheType.NETWORK, CacheType.CACHE, CacheType.NET_CACHE, CacheType.NETWORK_CACHE,
         CacheType.CACHE_NETWORK, CacheType.CACHETIME_NETWORK,
         CacheType.CACHETIME_NETWORK_CACHE})
 @Retention(RetentionPolicy.SOURCE)
 public @interface CacheType {
-
-    int NETWORK = 1;
-    int CACHE = 2;
+    //只请求网络
+    int NETWORK = 0;
+    //无cache请求网络，之后读cache
+    int CACHE = 1;
+    //请求成功存cache，失败调用失败
+    int NET_CACHE = 2;
+    //请求成功存cache，请求失败读cache，无cache失败
     int NETWORK_CACHE = 3;
+    //先读cache，然后请求，请求成功存cache，失败调用失败
     int CACHE_NETWORK = 4;
     //  如果cachetime未过期，只读cache
     int CACHETIME_NETWORK = 5;
