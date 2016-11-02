@@ -40,11 +40,13 @@ public class HttpActivity extends BaseActivity {
 
     public String url = "http://api.k780.com:88/";
 
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_http);
         ButterKnife.bind(this);
+
     }
 
 
@@ -74,7 +76,6 @@ public class HttpActivity extends BaseActivity {
 
                             @Override
                             public void onResponse(Object result) {
-
 
 
                                 tvResult.setText(result.toString());
@@ -200,7 +201,6 @@ public class HttpActivity extends BaseActivity {
                             public void onCache(Object result) {
 
 
-
                                 tvResult.setText(result.toString());
                             }
 
@@ -244,13 +244,11 @@ public class HttpActivity extends BaseActivity {
                             public void onCache(Object result) {
 
 
-
                                 tvResult.setText(result.toString());
                             }
 
                             @Override
                             public void onResponse(Object result) {
-
 
 
                                 tvResult.setText(result.toString());
@@ -272,6 +270,7 @@ public class HttpActivity extends BaseActivity {
             case R.id.btn_6:
 
                 //   缓存不请求网络的时间之内仅读缓存，过期请求网络，请求失败读取缓存（CACHETIME_NETWORK_CACHE）
+
 
                 CanOkHttp.getInstance()
 
@@ -312,6 +311,7 @@ public class HttpActivity extends BaseActivity {
 
 
                         });
+
 
                 break;
 

@@ -42,8 +42,12 @@ public final class CanConfig {
 
 
     private String downloadFileDir;//下载文件保存目录
+    private long downloadDelayTime;//下载完成后延迟事件
 
     private boolean isDownAccessFile;//是否断点下载
+
+
+
     private Class<?> tag;
     private CookieJar cookieJar;
 
@@ -220,6 +224,14 @@ public final class CanConfig {
     }
 
 
+    public CanConfig setDownloadDelayTime(long downloadDelayTime) {
+        this.downloadDelayTime = downloadDelayTime;
+        return this;
+    }
+
+    public long getDownloadDelayTime() {
+        return downloadDelayTime;
+    }
 
     public CanConfig setDownAccessFile(boolean downAccessFile) {
         isDownAccessFile = downAccessFile;
@@ -229,6 +241,8 @@ public final class CanConfig {
     public boolean isDownAccessFile() {
         return isDownAccessFile;
     }
+
+
 
     public CanConfig setCookieJar(CookieJar cookieJar) {
         if (cookieJar == null) throw new NullPointerException("cookieJar == null");
@@ -302,8 +316,9 @@ public final class CanConfig {
         this.cacheType = config.cacheType;
         this.cacheNoHttpTime = config.cacheNoHttpTime;
         this.downloadFileDir = config.downloadFileDir;
-
+        this.downloadDelayTime = config.downloadDelayTime;
         this.isDownAccessFile = config.isDownAccessFile;
+
         this.tag = config.tag;
         this.cookieJar = config.cookieJar;
         this.globalParamMap = config.globalParamMap;

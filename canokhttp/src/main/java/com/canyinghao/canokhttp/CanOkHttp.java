@@ -23,6 +23,9 @@ import com.canyinghao.canokhttp.handler.OkMessage;
 import com.canyinghao.canokhttp.model.FileLoadBean;
 import com.canyinghao.canokhttp.progress.ProgressRequestBody;
 import com.canyinghao.canokhttp.progress.ProgressResponseBody;
+import com.canyinghao.canokhttp.threadpool.Future;
+import com.canyinghao.canokhttp.threadpool.FutureListener;
+import com.canyinghao.canokhttp.threadpool.ThreadPool;
 import com.canyinghao.canokhttp.util.CanOkHttpUtil;
 import com.socks.library.KLog;
 
@@ -253,6 +256,7 @@ public final class CanOkHttp {
 
         //实例化client
         mCurrentHttpClient = clientBuilder.build();
+
 
     }
 
@@ -647,7 +651,9 @@ public final class CanOkHttp {
 
             get();
 
+
             setCallBack(callBack, fileInfo);
+
         }
 
 
@@ -663,8 +669,12 @@ public final class CanOkHttp {
      */
     public void setCallBack(@NonNull CanCallBack callBack) {
 
+
         setCallBack(callBack, null);
+
+
     }
+
 
     /**
      * 设置回调
@@ -687,6 +697,41 @@ public final class CanOkHttp {
             return;
         }
 
+
+        if (!isDownOrUpLoad) {
+
+
+            ThreadPool.getInstance().submit(new ThreadPool.Job<Boolean>() {
+
+                @Override
+                public Boolean run(ThreadPool.JobContext var1) {
+
+                    return dealWithCache(0, "");
+                }
+            }, new FutureListener<Boolean>() {
+                @Override
+                public void onFutureDone(Future<Boolean> var1) {
+
+                    boolean b = var1.get();
+
+                    if (b) {
+                        return;
+                    }
+
+                    doCall(callBack, fileInfo);
+                }
+            });
+
+
+        } else {
+            doCall(callBack, fileInfo);
+        }
+
+
+    }
+
+
+    private void doCall(@NonNull final CanCallBack callBack, final FileLoadBean fileInfo) {
 
         if (!isDownOrUpLoad && dealWithCache(0, "")) {
             return;
@@ -765,8 +810,6 @@ public final class CanOkHttp {
 
             }
         });
-
-
     }
 
 
@@ -1421,7 +1464,7 @@ public final class CanOkHttp {
                 mCanCallBack,
                 code, msgStr, filePath)
                 .build();
-        OkHandler.getInstance().sendMessage(msg);
+        OkHandler.getInstance().sendMessageDelayed(msg, mCurrentConfig.getDownloadDelayTime());
     }
 
 
@@ -1506,6 +1549,7 @@ public final class CanOkHttp {
                 .setNetworkInterceptors(null)
                 .setInterceptors(null)
                 .setDownloadFileDir(downLoadDir)
+                .setDownloadDelayTime(1000)
                 .setDownAccessFile(false)
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(application)));
 
