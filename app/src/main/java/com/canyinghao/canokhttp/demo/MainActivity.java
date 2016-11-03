@@ -37,7 +37,7 @@ public class MainActivity extends BaseActivity {
 
     }
 
-    @OnClick({R.id.btn_1,R.id.btn_2,R.id.btn_3})
+    @OnClick({R.id.btn_1,R.id.btn_2,R.id.btn_3,R.id.btn_4})
     public void click(View v){
 
         switch (v.getId()){
@@ -64,6 +64,13 @@ public class MainActivity extends BaseActivity {
 
                 break;
 
+
+            case R.id.btn_4:
+
+                startActivity(new Intent(this,TestActivity.class));
+
+
+                break;
 
 
 

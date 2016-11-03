@@ -102,6 +102,9 @@ public final class CanOkHttp {
     //下载状态
     private int downloadStatus = DownloadStatus.INIT;
 
+    //是否已经初始化OkClient
+    private boolean isInitOkClient;
+
 
     public static CanOkHttp getInstance() {
 
@@ -241,8 +244,11 @@ public final class CanOkHttp {
                 .connectTimeout(mCurrentConfig.getConnectTimeout(), TimeUnit.SECONDS)
                 .readTimeout(mCurrentConfig.getReadTimeout(), TimeUnit.SECONDS)
                 .writeTimeout(mCurrentConfig.getWriteTimeout(), TimeUnit.SECONDS)
-                .retryOnConnectionFailure(mCurrentConfig.isRetryOnConnectionFailure())
-                .addNetworkInterceptor(PROGRESS_INTERCEPTOR);
+                .retryOnConnectionFailure(mCurrentConfig.isRetryOnConnectionFailure());
+
+        if (isDownOrUpLoad) {
+            clientBuilder.addNetworkInterceptor(PROGRESS_INTERCEPTOR);
+        }
         if (null != mCurrentConfig.getNetworkInterceptors() && !mCurrentConfig.getNetworkInterceptors().isEmpty())
             clientBuilder.networkInterceptors().addAll(mCurrentConfig.getNetworkInterceptors());
         if (null != mCurrentConfig.getInterceptors() && !mCurrentConfig.getInterceptors().isEmpty())
@@ -258,6 +264,18 @@ public final class CanOkHttp {
         mCurrentHttpClient = clientBuilder.build();
 
 
+    }
+
+
+    /**
+     * 初始化OkClient
+     *
+     * @return CanOkHttp
+     */
+    public CanOkHttp initOkClient() {
+        isInitOkClient = true;
+        initClient();
+        return this;
     }
 
 
@@ -348,7 +366,9 @@ public final class CanOkHttp {
             e.printStackTrace();
         }
 
-        initClient();
+        if (!isInitOkClient) {
+            initClient();
+        }
 
         return this;
     }
@@ -381,7 +401,10 @@ public final class CanOkHttp {
             e.printStackTrace();
         }
 
-        initClient();
+        if (!isInitOkClient) {
+            initClient();
+        }
+
         return this;
     }
 
@@ -560,6 +583,8 @@ public final class CanOkHttp {
 
         }
 
+        isDownOrUpLoad = true;
+
         FileLoadBean loadBean = new FileLoadBean(url, fileParam, filePath, true);
 
 
@@ -637,6 +662,8 @@ public final class CanOkHttp {
         if (downloadStatus != DownloadStatus.DOWNLOADING) {
             downloadStatus = DownloadStatus.DOWNLOADING;
 
+            isDownOrUpLoad = true;
+
             FileLoadBean fileInfo = new FileLoadBean(url, mCurrentConfig.getDownloadFileDir(), saveFileName);
             completedSize = fetchCompletedSize(fileInfo);
 
@@ -704,21 +731,22 @@ public final class CanOkHttp {
             ThreadPool.getInstance().submit(new ThreadPool.Job<Boolean>() {
 
                 @Override
-                public Boolean run(ThreadPool.JobContext var1) {
+                public Boolean run(ThreadPool.JobContext job) {
+
 
                     return dealWithCache(0, "");
                 }
             }, new FutureListener<Boolean>() {
                 @Override
-                public void onFutureDone(Future<Boolean> var1) {
+                public void onFutureDone(Future<Boolean> future) {
 
-                    boolean b = var1.get();
+                    boolean b = future.get();
 
                     if (b) {
                         return;
                     }
 
-                    doCall(callBack, fileInfo);
+                    doCall(callBack, null);
                 }
             });
 

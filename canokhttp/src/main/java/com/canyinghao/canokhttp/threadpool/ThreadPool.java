@@ -62,13 +62,13 @@ public class ThreadPool {
     }
 
     public <T> Future<T> submit(ThreadPool.Job<T> job, FutureListener<T> listener) {
-        ThreadPool.Worker w = new ThreadPool.Worker(job, listener);
+        ThreadPool.Worker<T> w = new ThreadPool.Worker<T>(job, listener);
         this.mExecutor.execute(w);
         return w;
     }
 
     public <T> Future<T> submit(ThreadPool.Job<T> job) {
-        return this.submit(job, (FutureListener) null);
+        return this.submit(job, null);
     }
 
     private class Worker<T> implements Runnable, Future<T>, ThreadPool.JobContext {
@@ -88,7 +88,7 @@ public class ThreadPool {
         }
 
         public void run() {
-            Object result = null;
+            T result = null;
             if (this.setMode(MODE_CPU)) {
                 try {
                     result = this.mJob.run(this);
@@ -99,7 +99,7 @@ public class ThreadPool {
 
             synchronized (this) {
                 this.setMode(MODE_NONE);
-                this.mResult = (T) result;
+                this.mResult = result;
                 this.mIsDone = true;
                 this.notifyAll();
             }
@@ -197,8 +197,8 @@ public class ThreadPool {
                     if (counter.value <= 0) {
                         try {
                             counter.wait();
-                        } catch (InterruptedException var7) {
-                            ;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                         continue;
                     }
@@ -237,13 +237,16 @@ public class ThreadPool {
         private JobContextStub() {
         }
 
+        @Override
         public boolean isCancelled() {
             return false;
         }
 
+        @Override
         public void setCancelListener(ThreadPool.CancelListener listener) {
         }
 
+        @Override
         public boolean setMode(int mode) {
             return true;
         }
