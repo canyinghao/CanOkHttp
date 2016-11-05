@@ -42,13 +42,16 @@ public final class CanConfig {
 
 
     private String downloadFileDir;//下载文件保存目录
+
     private long downloadDelayTime;//下载完成后延迟事件
 
     private boolean isDownAccessFile;//是否断点下载
 
+    private boolean isCacheInThread;//是否在线程中读缓存
 
 
-    private Class<?> tag;
+
+    private String tag;
     private CookieJar cookieJar;
 
     private Map<String, String> globalParamMap = new HashMap<>();  //全局参数
@@ -193,24 +196,33 @@ public final class CanConfig {
     }
 
 
+    public CanConfig setCacheInThread(boolean cacheInThread) {
+        isCacheInThread = cacheInThread;
+        return this;
+    }
+
+    public boolean isCacheInThread() {
+        return isCacheInThread;
+    }
+
     public CanConfig setTag(Object object) {
         if (object instanceof Activity) {
             Activity activity = (Activity) object;
-            this.tag = activity.getClass();
+            this.tag = activity.getClass().getCanonicalName();
         }
         if (object instanceof android.support.v4.app.Fragment) {
             android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
-            this.tag = fragment.getActivity().getClass();
+            this.tag = fragment.getActivity().getClass().getCanonicalName();
         }
         if (object instanceof android.app.Fragment) {
             android.app.Fragment fragment = (android.app.Fragment) object;
-            this.tag = fragment.getActivity().getClass();
+            this.tag = fragment.getActivity().getClass().getCanonicalName();
         }
         return this;
     }
 
 
-    public Class<?> getTag() {
+    public String getTag() {
         return tag;
     }
 
@@ -318,6 +330,7 @@ public final class CanConfig {
         this.downloadFileDir = config.downloadFileDir;
         this.downloadDelayTime = config.downloadDelayTime;
         this.isDownAccessFile = config.isDownAccessFile;
+        this.isCacheInThread = config.isCacheInThread;
 
         this.tag = config.tag;
         this.cookieJar = config.cookieJar;

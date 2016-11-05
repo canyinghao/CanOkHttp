@@ -16,7 +16,7 @@ import okhttp3.Call;
 public final class CanCallManager {
 
 
-    private static Map<Class<?>, SparseArray<Call>> allCallsMap = new ConcurrentHashMap<>();
+    private static Map<String, SparseArray<Call>> allCallsMap = new ConcurrentHashMap<>();
 
 
     /**
@@ -25,7 +25,7 @@ public final class CanCallManager {
      * @param tag  请求标识
      * @param call 请求
      */
-    static void putCall(@NonNull Class<?> tag, @NonNull Call call) {
+    static void putCall(@NonNull String tag, @NonNull Call call) {
 
 
         SparseArray<Call> callList = allCallsMap.get(tag);
@@ -41,9 +41,25 @@ public final class CanCallManager {
     /**
      * 取消请求
      *
+     * @param cls 请求标识
+     */
+    public static void cancelCallByActivityDestroy(@NonNull Class<?> cls) {
+
+
+        String tag = cls.getCanonicalName();
+        cancelCallByTag(tag);
+
+
+    }
+
+
+    /**
+     * 取消请求
+     *
      * @param tag 请求标识
      */
-    public static void cancelCallByActivityDestroy(@NonNull Class<?> tag) {
+    public static void cancelCallByTag(@NonNull String tag) {
+
 
 
         SparseArray<Call> callList = allCallsMap.get(tag);
@@ -66,7 +82,7 @@ public final class CanCallManager {
      * @param tag  请求标识
      * @param call 请求
      */
-    static void cancelCall(@NonNull Class<?> tag, @NonNull Call call) {
+    static void cancelCall(@NonNull String tag, @NonNull Call call) {
 
 
         SparseArray<Call> callList = allCallsMap.get(tag);

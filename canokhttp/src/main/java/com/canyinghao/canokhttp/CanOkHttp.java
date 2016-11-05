@@ -240,6 +240,20 @@ public final class CanOkHttp {
      */
     private void initClient() {
 
+        //实例化client
+        mCurrentHttpClient = getHttpClient();
+
+
+    }
+
+    /**
+     * 取得一个 OkHttpClient
+     *
+     * @return OkHttpClient
+     */
+    public OkHttpClient getHttpClient() {
+
+
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .connectTimeout(mCurrentConfig.getConnectTimeout(), TimeUnit.SECONDS)
                 .readTimeout(mCurrentConfig.getReadTimeout(), TimeUnit.SECONDS)
@@ -260,8 +274,8 @@ public final class CanOkHttp {
             clientBuilder.cookieJar(mCurrentConfig.getCookieJar());
         }
 
-        //实例化client
-        mCurrentHttpClient = clientBuilder.build();
+
+        return clientBuilder.build();
 
 
     }
@@ -276,6 +290,23 @@ public final class CanOkHttp {
         isInitOkClient = true;
         initClient();
         return this;
+    }
+
+    /**
+     * 设置一个 OkHttpClient
+     *
+     * @param client OkHttpClient
+     * @return CanOkHttp
+     */
+    public CanOkHttp setOkHttp(OkHttpClient client) {
+
+        isInitOkClient = true;
+
+        mCurrentHttpClient = client;
+
+        return this;
+
+
     }
 
 
@@ -491,6 +522,19 @@ public final class CanOkHttp {
 
 
         mCurrentConfig.setCacheSurvivalTime(cacheSurvivalTime);
+        return this;
+    }
+
+    /**
+     * 设置在线程中读缓存
+     *
+     * @param isCacheInThread 设置在线程中读缓存
+     * @return CanOkHttp
+     */
+    public CanOkHttp setCacheInThread(boolean isCacheInThread) {
+
+
+        mCurrentConfig.setCacheInThread(isCacheInThread);
         return this;
     }
 
@@ -727,28 +771,43 @@ public final class CanOkHttp {
 
         if (!isDownOrUpLoad) {
 
+            if (mCurrentConfig.isCacheInThread() &&
+                    (mCurrentConfig.getCacheType() == CacheType.CACHE
+                            || mCurrentConfig.getCacheType() == CacheType.CACHE_NETWORK
+                            || mCurrentConfig.getCacheType() == CacheType.CACHETIME_NETWORK
+                            || mCurrentConfig.getCacheType() == CacheType.CACHETIME_NETWORK_CACHE)) {
 
-            ThreadPool.getInstance().submit(new ThreadPool.Job<Boolean>() {
+                ThreadPool.getInstance().submit(new ThreadPool.Job<Boolean>() {
 
-                @Override
-                public Boolean run(ThreadPool.JobContext job) {
+                    @Override
+                    public Boolean run(ThreadPool.JobContext job) {
 
 
-                    return dealWithCache(0, "");
-                }
-            }, new FutureListener<Boolean>() {
-                @Override
-                public void onFutureDone(Future<Boolean> future) {
-
-                    boolean b = future.get();
-
-                    if (b) {
-                        return;
+                        return dealWithCache(0, "");
                     }
+                }, new FutureListener<Boolean>() {
+                    @Override
+                    public void onFutureDone(Future<Boolean> future) {
 
+                        boolean b = future.get();
+
+                        if (!b) {
+                            doCall(callBack, null);
+                        }
+
+
+                    }
+                });
+
+            } else {
+
+
+                if (!dealWithCache(0, "")) {
                     doCall(callBack, null);
                 }
-            });
+
+
+            }
 
 
         } else {
@@ -1574,6 +1633,7 @@ public final class CanOkHttp {
                 .setCacheSurvivalTime(ACache.TIME_DAY)
                 .setCacheNoHttpTime(60)
                 .setCacheType(CacheType.NETWORK)
+                .setCacheInThread(false)
                 .setNetworkInterceptors(null)
                 .setInterceptors(null)
                 .setDownloadFileDir(downLoadDir)
