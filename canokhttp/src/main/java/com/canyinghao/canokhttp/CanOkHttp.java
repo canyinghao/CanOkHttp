@@ -859,8 +859,10 @@ public final class CanOkHttp {
 
                         if (fileInfo != null && fileInfo.isUpLoad) {
 
+                            String str = dealWithRes(res);
 
-                            sendResponseMsg(res.body().string());
+
+                            sendResponseMsg(str);
 
                         } else {
 
@@ -870,7 +872,9 @@ public final class CanOkHttp {
 
                     } else {
 
-                        String str = res.body().string();
+
+                        String str = dealWithRes(res);
+
                         dealWithCache(1, str);
                         sendResponseMsg(str);
 
@@ -897,6 +901,30 @@ public final class CanOkHttp {
 
             }
         });
+    }
+
+
+    /**
+     * 处理Response，避免报错
+     *
+     * @param res Response
+     * @return String
+     */
+    @NonNull
+    private String dealWithRes(Response res) {
+        String str = "";
+        try {
+            str = res.body().string();
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                str = new String(res.body().bytes(), "utf-8");
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+
+        }
+        return str;
     }
 
 
