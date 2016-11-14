@@ -1,9 +1,6 @@
 package com.canyinghao.canokhttp.threadpool;
 
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
+
 
 import android.os.Process;
 
@@ -28,4 +25,6 @@ public class PriorityThreadFactory implements ThreadFactory {
             }
         };
     }
+
+
 }

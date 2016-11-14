@@ -1,17 +1,14 @@
 package com.canyinghao.canokhttp.threadpool;
 
-/**
- * Created by yangjian on 16/6/23.
- */
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
 
-import android.util.Log;
+import android.app.Activity;
+import android.text.TextUtils;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -21,246 +18,149 @@ public class ThreadPool {
     private static ThreadPool instance;
 
 
-    private static final String TAG = "ThreadPool";
-    private static final int CORE_POOL_SIZE = 4;
-    private static final int MAX_POOL_SIZE = 8;
-    private static final int KEEP_ALIVE_TIME = 10;
-    private static final int MODE_NONE = 0;
-    private static final int MODE_CPU = 1;
-    private static final int MODE_NETWORK = 2;
+    private int maxRequests = 64;
 
-    private static int core_size = CORE_POOL_SIZE;
-    private static int max_size = MAX_POOL_SIZE;
+    private final ExecutorService mExecutor;
 
-    public static final ThreadPool.JobContext JOB_CONTEXT_STUB = new ThreadPool.JobContextStub();
-    private ThreadPool.ResourceCounter mCpuCounter;
-    private ThreadPool.ResourceCounter mNetworkCounter;
-    private final Executor mExecutor;
 
-    public ThreadPool() {
-        this(CORE_POOL_SIZE, MAX_POOL_SIZE);
-    }
+    private final Deque<Worker> readyAsyncCalls = new ArrayDeque<>();
+
+
+    private final Deque<Worker> runningAsyncCalls = new ArrayDeque<>();
+
+    private Runnable idleCallback;
+
+    private String mTag;
+
 
     public static ThreadPool getInstance() {
 
         if (instance == null) {
-            instance = new ThreadPool(core_size, max_size);
+            synchronized (ThreadPool.class) {
+                if (instance == null) {
+                    instance = new ThreadPool();
+                }
+            }
         }
 
         return instance;
     }
 
-    public static void init(int initPoolSize, int maxPoolSize) {
-        core_size = initPoolSize;
-        max_size = maxPoolSize;
+
+    private ThreadPool() {
+
+        this.mExecutor = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                60L, TimeUnit.SECONDS,
+                new SynchronousQueue<Runnable>(), new PriorityThreadFactory("thread-pool", 10));
+
     }
 
-    public ThreadPool(int initPoolSize, int maxPoolSize) {
-        this.mCpuCounter = new ThreadPool.ResourceCounter(MODE_NETWORK);
-        this.mNetworkCounter = new ThreadPool.ResourceCounter(MODE_NETWORK);
-        this.mExecutor = new ThreadPoolExecutor(initPoolSize, maxPoolSize, KEEP_ALIVE_TIME, TimeUnit.SECONDS, new LinkedBlockingQueue(), new PriorityThreadFactory("thread-pool", 10));
+    public synchronized void setIdleCallback(Runnable idleCallback) {
+        this.idleCallback = idleCallback;
     }
 
-    public <T> Future<T> submit(ThreadPool.Job<T> job, FutureListener<T> listener) {
-        ThreadPool.Worker<T> w = new ThreadPool.Worker<T>(job, listener);
-        this.mExecutor.execute(w);
+
+    public synchronized <T> Future<T> submit(Job<T> job, FutureListener<T> listener) {
+        Worker<T> w = new Worker<T>(this, job, listener);
+        w.setTag(mTag);
+        mTag = null;
+
+        if (!TextUtils.isEmpty(w.getTag())) {
+            WorkerManager.putCall(w.getTag(), w);
+        }
+
+        if (runningAsyncCalls.size() < maxRequests) {
+            runningAsyncCalls.add(w);
+            mExecutor.execute(w);
+        } else {
+            readyAsyncCalls.add(w);
+        }
+
         return w;
     }
 
-    public <T> Future<T> submit(ThreadPool.Job<T> job) {
+
+    public synchronized <T> Future<T> submit(Job<T> job) {
+
+
         return this.submit(job, null);
     }
 
-    private class Worker<T> implements Runnable, Future<T>, ThreadPool.JobContext {
-        private static final String TAG = "Worker";
-        private ThreadPool.Job<T> mJob;
-        private FutureListener<T> mListener;
-        private ThreadPool.CancelListener mCancelListener;
-        private ThreadPool.ResourceCounter mWaitOnResource;
-        private volatile boolean mIsCancelled;
-        private boolean mIsDone;
-        private T mResult;
-        private int mMode;
 
-        public Worker(ThreadPool.Job<T> job, FutureListener<T> listener) {
-            this.mJob = job;
-            this.mListener = listener;
+    public void setMaxRequests(int maxRequests) {
+        this.maxRequests = maxRequests;
+    }
+
+    public int getMaxRequests() {
+        return maxRequests;
+    }
+
+    public ThreadPool setTag(Object object) {
+        if (object instanceof Activity) {
+            Activity activity = (Activity) object;
+            this.mTag = activity.getClass().getCanonicalName();
+        } else if (object instanceof android.support.v4.app.Fragment) {
+            android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
+            this.mTag = fragment.getActivity().getClass().getCanonicalName();
+        } else if (object instanceof android.app.Fragment) {
+            android.app.Fragment fragment = (android.app.Fragment) object;
+            this.mTag = fragment.getActivity().getClass().getCanonicalName();
+        } else if (object != null) {
+            this.mTag = object.toString();
+        }
+        return this;
+    }
+
+
+    public String getTag() {
+        return mTag;
+    }
+
+    public void finished(Worker worker) {
+
+        if (!TextUtils.isEmpty(worker.getTag())) {
+            WorkerManager.removeCall(worker.getTag(), worker);
         }
 
-        public void run() {
-            T result = null;
-            if (this.setMode(MODE_CPU)) {
-                try {
-                    result = this.mJob.run(this);
-                } catch (Throwable var5) {
-                    Log.w(TAG, "Exception in running a job", var5);
-                }
-            }
+        finished(runningAsyncCalls, worker, true);
 
-            synchronized (this) {
-                this.setMode(MODE_NONE);
-                this.mResult = result;
-                this.mIsDone = true;
-                this.notifyAll();
-            }
+    }
 
-            if (this.mListener != null) {
-                this.mListener.onFutureDone(this);
-            }
-
+    private <T> void finished(Deque<T> calls, T call, boolean promoteCalls) {
+        int runningCallsCount;
+        Runnable idleCallback;
+        synchronized (this) {
+            if (!calls.remove(call)) throw new AssertionError("Call wasn't in-flight!");
+            if (promoteCalls) promoteCalls();
+            runningCallsCount = runningCallsCount();
+            idleCallback = this.idleCallback;
         }
 
-        public synchronized void cancel() {
-            if (!this.mIsCancelled) {
-                this.mIsCancelled = true;
-                if (this.mWaitOnResource != null) {
-                    ThreadPool.ResourceCounter var1 = this.mWaitOnResource;
-                    synchronized (this.mWaitOnResource) {
-                        this.mWaitOnResource.notifyAll();
-                    }
-                }
-
-                if (this.mCancelListener != null) {
-                    this.mCancelListener.onCancel();
-                }
-
-            }
-        }
-
-        public boolean isCancelled() {
-            return this.mIsCancelled;
-        }
-
-        public synchronized boolean isDone() {
-            return this.mIsDone;
-        }
-
-        public synchronized T get() {
-            while (!this.mIsDone) {
-                try {
-                    this.wait();
-                } catch (Exception var2) {
-                    Log.w(TAG, "ingore exception", var2);
-                }
-            }
-
-            return this.mResult;
-        }
-
-        public void waitDone() {
-            this.get();
-        }
-
-        public synchronized void setCancelListener(ThreadPool.CancelListener listener) {
-            this.mCancelListener = listener;
-            if (this.mIsCancelled && this.mCancelListener != null) {
-                this.mCancelListener.onCancel();
-            }
-
-        }
-
-        public boolean setMode(int mode) {
-            ThreadPool.ResourceCounter rc = this.modeToCounter(this.mMode);
-            if (rc != null) {
-                this.releaseResource(rc);
-            }
-
-            this.mMode = 0;
-            rc = this.modeToCounter(mode);
-            if (rc != null) {
-                if (!this.acquireResource(rc)) {
-                    return false;
-                }
-
-                this.mMode = mode;
-            }
-
-            return true;
-        }
-
-        private ThreadPool.ResourceCounter modeToCounter(int mode) {
-            return mode == 1 ? ThreadPool.this.mCpuCounter : (mode == 2 ? ThreadPool.this.mNetworkCounter : null);
-        }
-
-        private boolean acquireResource(ThreadPool.ResourceCounter counter) {
-            while (true) {
-                synchronized (this) {
-                    if (this.mIsCancelled) {
-                        this.mWaitOnResource = null;
-                        return false;
-                    }
-
-                    this.mWaitOnResource = counter;
-                }
-
-                synchronized (counter) {
-                    if (counter.value <= 0) {
-                        try {
-                            counter.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        continue;
-                    }
-
-                    --counter.value;
-                }
-
-                synchronized (this) {
-                    this.mWaitOnResource = null;
-                    return true;
-                }
-            }
-        }
-
-        private void releaseResource(ThreadPool.ResourceCounter counter) {
-            synchronized (counter) {
-                ++counter.value;
-                counter.notifyAll();
-            }
+        if (runningCallsCount == 0 && idleCallback != null) {
+            idleCallback.run();
         }
     }
 
-    private static class ResourceCounter {
-        public int value;
 
-        public ResourceCounter(int v) {
-            this.value = v;
+    public synchronized int runningCallsCount() {
+        return runningAsyncCalls.size();
+    }
+
+
+    private void promoteCalls() {
+        if (runningAsyncCalls.size() >= maxRequests) return; // Already running max capacity.
+        if (readyAsyncCalls.isEmpty()) return; // No ready calls to promote.
+
+        for (Iterator<Worker> i = readyAsyncCalls.iterator(); i.hasNext(); ) {
+            Worker worker = i.next();
+            i.remove();
+            runningAsyncCalls.add(worker);
+            this.mExecutor.execute(worker);
+
+
+            if (runningAsyncCalls.size() >= maxRequests) return; // Reached max capacity.
         }
     }
 
-    public interface CancelListener {
-        void onCancel();
-    }
 
-    private static class JobContextStub implements ThreadPool.JobContext {
-        private JobContextStub() {
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return false;
-        }
-
-        @Override
-        public void setCancelListener(ThreadPool.CancelListener listener) {
-        }
-
-        @Override
-        public boolean setMode(int mode) {
-            return true;
-        }
-    }
-
-    public interface JobContext {
-        boolean isCancelled();
-
-        void setCancelListener(ThreadPool.CancelListener var1);
-
-        boolean setMode(int var1);
-    }
-
-    public interface Job<T> {
-        T run(ThreadPool.JobContext var1);
-    }
 }

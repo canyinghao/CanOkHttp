@@ -34,4 +34,10 @@
         android:layout_height="wrap_content"
         android:text="测试"/>
 
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="线程池测试"/>
+
 </LinearLayout>

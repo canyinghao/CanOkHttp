@@ -3,16 +3,8 @@ package com.canyinghao.canokhttp.demo;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
-import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
-
-import com.canyinghao.canokhttp.CanOkHttp;
-import com.canyinghao.canokhttp.annotation.ResultType;
-import com.canyinghao.canokhttp.callback.CanCallBack;
-import com.socks.library.KLog;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -37,7 +29,7 @@ public class MainActivity extends BaseActivity {
 
     }
 
-    @OnClick({R.id.btn_1,R.id.btn_2,R.id.btn_3,R.id.btn_4})
+    @OnClick({R.id.btn_1,R.id.btn_2,R.id.btn_3,R.id.btn_4,R.id.btn_5})
     public void click(View v){
 
         switch (v.getId()){
@@ -68,6 +60,13 @@ public class MainActivity extends BaseActivity {
             case R.id.btn_4:
 
                 startActivity(new Intent(this,TestActivity.class));
+
+
+                break;
+
+            case R.id.btn_5:
+
+                startActivity(new Intent(this,ThreadActivity.class));
 
 
                 break;

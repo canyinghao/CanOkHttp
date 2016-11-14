@@ -25,6 +25,8 @@ import com.canyinghao.canokhttp.progress.ProgressRequestBody;
 import com.canyinghao.canokhttp.progress.ProgressResponseBody;
 import com.canyinghao.canokhttp.threadpool.Future;
 import com.canyinghao.canokhttp.threadpool.FutureListener;
+import com.canyinghao.canokhttp.threadpool.Job;
+import com.canyinghao.canokhttp.threadpool.JobContext;
 import com.canyinghao.canokhttp.threadpool.ThreadPool;
 import com.canyinghao.canokhttp.util.CanOkHttpUtil;
 import com.socks.library.KLog;
@@ -777,10 +779,10 @@ public final class CanOkHttp {
                             || mCurrentConfig.getCacheType() == CacheType.CACHETIME_NETWORK
                             || mCurrentConfig.getCacheType() == CacheType.CACHETIME_NETWORK_CACHE)) {
 
-                ThreadPool.getInstance().submit(new ThreadPool.Job<Boolean>() {
+                ThreadPool.getInstance().submit(new Job<Boolean>() {
 
                     @Override
-                    public Boolean run(ThreadPool.JobContext job) {
+                    public Boolean run(JobContext job) {
 
 
                         return dealWithCache(0, "");
