@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import com.socks.library.KLog;
+
 
 public class OkHandler extends Handler {
 
@@ -13,6 +15,7 @@ public class OkHandler extends Handler {
     public static final byte RESPONSE_FILE_CALLBACK = 3;
     public static final byte RESPONSE_FAIL_CALLBACK = 4;
     public static final byte CACHE_CALLBACK = 5;
+    public static final byte RUN_ON_UI= 6;
 
 
     private static OkHandler singleton;
@@ -73,6 +76,15 @@ public class OkHandler extends Handler {
                     callMsg = (OkMessage) msg.obj;
                     if (null != callMsg.canCallBack) {
                         callMsg.canCallBack.onCache(callMsg.resStr);
+                    }
+                    break;
+
+
+                case RUN_ON_UI:
+                    callMsg = (OkMessage) msg.obj;
+                    if (null != callMsg.okHttp) {
+                        callMsg.okHttp.doCall(null);
+                        KLog.e("xxxxxxx");
                     }
                     break;
 

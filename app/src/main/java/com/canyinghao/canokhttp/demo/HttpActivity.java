@@ -192,6 +192,7 @@ public class HttpActivity extends BaseActivity {
                         .add("cache", "CACHE_NETWORK")
                         .url(url)
                         .setTag(this)
+                        .setCacheInThread(true)
                         .setCacheSurvivalTime(180)
                         .setCacheType(CacheType.CACHE_NETWORK)
                         .post()
@@ -236,6 +237,7 @@ public class HttpActivity extends BaseActivity {
                         .setTag(this)
                         .setCacheSurvivalTime(180)
                         .setCacheNoHttpTime(60)
+                        .setCacheInThread(true)
                         .setCacheType(CacheType.CACHETIME_NETWORK)
                         .post()
                         .setCallBack(new CanSimpleCallBack() {
@@ -283,6 +285,7 @@ public class HttpActivity extends BaseActivity {
                         .setTag(this)
                         .setCacheSurvivalTime(0)
                         .setCacheNoHttpTime(60)
+                        .setCacheInThread(true)
                         .setCacheType(CacheType.CACHETIME_NETWORK_CACHE)
                         .post()
                         .setCallBack(new CanSimpleCallBack() {

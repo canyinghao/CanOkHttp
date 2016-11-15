@@ -794,7 +794,12 @@ public final class CanOkHttp {
                         boolean b = future.get();
 
                         if (!b) {
-                            doCall(callBack, null);
+
+                            Message msg = new OkMessage(OkHandler.RUN_ON_UI,
+                                    CanOkHttp.this)
+                                    .build();
+                            OkHandler.getInstance().sendMessage(msg);
+
                         }
 
 
@@ -805,7 +810,7 @@ public final class CanOkHttp {
 
 
                 if (!dealWithCache(0, "")) {
-                    doCall(callBack, null);
+                    doCall(null);
                 }
 
 
@@ -813,18 +818,16 @@ public final class CanOkHttp {
 
 
         } else {
-            doCall(callBack, fileInfo);
+            doCall(fileInfo);
         }
 
 
     }
 
 
-    private void doCall(@NonNull final CanCallBack callBack, final FileLoadBean fileInfo) {
+    public void doCall(final FileLoadBean fileInfo) {
 
-        if (!isDownOrUpLoad && dealWithCache(0, "")) {
-            return;
-        }
+
         Call call = mCurrentHttpClient.newCall(mRequest);
 
 

@@ -2,6 +2,7 @@ package com.canyinghao.canokhttp.handler;
 
 import android.os.Message;
 
+import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.callback.CanCallBack;
 
 import java.io.Serializable;
@@ -25,6 +26,8 @@ public class OkMessage implements Serializable {
     public long bytesWritten;
     public long contentLength;
     public boolean done;
+
+    public CanOkHttp okHttp;
 
 
     public OkMessage(int what, CanCallBack canCallBack,
@@ -69,6 +72,10 @@ public class OkMessage implements Serializable {
 
     }
 
+    public OkMessage(int what,CanOkHttp okHttp) {
+        this.okHttp = okHttp;
+        this.what = what;
+    }
 
     public Message build() {
         Message msg = new Message();
