@@ -58,30 +58,30 @@ public class ACache {
 	private static Map<String, ACache> mInstanceMap = new HashMap<String, ACache>();
 	private ACacheManager mCache;
 
-	public static ACache get(Context ctx) {
+	public static ACache get(Context ctx) throws Exception {
 		return get(ctx, "ACache");
 	}
 
-	public static ACache get(Context ctx, String cacheName) {
+	public static ACache get(Context ctx, String cacheName) throws Exception {
 		File f = new File(ctx.getCacheDir(), cacheName);
 		return get(f, MAX_SIZE, MAX_COUNT);
 	}
 
-	public static ACache get(File cacheDir) {
+	public static ACache get(File cacheDir) throws Exception {
 		return get(cacheDir, MAX_SIZE, MAX_COUNT);
 	}
 
-	public static ACache get(Context ctx, long max_zise, int max_count) {
+	public static ACache get(Context ctx, long max_zise, int max_count) throws Exception {
 		File f = new File(ctx.getCacheDir(), "ACache");
 		return get(f, max_zise, max_count);
 	}
 
-	public static ACache get(File cacheDir, long max_zise) {
+	public static ACache get(File cacheDir, long max_zise) throws Exception {
 
 		return get(cacheDir,max_zise,MAX_COUNT);
 	}
 
-	public static ACache get(File cacheDir, long max_zise, int max_count) {
+	public static ACache get(File cacheDir, long max_zise, int max_count) throws Exception {
 		ACache manager = mInstanceMap.get(cacheDir.getAbsoluteFile() + myPid());
 		if (manager == null) {
 			manager = new ACache(cacheDir, max_zise, max_count);
@@ -94,7 +94,7 @@ public class ACache {
 		return "_" + android.os.Process.myPid();
 	}
 
-	private ACache(File cacheDir, long max_size, int max_count) {
+	private ACache(File cacheDir, long max_size, int max_count) throws Exception  {
 		if (!cacheDir.exists() && !cacheDir.mkdirs()) {
 			throw new RuntimeException("can't make dirs in "
 					+ cacheDir.getAbsolutePath());

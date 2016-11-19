@@ -28,7 +28,7 @@ public class TestActivity extends BaseActivity {
                     @Override
                     public void onClick(View v) {
 
-                        OkHttpClient okHttp = CanOkHttp.getInstance().getHttpClient();
+                        OkHttpClient okHttp = CanOkHttp.getInstance().getHttpClient(true);
 
                         for(int i=0;i<1000;i++){
                             quest(okHttp,i);

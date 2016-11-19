@@ -191,12 +191,19 @@ public final class CanOkHttp {
     private Interceptor LOG_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
-            long startTime = System.currentTimeMillis();
-            okHttpLog(String.format("%s-URL: %s %n", chain.request().method(),
-                    chain.request().url()), false);
-            Response res = chain.proceed(chain.request());
-            long endTime = System.currentTimeMillis();
-            okHttpLog(String.format("CostTime: %.1fs", (endTime - startTime) / 1000.0), false);
+            Response res = null;
+            try {
+
+                long startTime = System.currentTimeMillis();
+                okHttpLog(String.format("%s-URL: %s %n", chain.request().method(),
+                        chain.request().url()), false);
+                res = chain.proceed(chain.request());
+                long endTime = System.currentTimeMillis();
+                okHttpLog(String.format("CostTime: %.1fs", (endTime - startTime) / 1000.0), false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             return res;
         }
     };
@@ -243,7 +250,7 @@ public final class CanOkHttp {
     private void initClient() {
 
         //实例化client
-        mCurrentHttpClient = getHttpClient();
+        mCurrentHttpClient = getHttpClient(true);
 
 
     }
@@ -253,7 +260,7 @@ public final class CanOkHttp {
      *
      * @return OkHttpClient
      */
-    public OkHttpClient getHttpClient() {
+    public OkHttpClient getHttpClient(boolean isLog) {
 
 
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
@@ -269,7 +276,8 @@ public final class CanOkHttp {
             clientBuilder.networkInterceptors().addAll(mCurrentConfig.getNetworkInterceptors());
         if (null != mCurrentConfig.getInterceptors() && !mCurrentConfig.getInterceptors().isEmpty())
             clientBuilder.interceptors().addAll(mCurrentConfig.getInterceptors());
-        clientBuilder.addInterceptor(LOG_INTERCEPTOR);
+        if (isLog)
+            clientBuilder.addInterceptor(LOG_INTERCEPTOR);
         setSslSocketFactory(clientBuilder);
 
         if (null != mCurrentConfig.getCookieJar()) {
@@ -941,7 +949,7 @@ public final class CanOkHttp {
     private boolean dealWithCache(int type, String result) {
 
 
-        String cache = "";
+        String cache;
 
         switch (mCurrentConfig.getCacheType()) {
 
@@ -954,15 +962,18 @@ public final class CanOkHttp {
             case CacheType.CACHE:
 
                 if (type == 0) {
+                    ACache aCache = getACache();
+                    if (aCache != null) {
+                        cache = aCache.getAsString(cache_key);
 
-                    cache = getACache().getAsString(cache_key);
+                        if (!TextUtils.isEmpty(cache)) {
 
-                    if (!TextUtils.isEmpty(cache)) {
+                            sendCacheMsg(cache);
 
-                        sendCacheMsg(cache);
-
-                        return true;
+                            return true;
+                        }
                     }
+
 
                 } else if (type == 1) {
 
@@ -998,15 +1009,18 @@ public final class CanOkHttp {
                 } else if (type == 2) {
 
 
-                    cache = getACache().getAsString(cache_key);
+                    ACache aCache = getACache();
+                    if (aCache != null) {
+                        cache = aCache.getAsString(cache_key);
 
 
-                    if (!TextUtils.isEmpty(cache)) {
+                        if (!TextUtils.isEmpty(cache)) {
 
-                        sendCacheMsg(cache);
+                            sendCacheMsg(cache);
 
-                        return true;
+                            return true;
 
+                        }
                     }
 
                 }
@@ -1018,15 +1032,16 @@ public final class CanOkHttp {
 
                 if (type == 0) {
 
-                    cache = getACache().getAsString(cache_key);
+                    ACache aCache = getACache();
+                    if (aCache != null) {
+                        cache = aCache.getAsString(cache_key);
+                        if (!TextUtils.isEmpty(cache)) {
 
+                            sendCacheMsg(cache);
 
-                    if (!TextUtils.isEmpty(cache)) {
-
-                        sendCacheMsg(cache);
+                        }
 
                     }
-
 
                 } else if (type == 1) {
 
@@ -1044,32 +1059,36 @@ public final class CanOkHttp {
                 if (type == 0) {
 
 
-                    File file = getACache().file(cache_key);
+                    ACache aCache = getACache();
+                    if (aCache != null) {
 
-                    if (file != null && file.exists()) {
-
-                        long time = file.lastModified();
-
-
-                        boolean isCache = (System.currentTimeMillis() - time) / 1000 < mCurrentConfig.getCacheNoHttpTime();
-
-                        if (isCache) {
-
-                            cache = getACache().getAsString(cache_key);
+                        File file = aCache.file(cache_key);
 
 
-                            if (!TextUtils.isEmpty(cache)) {
+                        if (file != null && file.exists()) {
+
+                            long time = file.lastModified();
 
 
-                                sendCacheMsg(cache);
+                            boolean isCache = (System.currentTimeMillis() - time) / 1000 < mCurrentConfig.getCacheNoHttpTime();
 
-                                return true;
+                            if (isCache) {
 
+                                cache = getACache().getAsString(cache_key);
+
+
+                                if (!TextUtils.isEmpty(cache)) {
+
+
+                                    sendCacheMsg(cache);
+
+                                    return true;
+
+                                }
                             }
+
                         }
-
                     }
-
 
                 } else if (type == 1) {
                     putCache(result);
@@ -1083,29 +1102,33 @@ public final class CanOkHttp {
             case CacheType.CACHETIME_NETWORK_CACHE:
 
                 if (type == 0) {
-                    File file = getACache().file(cache_key);
+                    ACache aCache = getACache();
+                    if (aCache != null) {
 
-                    if (file != null && file.exists()) {
+                        File file = aCache.file(cache_key);
 
-                        long time = file.lastModified();
+                        if (file != null && file.exists()) {
 
-
-                        boolean isCache = (System.currentTimeMillis() - time) / 1000 < mCurrentConfig.getCacheNoHttpTime();
-
-                        if (isCache) {
-
-                            cache = getACache().getAsString(cache_key);
+                            long time = file.lastModified();
 
 
-                            if (!TextUtils.isEmpty(cache)) {
+                            boolean isCache = (System.currentTimeMillis() - time) / 1000 < mCurrentConfig.getCacheNoHttpTime();
 
-                                sendCacheMsg(cache);
+                            if (isCache) {
 
-                                return true;
+                                cache = getACache().getAsString(cache_key);
 
+
+                                if (!TextUtils.isEmpty(cache)) {
+
+                                    sendCacheMsg(cache);
+
+                                    return true;
+
+                                }
                             }
-                        }
 
+                        }
                     }
 
 
@@ -1116,15 +1139,18 @@ public final class CanOkHttp {
 
                 } else {
 
-                    cache = getACache().getAsString(cache_key);
+                    ACache aCache = getACache();
+                    if (aCache != null) {
+                        cache = aCache.getAsString(cache_key);
 
 
-                    if (!TextUtils.isEmpty(cache)) {
+                        if (!TextUtils.isEmpty(cache)) {
 
-                        sendCacheMsg(cache);
+                            sendCacheMsg(cache);
 
-                        return true;
+                            return true;
 
+                        }
                     }
 
                 }
@@ -1138,11 +1164,16 @@ public final class CanOkHttp {
     }
 
     private void putCache(String result) {
+
+        ACache aCache = getACache();
+        if (aCache == null) {
+            return;
+        }
         if (mCurrentConfig.getCacheSurvivalTime() <= 0) {
 
-            getACache().put(cache_key, result);
+            aCache.put(cache_key, result);
         } else {
-            getACache().put(cache_key, result, mCurrentConfig.getCacheSurvivalTime());
+            aCache.put(cache_key, result, mCurrentConfig.getCacheSurvivalTime());
 
         }
     }
@@ -1347,8 +1378,13 @@ public final class CanOkHttp {
      */
     private ACache getACache() {
 
-        return ACache.get(mCurrentConfig.getCachedDir(), mCurrentConfig.getMaxCacheSize());
+        try {
+            return ACache.get(mCurrentConfig.getCachedDir(), mCurrentConfig.getMaxCacheSize());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        return null;
 
     }
 
@@ -1523,10 +1559,8 @@ public final class CanOkHttp {
 
     private boolean mkDirNotExists(String dir) {
         File file = new File(dir);
-        if (!file.exists()) {
-            return file.mkdirs();
-        }
-        return true;
+
+        return file.exists() || file.mkdirs();
     }
 
     /**
