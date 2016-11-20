@@ -28,12 +28,17 @@ public final class CanCallManager {
     static void putCall(@NonNull String tag, @NonNull Call call) {
 
 
-        SparseArray<Call> callList = allCallsMap.get(tag);
-        if (null == callList) {
-            callList = new SparseArray<>();
+        try {
+            SparseArray<Call> callList = allCallsMap.get(tag);
+            if (null == callList) {
+                callList = new SparseArray<>();
+            }
+            callList.put(call.hashCode(), call);
+            allCallsMap.put(tag, callList);
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        callList.put(call.hashCode(), call);
-        allCallsMap.put(tag, callList);
+
 
 
     }

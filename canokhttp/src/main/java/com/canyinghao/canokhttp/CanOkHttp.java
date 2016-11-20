@@ -192,17 +192,13 @@ public final class CanOkHttp {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Response res = null;
-            try {
 
-                long startTime = System.currentTimeMillis();
-                okHttpLog(String.format("%s-URL: %s %n", chain.request().method(),
-                        chain.request().url()), false);
-                res = chain.proceed(chain.request());
-                long endTime = System.currentTimeMillis();
-                okHttpLog(String.format("CostTime: %.1fs", (endTime - startTime) / 1000.0), false);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            long startTime = System.currentTimeMillis();
+            res = chain.proceed(chain.request());
+            long endTime = System.currentTimeMillis();
+
+            okHttpLog(String.format("CostTime: %.1fs", (endTime - startTime) / 1000.0), false);
+
 
             return res;
         }
@@ -250,7 +246,7 @@ public final class CanOkHttp {
     private void initClient() {
 
         //实例化client
-        mCurrentHttpClient = getHttpClient(true);
+        mCurrentHttpClient = getHttpClient();
 
 
     }
@@ -260,7 +256,7 @@ public final class CanOkHttp {
      *
      * @return OkHttpClient
      */
-    public OkHttpClient getHttpClient(boolean isLog) {
+    public OkHttpClient getHttpClient() {
 
 
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
@@ -276,7 +272,7 @@ public final class CanOkHttp {
             clientBuilder.networkInterceptors().addAll(mCurrentConfig.getNetworkInterceptors());
         if (null != mCurrentConfig.getInterceptors() && !mCurrentConfig.getInterceptors().isEmpty())
             clientBuilder.interceptors().addAll(mCurrentConfig.getInterceptors());
-        if (isLog)
+        if (mCurrentConfig.isOpenLog())
             clientBuilder.addInterceptor(LOG_INTERCEPTOR);
         setSslSocketFactory(clientBuilder);
 
@@ -559,6 +555,16 @@ public final class CanOkHttp {
         return this;
     }
 
+
+    /**
+     * 是否打开日志拦截
+     * @param isOpenLog setOpenLog
+     * @return CanOkHttp
+     */
+    public CanOkHttp setOpenLog(boolean isOpenLog) {
+        mCurrentConfig.setOpenLog(isOpenLog);
+        return this;
+    }
 
     /**
      * 设置下载状态，在下载中时改为暂停，可停止下载
@@ -1706,6 +1712,7 @@ public final class CanOkHttp {
                 .setDownloadFileDir(downLoadDir)
                 .setDownloadDelayTime(1000)
                 .setDownAccessFile(false)
+                .setOpenLog(false)
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(application)));
 
         return config;

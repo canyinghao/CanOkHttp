@@ -70,6 +70,7 @@ public class HttpActivity extends BaseActivity {
                         .add("format", "json")
                         .url(url)
                         .setTag(this)
+                        .setOpenLog(true)
                         .setCacheType(CacheType.NETWORK)
                         .post()
                         .setCallBack(new CanSimpleCallBack() {

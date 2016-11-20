@@ -48,6 +48,7 @@ public final class CanConfig {
     private boolean isDownAccessFile;//是否断点下载
 
     private boolean isCacheInThread;//是否在线程中读缓存
+    private boolean isOpenLog;//日志拦截器
 
 
 
@@ -266,6 +267,14 @@ public final class CanConfig {
         return cookieJar;
     }
 
+    public CanConfig setOpenLog(boolean openLog) {
+        isOpenLog = openLog;
+        return this;
+    }
+
+    public boolean isOpenLog() {
+        return isOpenLog;
+    }
 
     public CanConfig setGlobalParamMap(Map<String, String> globalParamMap) {
         this.globalParamMap = globalParamMap;
@@ -336,6 +345,7 @@ public final class CanConfig {
         this.cookieJar = config.cookieJar;
         this.globalParamMap = config.globalParamMap;
         this.globalHeaderMap = config.globalHeaderMap;
+        this.isOpenLog = config.isOpenLog;
 
 
     }

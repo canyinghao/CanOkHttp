@@ -20,13 +20,17 @@ public final class WorkerManager {
      */
     static void putCall(@NonNull String tag, @NonNull Worker call) {
 
+        try {
+            SparseArray<Worker> callList = allCallsMap.get(tag);
+            if (null == callList) {
+                callList = new SparseArray<>();
+            }
+            callList.put(call.hashCode(), call);
+            allCallsMap.put(tag, callList);
 
-        SparseArray<Worker> callList = allCallsMap.get(tag);
-        if (null == callList) {
-            callList = new SparseArray<>();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        callList.put(call.hashCode(), call);
-        allCallsMap.put(tag, callList);
 
 
     }
