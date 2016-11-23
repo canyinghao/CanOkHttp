@@ -29,16 +29,22 @@ public final class CanCallManager {
 
 
         try {
-            SparseArray<Call> callList = allCallsMap.get(tag);
+
+            SparseArray<Call> callList = null;
+            if (allCallsMap.containsKey(tag)) {
+                callList = allCallsMap.get(tag);
+
+            }
+
             if (null == callList) {
                 callList = new SparseArray<>();
             }
             callList.put(call.hashCode(), call);
             allCallsMap.put(tag, callList);
-        }catch (Exception e){
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
 
 
     }
@@ -66,19 +72,22 @@ public final class CanCallManager {
     public static void cancelCallByTag(@NonNull String tag) {
 
 
+        if (allCallsMap.containsKey(tag)) {
 
-        SparseArray<Call> callList = allCallsMap.get(tag);
-        if (null != callList) {
-            final int len = callList.size();
-            for (int i = 0; i < len; i++) {
-                Call call = callList.valueAt(i);
-                if (null != call && !call.isCanceled())
-                    call.cancel();
+            SparseArray<Call> callList = allCallsMap.get(tag);
+            if (null != callList) {
+                final int len = callList.size();
+                for (int i = 0; i < len; i++) {
+                    Call call = callList.valueAt(i);
+                    if (null != call && !call.isCanceled())
+                        call.cancel();
+                }
+                callList.clear();
+                allCallsMap.remove(tag);
+
             }
-            callList.clear();
-            allCallsMap.remove(tag);
-
         }
+
     }
 
     /**
@@ -89,19 +98,23 @@ public final class CanCallManager {
      */
     static void cancelCall(@NonNull String tag, @NonNull Call call) {
 
+        if (allCallsMap.containsKey(tag)) {
 
-        SparseArray<Call> callList = allCallsMap.get(tag);
-        if (null != callList) {
-            Call c = callList.get(call.hashCode());
-            if (null != c && !c.isCanceled())
-                c.cancel();
-            callList.delete(call.hashCode());
-            if (callList.size() == 0) {
-                allCallsMap.remove(tag);
+            SparseArray<Call> callList = allCallsMap.get(tag);
+            if (null != callList) {
+
+                Call c = callList.get(call.hashCode());
+                if (null != c && !c.isCanceled())
+                    c.cancel();
+                callList.delete(call.hashCode());
+                if (callList.size() == 0) {
+                    allCallsMap.remove(tag);
+                }
+
+
             }
-
-
         }
+
 
     }
 

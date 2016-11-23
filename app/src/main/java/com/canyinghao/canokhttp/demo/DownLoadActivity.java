@@ -114,4 +114,10 @@ public class DownLoadActivity extends BaseActivity {
 
 
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+//        CanCallManager.cancelCallByTag("canyinghao");
+    }
 }

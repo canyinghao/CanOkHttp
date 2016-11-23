@@ -21,13 +21,16 @@ public final class WorkerManager {
     static void putCall(@NonNull String tag, @NonNull Worker call) {
 
         try {
-            SparseArray<Worker> callList = allCallsMap.get(tag);
+            SparseArray<Worker> callList = null;
+            if (allCallsMap.containsKey(tag)) {
+                callList = allCallsMap.get(tag);
+            }
+
             if (null == callList) {
                 callList = new SparseArray<>();
             }
             callList.put(call.hashCode(), call);
             allCallsMap.put(tag, callList);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -58,18 +61,23 @@ public final class WorkerManager {
     public static void cancelCallByTag(@NonNull String tag) {
 
 
-        SparseArray<Worker> callList = allCallsMap.get(tag);
-        if (null != callList) {
-            final int len = callList.size();
-            for (int i = 0; i < len; i++) {
-                Worker call = callList.valueAt(i);
-                if (null != call && !call.isCanceled())
-                    call.cancel();
+        if (allCallsMap.containsKey(tag)) {
+            SparseArray<Worker> callList = allCallsMap.get(tag);
+            if (null != callList) {
+                final int len = callList.size();
+                for (int i = 0; i < len; i++) {
+                    Worker call = callList.valueAt(i);
+                    if (null != call && !call.isCanceled())
+                        call.cancel();
+                }
+                callList.clear();
+                allCallsMap.remove(tag);
+
             }
-            callList.clear();
-            allCallsMap.remove(tag);
 
         }
+
+
     }
 
     /**
@@ -81,32 +89,38 @@ public final class WorkerManager {
     static void cancelCall(@NonNull String tag, @NonNull Worker call) {
 
 
-        SparseArray<Worker> callList = allCallsMap.get(tag);
-        if (null != callList) {
-            Worker c = callList.get(call.hashCode());
-            if (null != c && !c.isCanceled())
-                c.cancel();
-            callList.delete(call.hashCode());
-            if (callList.size() == 0) {
-                allCallsMap.remove(tag);
+        if (allCallsMap.containsKey(tag)) {
+            SparseArray<Worker> callList = allCallsMap.get(tag);
+            if (null != callList) {
+                Worker c = callList.get(call.hashCode());
+                if (null != c && !c.isCanceled())
+                    c.cancel();
+                callList.delete(call.hashCode());
+                if (callList.size() == 0) {
+                    allCallsMap.remove(tag);
+                }
+
+
             }
-
-
         }
+
 
     }
 
     static void removeCall(@NonNull String tag, @NonNull Worker call) {
 
-        SparseArray<Worker> callList = allCallsMap.get(tag);
-        if (null != callList) {
-            callList.delete(call.hashCode());
-            if (callList.size() == 0) {
-                allCallsMap.remove(tag);
+        if (allCallsMap.containsKey(tag)) {
+            SparseArray<Worker> callList = allCallsMap.get(tag);
+            if (null != callList) {
+                callList.delete(call.hashCode());
+                if (callList.size() == 0) {
+                    allCallsMap.remove(tag);
+                }
+
+
             }
-
-
         }
+
     }
 
 
