@@ -21,6 +21,9 @@ public class OkMessage implements Serializable {
 
     public int failCode;
 
+    public int code;
+
+
     public String failMsg;
 
     public long bytesWritten;
@@ -52,11 +55,12 @@ public class OkMessage implements Serializable {
     }
 
 
-    public OkMessage(int what, CanCallBack canCallBack, int failCode, String failMsg) {
+    public OkMessage(int what, CanCallBack canCallBack, int failCode,int code, String failMsg) {
         this.what = what;
         this.canCallBack = canCallBack;
 
         this.failCode = failCode;
+        this.code = code;
         this.failMsg = failMsg;
 
     }

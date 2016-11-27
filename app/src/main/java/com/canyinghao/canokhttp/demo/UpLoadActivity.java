@@ -67,7 +67,7 @@ public class UpLoadActivity extends BaseActivity {
 
             case R.id.btn_2:
 
-                CanOkHttp.getInstance().uploadFile(url, "file", filePath, new CanSimpleCallBack(){
+                CanOkHttp.getInstance().uploadFile(url, "file", filePath, new CanSimpleCallBack() {
 
                     @Override
                     public void onResponse(Object result) {
@@ -75,7 +75,7 @@ public class UpLoadActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onFailure(@ResultType int type, String e) {
+                    public void onFailure(@ResultType int type, int code, String e) {
 
                     }
 
@@ -89,8 +89,6 @@ public class UpLoadActivity extends BaseActivity {
 
 
                 break;
-
-
 
 
         }

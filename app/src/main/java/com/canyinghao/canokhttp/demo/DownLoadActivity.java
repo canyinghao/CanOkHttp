@@ -78,7 +78,7 @@ public class DownLoadActivity extends BaseActivity {
 
         CanFileCallBack callBack = new CanFileCallBack() {
             @Override
-            public void onFailure(@ResultType int type, String e) {
+            public void onFailure(@ResultType int type,int code, String e) {
 
 
 

@@ -12,7 +12,7 @@ public abstract  class CanCacheCallBack implements CanCallBack {
 
 
     @Override
-    public void onFailure(@ResultType int type, String e) {
+    public void onFailure(@ResultType int type,int code, String e) {
 
     }
 

@@ -16,7 +16,7 @@ public interface CanCallBack {
 
     void onResponse(Object result);
 
-    void onFailure(@ResultType int type, String e);
+    void onFailure(@ResultType int type, int code, String e);
 
     void onFileSuccess(@DownloadStatus int status,String msg, String filePath);
 

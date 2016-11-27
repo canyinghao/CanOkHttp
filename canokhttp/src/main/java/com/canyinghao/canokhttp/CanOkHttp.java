@@ -612,7 +612,7 @@ public final class CanOkHttp {
             return mCurrentHttpClient.newCall(mRequest).execute();
 
 
-        } catch (IOException e) {
+        } catch (Exception e) {
 
             e.printStackTrace();
 
@@ -778,7 +778,7 @@ public final class CanOkHttp {
         if (mRequest == null) {
 
 
-            sendFailMsg(ResultType.FAIL_SOME_WRONG, "mRequest is null");
+            sendFailMsg(ResultType.FAIL_SOME_WRONG,0, "mRequest is null");
 
 
             return;
@@ -851,7 +851,7 @@ public final class CanOkHttp {
 
         call.enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(Call call, Exception e) {
 
 
                 boolean isCache = dealWithCache(2, "");
@@ -868,7 +868,7 @@ public final class CanOkHttp {
             }
 
             @Override
-            public void onResponse(Call call, Response res) throws IOException {
+            public void onResponse(Call call, Response res) throws Exception {
 
 
                 if (res.isSuccessful() && null != res.body()) {
@@ -1248,13 +1248,13 @@ public final class CanOkHttp {
         } catch (SocketTimeoutException e) {
 
 
-            sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, "读写超时");
+            sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT,0, "读写超时");
 
             return;
         } catch (Exception e) {
 
             e.printStackTrace();
-            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, "连接超时");
+            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT,0, "连接超时");
             return;
         } finally {
             try {
@@ -1277,41 +1277,43 @@ public final class CanOkHttp {
      *
      * @param e IOException
      */
-    private void dealWithException(IOException e) {
+    private void dealWithException(Exception e) {
 
         if (e != null && !TextUtils.isEmpty(e.getMessage())) {
             okHttpLog(e.getMessage(), false);
         }
+
+
         if (!isNetworkAvailable(mApplication)) {
 
-            sendFailMsg(ResultType.FAIL_NO_NETWORK, "FAIL_NO_NETWORK");
+            sendFailMsg(ResultType.FAIL_NO_NETWORK, 0,"FAIL_NO_NETWORK");
         } else if (e instanceof SocketTimeoutException) {
 
             if ("timeout".equals(e.getMessage())) {
-                sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, "FAIL_WRITE_READ_TIME_OUT");
+                sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT,0, "FAIL_WRITE_READ_TIME_OUT");
 
             } else {
-                sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, "FAIL_CONNECTION_TIME_OUT");
+                sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT,0, "FAIL_CONNECTION_TIME_OUT");
             }
 
         } else if (e instanceof UnknownHostException) {
 
-            sendFailMsg(ResultType.FAIL_URL_ERROR, "FAIL_UNKNOWN_HOST_ERROR");
+            sendFailMsg(ResultType.FAIL_URL_ERROR,0, "FAIL_UNKNOWN_HOST_ERROR");
 
         } else if (e instanceof ConnectException) {
 
-            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, "FAIL_CONNECTION_TIME_OUT");
+            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT,0, "FAIL_CONNECTION_TIME_OUT");
 
         } else if (e instanceof UnknownServiceException) {
-            sendFailMsg(ResultType.FAIL_NET_ERROR, "FAIL_NET_ERROR");
+            sendFailMsg(ResultType.FAIL_NET_ERROR,0, "FAIL_NET_ERROR");
 
         } else if (e instanceof HttpRetryException) {
 
-            sendFailMsg(ResultType.FAIL_NET_ERROR, "FAIL_NET_ERROR");
+            sendFailMsg(ResultType.FAIL_NET_ERROR, 0,"FAIL_NET_ERROR");
         } else {
 
 
-            sendFailMsg(ResultType.FAIL_SOME_WRONG, "FAIL_SOME_WRONG");
+            sendFailMsg(ResultType.FAIL_SOME_WRONG,0, "FAIL_SOME_WRONG");
 
 
         }
@@ -1330,31 +1332,33 @@ public final class CanOkHttp {
                 okHttpLog("HttpStatus: " + res.code() + " Message:" + res.message(), false);
 
 
-                switch (res.code()) {
+
+                int code  = res.code();
+                switch (code) {
 
                     case 404:
 
-                        sendFailMsg(ResultType.FAIL_URL_ERROR, "FAIL_URL_ERROR");
+                        sendFailMsg(ResultType.FAIL_URL_ERROR, code,"FAIL_URL_ERROR");
                         break;
 
                     case 416:
-                        sendFailMsg(ResultType.FAIL_SOME_WRONG, "FAIL_SOME_WRONG");
+                        sendFailMsg(ResultType.FAIL_SOME_WRONG,code, "FAIL_SOME_WRONG");
                         break;
 
                     case 500:
-                        sendFailMsg(ResultType.FAIL_NO_RESULT, "FAIL_NO_RESULT");
+                        sendFailMsg(ResultType.FAIL_NO_RESULT,code, "FAIL_NO_RESULT");
                         break;
 
                     case 502:
-                        sendFailMsg(ResultType.FAIL_NET_ERROR, "FAIL_NET_ERROR");
+                        sendFailMsg(ResultType.FAIL_NET_ERROR,code, "FAIL_NET_ERROR");
                         break;
 
                     case 504:
-                        sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION, "FAIL_CONNECTION_INTERRUPTION");
+                        sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION,code, "FAIL_CONNECTION_INTERRUPTION");
                         break;
 
                     default:
-                        sendFailMsg(ResultType.FAIL_NET_ERROR, "FAIL_NET_ERROR");
+                        sendFailMsg(ResultType.FAIL_NET_ERROR,code, "FAIL_NET_ERROR");
                         break;
 
                 }
@@ -1365,7 +1369,7 @@ public final class CanOkHttp {
 
         } catch (Exception e) {
             e.printStackTrace();
-            sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION, "FAIL_CONNECTION_INTERRUPTION");
+            sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION,0, "FAIL_CONNECTION_INTERRUPTION");
         } finally {
             if (null != res) {
                 res.close();
@@ -1575,12 +1579,12 @@ public final class CanOkHttp {
      * @param code 结果码
      * @param str  失败信息
      */
-    private void sendFailMsg(int code, String str) {
+    private void sendFailMsg(int failCode,int code, String str) {
 
         okHttpLog("FailCode:" + code + "  FailMessage:" + str, false);
         Message msg = new OkMessage(OkHandler.RESPONSE_FAIL_CALLBACK,
                 mCanCallBack,
-                code, str)
+                failCode,code, str)
                 .build();
         OkHandler.getInstance().sendMessage(msg);
     }

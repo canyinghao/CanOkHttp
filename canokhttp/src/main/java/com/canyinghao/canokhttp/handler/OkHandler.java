@@ -68,7 +68,7 @@ public class OkHandler extends Handler {
                 case RESPONSE_FAIL_CALLBACK:
                     callMsg = (OkMessage) msg.obj;
                     if (null != callMsg.canCallBack) {
-                        callMsg.canCallBack.onFailure(callMsg.failCode, callMsg.failMsg);
+                        callMsg.canCallBack.onFailure(callMsg.failCode,callMsg.code, callMsg.failMsg);
                     }
                     break;
 
