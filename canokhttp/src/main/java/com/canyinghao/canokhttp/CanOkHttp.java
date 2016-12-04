@@ -54,6 +54,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import okhttp3.CacheControl;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -106,6 +107,9 @@ public final class CanOkHttp {
 
     //是否已经初始化OkClient
     private boolean isInitOkClient;
+
+    //    已重试的次数
+    private int retryNum;
 
 
     public static CanOkHttp getInstance() {
@@ -185,6 +189,25 @@ public final class CanOkHttp {
     }
 
 
+    private Interceptor RETRY_INTERCEPTOR = new Interceptor() {
+        @Override
+        public Response intercept(Chain chain) throws IOException {
+
+            Request request = chain.request();
+
+            okHttpLog("retryNum=" + retryNum, false);
+            Response response = chain.proceed(request);
+            while (!response.isSuccessful() && retryNum < mCurrentConfig.getMaxRetry()) {
+                retryNum++;
+
+                okHttpLog("retryNum=" + retryNum, false);
+
+                response = chain.proceed(request);
+            }
+            return response;
+        }
+    };
+
     /**
      * 日志拦截器
      */
@@ -192,13 +215,13 @@ public final class CanOkHttp {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Response res = null;
-
+            okHttpLog(String.format("%s-URL: %s %n", chain.request().method(),
+                    chain.request().url()), false);
             long startTime = System.currentTimeMillis();
             res = chain.proceed(chain.request());
             long endTime = System.currentTimeMillis();
 
             okHttpLog(String.format("CostTime: %.1fs", (endTime - startTime) / 1000.0), false);
-
 
             return res;
         }
@@ -262,8 +285,7 @@ public final class CanOkHttp {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .connectTimeout(mCurrentConfig.getConnectTimeout(), TimeUnit.SECONDS)
                 .readTimeout(mCurrentConfig.getReadTimeout(), TimeUnit.SECONDS)
-                .writeTimeout(mCurrentConfig.getWriteTimeout(), TimeUnit.SECONDS)
-                .retryOnConnectionFailure(mCurrentConfig.isRetryOnConnectionFailure());
+                .writeTimeout(mCurrentConfig.getWriteTimeout(), TimeUnit.SECONDS);
 
         if (isDownOrUpLoad) {
             clientBuilder.addNetworkInterceptor(PROGRESS_INTERCEPTOR);
@@ -274,6 +296,20 @@ public final class CanOkHttp {
             clientBuilder.interceptors().addAll(mCurrentConfig.getInterceptors());
         if (mCurrentConfig.isOpenLog())
             clientBuilder.addInterceptor(LOG_INTERCEPTOR);
+
+        if (mCurrentConfig.isRetryOnConnectionFailure()) {
+
+            if (mCurrentConfig.getMaxRetry() > 0) {
+                KLog.e("addInterceptor");
+                clientBuilder.addInterceptor(RETRY_INTERCEPTOR);
+            } else {
+                KLog.e("retryOnConnectionFailure");
+                clientBuilder.retryOnConnectionFailure(true);
+            }
+
+        }
+
+
         setSslSocketFactory(clientBuilder);
 
         if (null != mCurrentConfig.getCookieJar()) {
@@ -397,6 +433,7 @@ public final class CanOkHttp {
      */
     public CanOkHttp post(boolean isPublic) {
 
+        retryNum = 0;
         try {
             mRequest = fetchRequest(true, isPublic);
         } catch (Exception e) {
@@ -432,11 +469,14 @@ public final class CanOkHttp {
     public CanOkHttp get(boolean isPublic) {
 
 
+        retryNum = 0;
+
         try {
             mRequest = fetchRequest(false, isPublic);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
 
         if (!isInitOkClient) {
             initClient();
@@ -558,6 +598,7 @@ public final class CanOkHttp {
 
     /**
      * 是否打开日志拦截
+     *
      * @param isOpenLog setOpenLog
      * @return CanOkHttp
      */
@@ -778,7 +819,7 @@ public final class CanOkHttp {
         if (mRequest == null) {
 
 
-            sendFailMsg(ResultType.FAIL_SOME_WRONG,0, "mRequest is null");
+            sendFailMsg(ResultType.FAIL_SOME_WRONG, 0, "mRequest is null");
 
 
             return;
@@ -1248,13 +1289,13 @@ public final class CanOkHttp {
         } catch (SocketTimeoutException e) {
 
 
-            sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT,0, "读写超时");
+            sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, 0, "读写超时");
 
             return;
         } catch (Exception e) {
 
             e.printStackTrace();
-            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT,0, "连接超时");
+            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, "连接超时");
             return;
         } finally {
             try {
@@ -1286,34 +1327,34 @@ public final class CanOkHttp {
 
         if (!isNetworkAvailable(mApplication)) {
 
-            sendFailMsg(ResultType.FAIL_NO_NETWORK, 0,"FAIL_NO_NETWORK");
+            sendFailMsg(ResultType.FAIL_NO_NETWORK, 0, "FAIL_NO_NETWORK");
         } else if (e instanceof SocketTimeoutException) {
 
             if ("timeout".equals(e.getMessage())) {
-                sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT,0, "FAIL_WRITE_READ_TIME_OUT");
+                sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, 0, "FAIL_WRITE_READ_TIME_OUT");
 
             } else {
-                sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT,0, "FAIL_CONNECTION_TIME_OUT");
+                sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, "FAIL_CONNECTION_TIME_OUT");
             }
 
         } else if (e instanceof UnknownHostException) {
 
-            sendFailMsg(ResultType.FAIL_URL_ERROR,0, "FAIL_UNKNOWN_HOST_ERROR");
+            sendFailMsg(ResultType.FAIL_URL_ERROR, 0, "FAIL_UNKNOWN_HOST_ERROR");
 
         } else if (e instanceof ConnectException) {
 
-            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT,0, "FAIL_CONNECTION_TIME_OUT");
+            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, "FAIL_CONNECTION_TIME_OUT");
 
         } else if (e instanceof UnknownServiceException) {
-            sendFailMsg(ResultType.FAIL_NET_ERROR,0, "FAIL_NET_ERROR");
+            sendFailMsg(ResultType.FAIL_NET_ERROR, 0, "FAIL_NET_ERROR");
 
         } else if (e instanceof HttpRetryException) {
 
-            sendFailMsg(ResultType.FAIL_NET_ERROR, 0,"FAIL_NET_ERROR");
+            sendFailMsg(ResultType.FAIL_NET_ERROR, 0, "FAIL_NET_ERROR");
         } else {
 
 
-            sendFailMsg(ResultType.FAIL_SOME_WRONG,0, "FAIL_SOME_WRONG");
+            sendFailMsg(ResultType.FAIL_SOME_WRONG, 0, "FAIL_SOME_WRONG");
 
 
         }
@@ -1332,33 +1373,32 @@ public final class CanOkHttp {
                 okHttpLog("HttpStatus: " + res.code() + " Message:" + res.message(), false);
 
 
-
-                int code  = res.code();
+                int code = res.code();
                 switch (code) {
 
                     case 404:
 
-                        sendFailMsg(ResultType.FAIL_URL_ERROR, code,"FAIL_URL_ERROR");
+                        sendFailMsg(ResultType.FAIL_URL_ERROR, code, "FAIL_URL_ERROR");
                         break;
 
                     case 416:
-                        sendFailMsg(ResultType.FAIL_SOME_WRONG,code, "FAIL_SOME_WRONG");
+                        sendFailMsg(ResultType.FAIL_SOME_WRONG, code, "FAIL_SOME_WRONG");
                         break;
 
                     case 500:
-                        sendFailMsg(ResultType.FAIL_NO_RESULT,code, "FAIL_NO_RESULT");
+                        sendFailMsg(ResultType.FAIL_NO_RESULT, code, "FAIL_NO_RESULT");
                         break;
 
                     case 502:
-                        sendFailMsg(ResultType.FAIL_NET_ERROR,code, "FAIL_NET_ERROR");
+                        sendFailMsg(ResultType.FAIL_NET_ERROR, code, "FAIL_NET_ERROR");
                         break;
 
                     case 504:
-                        sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION,code, "FAIL_CONNECTION_INTERRUPTION");
+                        sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION, code, "FAIL_CONNECTION_INTERRUPTION");
                         break;
 
                     default:
-                        sendFailMsg(ResultType.FAIL_NET_ERROR,code, "FAIL_NET_ERROR");
+                        sendFailMsg(ResultType.FAIL_NET_ERROR, code, "FAIL_NET_ERROR");
                         break;
 
                 }
@@ -1369,7 +1409,7 @@ public final class CanOkHttp {
 
         } catch (Exception e) {
             e.printStackTrace();
-            sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION,0, "FAIL_CONNECTION_INTERRUPTION");
+            sendFailMsg(ResultType.FAIL_CONNECTION_INTERRUPTION, 0, "FAIL_CONNECTION_INTERRUPTION");
         } finally {
             if (null != res) {
                 res.close();
@@ -1470,6 +1510,7 @@ public final class CanOkHttp {
             okHttpLog(paramsUrl.toString(), false);
             requestBuilder
                     .url(url)
+                    .cacheControl(CacheControl.FORCE_NETWORK)
                     .post(builder.build());
         } else {
 
@@ -1508,6 +1549,7 @@ public final class CanOkHttp {
 
             requestBuilder
                     .url(paramsUrl.toString())
+                    .cacheControl(CacheControl.FORCE_NETWORK)
                     .get();
         }
 
@@ -1579,12 +1621,12 @@ public final class CanOkHttp {
      * @param code 结果码
      * @param str  失败信息
      */
-    private void sendFailMsg(int failCode,int code, String str) {
+    private void sendFailMsg(int failCode, int code, String str) {
 
         okHttpLog("FailCode:" + code + "  FailMessage:" + str, false);
         Message msg = new OkMessage(OkHandler.RESPONSE_FAIL_CALLBACK,
                 mCanCallBack,
-                failCode,code, str)
+                failCode, code, str)
                 .build();
         OkHandler.getInstance().sendMessage(msg);
     }

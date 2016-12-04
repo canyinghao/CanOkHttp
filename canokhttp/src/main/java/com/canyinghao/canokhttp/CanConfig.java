@@ -34,6 +34,7 @@ public final class CanConfig {
     private int readTimeout;//读超时
     private int writeTimeout;//写超时
     private boolean retryOnConnectionFailure;//失败重新连接
+    private int maxRetry;//最大重试次数
     private List<Interceptor> networkInterceptors;//网络拦截器
     private List<Interceptor> interceptors;//应用拦截器
     private int cacheSurvivalTime;//缓存存活时间（秒）
@@ -142,6 +143,17 @@ public final class CanConfig {
 
     public boolean isRetryOnConnectionFailure() {
         return retryOnConnectionFailure;
+    }
+
+    public CanConfig setMaxRetry(int maxRetry) {
+        this.maxRetry = maxRetry;
+
+        return this;
+    }
+
+
+    public int getMaxRetry() {
+        return maxRetry;
     }
 
     public CanConfig setNetworkInterceptors(List<Interceptor> networkInterceptors) {
@@ -331,6 +343,7 @@ public final class CanConfig {
         this.readTimeout = config.readTimeout;
         this.writeTimeout = config.writeTimeout;
         this.retryOnConnectionFailure = config.retryOnConnectionFailure;
+        this.maxRetry  = config.maxRetry;
         this.networkInterceptors = config.networkInterceptors;
         this.interceptors = config.interceptors;
         this.cacheSurvivalTime = config.cacheSurvivalTime;

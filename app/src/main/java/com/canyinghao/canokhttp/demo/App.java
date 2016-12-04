@@ -22,7 +22,7 @@ public class App extends Application implements
     @Override
     public void onCreate() {
         super.onCreate();
-        CanOkHttp.init(this,CanOkHttp.getDefaultConfig(this).setJson(true));
+        CanOkHttp.init(this,CanOkHttp.getDefaultConfig(this).setJson(true).setRetryOnConnectionFailure(true).setMaxRetry(2));
 
         KLog.init(true,"Canyinghao");
 

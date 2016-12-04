@@ -62,34 +62,63 @@ public class HttpActivity extends BaseActivity {
             case R.id.btn_1:
 
 //                仅网络请求（NETWORK）
-                CanOkHttp.getInstance()
 
-                        .add("app", "life.time")
-                        .add("appkey", "10003")
-                        .add("sign", "b59bc3ef6191eb9f747dd4e83c99f2a4")
-                        .add("format", "json")
-                        .url(url)
-                        .setTag(this)
+
+                CanOkHttp.getInstance()
+//                        .addHeader("user-agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36")
+                        .url("http://image.kanman.com/mh/1.jpg")
                         .setOpenLog(true)
+
                         .setCacheType(CacheType.NETWORK)
+
                         .post()
-                        .setCallBack(new CanSimpleCallBack() {
+
+                        .setCallBack(new CanSimpleCallBack(){
 
                             @Override
                             public void onResponse(Object result) {
-
 
                                 tvResult.setText(result.toString());
                             }
 
                             @Override
-                            public void onFailure(@ResultType int type,int code, String e) {
+                            public void onFailure(@ResultType int type, int code, String e) {
 
+                                KLog.e(code+e);
 
                             }
 
-
                         });
+
+
+//                CanOkHttp.getInstance()
+//
+//                        .add("app", "life.time")
+//                        .add("appkey", "10003")
+//                        .add("sign", "b59bc3ef6191eb9f747dd4e83c99f2a4")
+//                        .add("format", "json")
+//                        .url(url)
+//                        .setTag(this)
+//                        .setOpenLog(true)
+//                        .setCacheType(CacheType.NETWORK)
+//                        .post()
+//                        .setCallBack(new CanSimpleCallBack() {
+//
+//                            @Override
+//                            public void onResponse(Object result) {
+//
+//
+//                                tvResult.setText(result.toString());
+//                            }
+//
+//                            @Override
+//                            public void onFailure(@ResultType int type,int code, String e) {
+//
+//
+//                            }
+//
+//
+//                        });
 
                 break;
             case R.id.btn_2:
@@ -101,7 +130,7 @@ public class HttpActivity extends BaseActivity {
                         .add("sign", "b59bc3ef6191eb9f747dd4e83c99f2a4")
                         .add("format", "json")
                         .add("cache", "NETWORK_CACHE")
-                        .url(url)
+                        .url("http://api.k780.com:99/")
                         .setTag(this)
                         .setCacheSurvivalTime(180)
                         .setCacheType(CacheType.CACHE)
