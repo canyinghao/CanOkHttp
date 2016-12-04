@@ -108,9 +108,6 @@ public final class CanOkHttp {
     //是否已经初始化OkClient
     private boolean isInitOkClient;
 
-    //    已重试的次数
-    private int retryNum;
-
 
     public static CanOkHttp getInstance() {
 
@@ -190,11 +187,14 @@ public final class CanOkHttp {
 
 
     private Interceptor RETRY_INTERCEPTOR = new Interceptor() {
+
+
         @Override
         public Response intercept(Chain chain) throws IOException {
 
             Request request = chain.request();
 
+            int retryNum = 0;
             okHttpLog("retryNum=" + retryNum, false);
             Response response = chain.proceed(request);
             while (!response.isSuccessful() && retryNum < mCurrentConfig.getMaxRetry()) {
@@ -433,7 +433,7 @@ public final class CanOkHttp {
      */
     public CanOkHttp post(boolean isPublic) {
 
-        retryNum = 0;
+
         try {
             mRequest = fetchRequest(true, isPublic);
         } catch (Exception e) {
@@ -469,7 +469,6 @@ public final class CanOkHttp {
     public CanOkHttp get(boolean isPublic) {
 
 
-        retryNum = 0;
 
         try {
             mRequest = fetchRequest(false, isPublic);
@@ -612,7 +611,7 @@ public final class CanOkHttp {
      * @param maxRetry 重试次数
      * @return CanOkHttp
      */
-    public CanOkHttp setRetryOnConnectionFailure(int maxRetry) {
+    public CanOkHttp setMaxRetry(int maxRetry) {
         mCurrentConfig.setMaxRetry(maxRetry);
         return this;
     }
