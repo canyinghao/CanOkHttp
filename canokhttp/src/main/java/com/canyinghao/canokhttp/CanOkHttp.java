@@ -300,10 +300,10 @@ public final class CanOkHttp {
         if (mCurrentConfig.isRetryOnConnectionFailure()) {
 
             if (mCurrentConfig.getMaxRetry() > 0) {
-                KLog.e("addInterceptor");
+
                 clientBuilder.addInterceptor(RETRY_INTERCEPTOR);
             } else {
-                KLog.e("retryOnConnectionFailure");
+
                 clientBuilder.retryOnConnectionFailure(true);
             }
 
@@ -595,6 +595,27 @@ public final class CanOkHttp {
         return this;
     }
 
+    /**
+     * 是否重试
+     *
+     * @param retryOnConnectionFailure 是否重试
+     * @return CanOkHttp
+     */
+    public CanOkHttp setRetryOnConnectionFailure(boolean retryOnConnectionFailure) {
+        mCurrentConfig.setRetryOnConnectionFailure(retryOnConnectionFailure);
+        return this;
+    }
+
+    /**
+     * 重试次数
+     *
+     * @param maxRetry 重试次数
+     * @return CanOkHttp
+     */
+    public CanOkHttp setRetryOnConnectionFailure(int maxRetry) {
+        mCurrentConfig.setMaxRetry(maxRetry);
+        return this;
+    }
 
     /**
      * 是否打开日志拦截
@@ -617,6 +638,7 @@ public final class CanOkHttp {
         this.downloadStatus = downloadStatus;
         return this;
     }
+
 
     /**
      * 下载文件的大小
