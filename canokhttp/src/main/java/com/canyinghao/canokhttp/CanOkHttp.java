@@ -298,17 +298,13 @@ public final class CanOkHttp {
             clientBuilder.addInterceptor(LOG_INTERCEPTOR);
 
         if (mCurrentConfig.isRetryOnConnectionFailure()) {
+            clientBuilder.retryOnConnectionFailure(true);
 
             if (mCurrentConfig.getMaxRetry() > 0) {
-
                 clientBuilder.addInterceptor(RETRY_INTERCEPTOR);
-            } else {
-
-                clientBuilder.retryOnConnectionFailure(true);
             }
 
         }
-
 
         setSslSocketFactory(clientBuilder);
 
@@ -467,7 +463,6 @@ public final class CanOkHttp {
      * @return CanOkHttp
      */
     public CanOkHttp get(boolean isPublic) {
-
 
 
         try {
@@ -1343,39 +1338,39 @@ public final class CanOkHttp {
 
         String failMessage = "";
         if (e != null && !TextUtils.isEmpty(e.getMessage())) {
-            failMessage  = e.getMessage();
+            failMessage = e.getMessage();
             okHttpLog(failMessage, false);
         }
 
         if (!isNetworkAvailable(mApplication)) {
 
-            sendFailMsg(ResultType.FAIL_NO_NETWORK, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_NO_NETWORK");
+            sendFailMsg(ResultType.FAIL_NO_NETWORK, 0, !TextUtils.isEmpty(failMessage) ? failMessage : "FAIL_NO_NETWORK");
         } else if (e instanceof SocketTimeoutException) {
 
             if ("timeout".equals(e.getMessage())) {
-                sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_WRITE_READ_TIME_OUT");
+                sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, 0, !TextUtils.isEmpty(failMessage) ? failMessage : "FAIL_WRITE_READ_TIME_OUT");
 
             } else {
-                sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_CONNECTION_TIME_OUT");
+                sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, !TextUtils.isEmpty(failMessage) ? failMessage : "FAIL_CONNECTION_TIME_OUT");
             }
 
         } else if (e instanceof UnknownHostException) {
 
-            sendFailMsg(ResultType.FAIL_URL_ERROR, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_UNKNOWN_HOST_ERROR");
+            sendFailMsg(ResultType.FAIL_URL_ERROR, 0, !TextUtils.isEmpty(failMessage) ? failMessage : "FAIL_UNKNOWN_HOST_ERROR");
 
         } else if (e instanceof ConnectException) {
 
-            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_CONNECTION_TIME_OUT");
+            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, !TextUtils.isEmpty(failMessage) ? failMessage : "FAIL_CONNECTION_TIME_OUT");
 
         } else if (e instanceof UnknownServiceException) {
-            sendFailMsg(ResultType.FAIL_NET_ERROR, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_NET_ERROR");
+            sendFailMsg(ResultType.FAIL_NET_ERROR, 0, !TextUtils.isEmpty(failMessage) ? failMessage : "FAIL_NET_ERROR");
 
         } else if (e instanceof HttpRetryException) {
 
-            sendFailMsg(ResultType.FAIL_NET_ERROR, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_NET_ERROR");
+            sendFailMsg(ResultType.FAIL_NET_ERROR, 0, !TextUtils.isEmpty(failMessage) ? failMessage : "FAIL_NET_ERROR");
         } else {
 
-            sendFailMsg(ResultType.FAIL_SOME_WRONG, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_SOME_WRONG");
+            sendFailMsg(ResultType.FAIL_SOME_WRONG, 0, !TextUtils.isEmpty(failMessage) ? failMessage : "FAIL_SOME_WRONG");
 
 
         }

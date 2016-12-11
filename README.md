@@ -6,7 +6,7 @@
 
 ##添加依赖
 ```JAVA
-compile 'com.canyinghao:canokhttp:1.2.3'
+compile 'com.canyinghao:canokhttp:1.2.4'
 ```
 
 ## 使用方式 
