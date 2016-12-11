@@ -1341,41 +1341,41 @@ public final class CanOkHttp {
      */
     private void dealWithException(Exception e) {
 
+        String failMessage = "";
         if (e != null && !TextUtils.isEmpty(e.getMessage())) {
-            okHttpLog(e.getMessage(), false);
+            failMessage  = e.getMessage();
+            okHttpLog(failMessage, false);
         }
-
 
         if (!isNetworkAvailable(mApplication)) {
 
-            sendFailMsg(ResultType.FAIL_NO_NETWORK, 0, "FAIL_NO_NETWORK");
+            sendFailMsg(ResultType.FAIL_NO_NETWORK, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_NO_NETWORK");
         } else if (e instanceof SocketTimeoutException) {
 
             if ("timeout".equals(e.getMessage())) {
-                sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, 0, "FAIL_WRITE_READ_TIME_OUT");
+                sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_WRITE_READ_TIME_OUT");
 
             } else {
-                sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, "FAIL_CONNECTION_TIME_OUT");
+                sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_CONNECTION_TIME_OUT");
             }
 
         } else if (e instanceof UnknownHostException) {
 
-            sendFailMsg(ResultType.FAIL_URL_ERROR, 0, "FAIL_UNKNOWN_HOST_ERROR");
+            sendFailMsg(ResultType.FAIL_URL_ERROR, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_UNKNOWN_HOST_ERROR");
 
         } else if (e instanceof ConnectException) {
 
-            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, "FAIL_CONNECTION_TIME_OUT");
+            sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_CONNECTION_TIME_OUT");
 
         } else if (e instanceof UnknownServiceException) {
-            sendFailMsg(ResultType.FAIL_NET_ERROR, 0, "FAIL_NET_ERROR");
+            sendFailMsg(ResultType.FAIL_NET_ERROR, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_NET_ERROR");
 
         } else if (e instanceof HttpRetryException) {
 
-            sendFailMsg(ResultType.FAIL_NET_ERROR, 0, "FAIL_NET_ERROR");
+            sendFailMsg(ResultType.FAIL_NET_ERROR, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_NET_ERROR");
         } else {
 
-
-            sendFailMsg(ResultType.FAIL_SOME_WRONG, 0, "FAIL_SOME_WRONG");
+            sendFailMsg(ResultType.FAIL_SOME_WRONG, 0, !TextUtils.isEmpty(failMessage)?failMessage:"FAIL_SOME_WRONG");
 
 
         }

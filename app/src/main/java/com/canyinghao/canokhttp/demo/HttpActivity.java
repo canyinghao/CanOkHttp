@@ -69,6 +69,7 @@ public class HttpActivity extends BaseActivity {
                         .url("http://image.kanman.com/mh/1.jpg")
                         .setOpenLog(true)
 
+                        .setTag(this)
                         .setCacheType(CacheType.NETWORK)
 
                         .post()
