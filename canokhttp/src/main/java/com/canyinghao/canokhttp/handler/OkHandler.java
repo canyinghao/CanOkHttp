@@ -84,7 +84,6 @@ public class OkHandler extends Handler {
                     callMsg = (OkMessage) msg.obj;
                     if (null != callMsg.okHttp) {
                         callMsg.okHttp.doCall(null);
-                        KLog.e("xxxxxxx");
                     }
                     break;
 

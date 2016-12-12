@@ -9,6 +9,7 @@ import android.os.Environment;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.canyinghao.canokhttp.annotation.CacheType;
 import com.canyinghao.canokhttp.annotation.DownloadStatus;
@@ -304,6 +305,8 @@ public final class CanOkHttp {
                 clientBuilder.addInterceptor(RETRY_INTERCEPTOR);
             }
 
+        } else {
+            clientBuilder.retryOnConnectionFailure(false);
         }
 
         setSslSocketFactory(clientBuilder);
