@@ -1758,6 +1758,9 @@ public final class CanOkHttp {
 
         if (TextUtils.isEmpty(downLoadDir)) {
             downLoadDir = application.getFilesDir().getAbsolutePath();
+            if (!downLoadDir.endsWith(File.separator)) {
+                downLoadDir += File.separator;
+            }
         }
 
         config = config.setApplication(application)
