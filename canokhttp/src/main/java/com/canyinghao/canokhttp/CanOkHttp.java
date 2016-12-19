@@ -911,7 +911,7 @@ public final class CanOkHttp {
 
         call.enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, Exception e) {
+            public void onFailure(Call call, IOException e) {
 
 
                 boolean isCache = dealWithCache(2, "");
@@ -928,7 +928,7 @@ public final class CanOkHttp {
             }
 
             @Override
-            public void onResponse(Call call, Response res) throws Exception {
+            public void onResponse(Call call, Response res) throws IOException {
 
 
                 if (res.isSuccessful() && null != res.body()) {
