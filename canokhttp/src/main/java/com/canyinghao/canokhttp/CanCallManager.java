@@ -119,4 +119,19 @@ public final class CanCallManager {
     }
 
 
+    /**
+     * 是否存在tag
+     *
+     * @param tag 请求标识
+     */
+    static boolean isHaveTag(@NonNull String tag) {
+
+        if (allCallsMap.containsKey(tag)) {
+
+            return true;
+        }
+        return false;
+
+    }
+
 }

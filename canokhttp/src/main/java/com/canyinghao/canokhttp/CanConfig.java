@@ -51,6 +51,10 @@ public final class CanConfig {
     private boolean isCacheInThread;//是否在线程中读缓存
     private boolean isOpenLog;//日志拦截器
 
+    private boolean isHttpsTry;
+
+//    0 都重试 1get 2 post
+    private int httpsTryType;
 
 
     private String tag;
@@ -67,7 +71,6 @@ public final class CanConfig {
         this.application = application;
         return this;
     }
-
 
 
     public CanConfig setMaxCacheSize(int maxCacheSize) {
@@ -222,13 +225,13 @@ public final class CanConfig {
         if (object instanceof Activity) {
             Activity activity = (Activity) object;
             this.tag = activity.getClass().getCanonicalName();
-        }else if (object instanceof android.support.v4.app.Fragment) {
+        } else if (object instanceof android.support.v4.app.Fragment) {
             android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
             this.tag = fragment.getActivity().getClass().getCanonicalName();
-        }else if (object instanceof android.app.Fragment) {
+        } else if (object instanceof android.app.Fragment) {
             android.app.Fragment fragment = (android.app.Fragment) object;
             this.tag = fragment.getActivity().getClass().getCanonicalName();
-        }else if(object!=null){
+        } else if (object != null) {
             this.tag = object.toString();
         }
         return this;
@@ -268,7 +271,6 @@ public final class CanConfig {
     }
 
 
-
     public CanConfig setCookieJar(CookieJar cookieJar) {
         if (cookieJar == null) throw new NullPointerException("cookieJar == null");
         this.cookieJar = cookieJar;
@@ -288,10 +290,31 @@ public final class CanConfig {
         return isOpenLog;
     }
 
+
+    public boolean isHttpsTry() {
+        return isHttpsTry;
+    }
+
+    public CanConfig setHttpsTry(boolean httpsTry) {
+        isHttpsTry = httpsTry;
+
+        return this;
+    }
+
+    public int getHttpsTryType() {
+        return httpsTryType;
+    }
+
+    public CanConfig setHttpsTryType(int httpsTryType) {
+        this.httpsTryType = httpsTryType;
+        return this;
+    }
+
     public CanConfig setGlobalParamMap(Map<String, String> globalParamMap) {
         this.globalParamMap = globalParamMap;
         return this;
     }
+
 
     public CanConfig putGlobalParamMap(String key, String value) {
 
@@ -343,7 +366,7 @@ public final class CanConfig {
         this.readTimeout = config.readTimeout;
         this.writeTimeout = config.writeTimeout;
         this.retryOnConnectionFailure = config.retryOnConnectionFailure;
-        this.maxRetry  = config.maxRetry;
+        this.maxRetry = config.maxRetry;
         this.networkInterceptors = config.networkInterceptors;
         this.interceptors = config.interceptors;
         this.cacheSurvivalTime = config.cacheSurvivalTime;
@@ -359,6 +382,8 @@ public final class CanConfig {
         this.globalParamMap = config.globalParamMap;
         this.globalHeaderMap = config.globalHeaderMap;
         this.isOpenLog = config.isOpenLog;
+        this.isHttpsTry = config.isHttpsTry;
+        this.httpsTryType = config.httpsTryType;
 
 
     }

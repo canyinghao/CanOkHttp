@@ -38,7 +38,7 @@ public class HttpActivity extends BaseActivity {
     @Bind(R.id.tv_result)
     TextView tvResult;
 
-    public String url = "http://api.k780.com:88/";
+    public String url = "https://api.k780.com:88/";
 
 
     @Override
@@ -65,7 +65,6 @@ public class HttpActivity extends BaseActivity {
 
 
 
-
                 CanOkHttp.getInstance()
                         .addHeader("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36")
 
@@ -77,20 +76,20 @@ public class HttpActivity extends BaseActivity {
                         .setTag(this)
                         .setOpenLog(true)
                         .setCacheType(CacheType.NETWORK)
-                        .post()
+                        .get()
                         .setCallBack(new CanSimpleCallBack() {
 
                             @Override
                             public void onResponse(Object result) {
 
-
+                                KLog.e("onResponse");
                                 tvResult.setText(result.toString());
                             }
 
                             @Override
                             public void onFailure(@ResultType int type, int code, String e) {
 
-
+                                KLog.e("onFailure");
                             }
 
 

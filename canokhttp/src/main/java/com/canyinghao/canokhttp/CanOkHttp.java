@@ -108,7 +108,8 @@ public final class CanOkHttp {
 
     //是否已经初始化OkClient
     private boolean isInitOkClient;
-
+    //是否是post方法
+    private boolean isPost;
 
     public static CanOkHttp getInstance() {
 
@@ -196,13 +197,9 @@ public final class CanOkHttp {
             Request request = chain.request();
 
             int retryNum = 0;
-            okHttpLog("retryNum=" + retryNum, false);
             Response response = chain.proceed(request);
             while (!response.isSuccessful() && retryNum < mCurrentConfig.getMaxRetry()) {
                 retryNum++;
-
-                okHttpLog("retryNum=" + retryNum, false);
-
                 response = chain.proceed(request);
             }
             return response;
@@ -432,6 +429,7 @@ public final class CanOkHttp {
      */
     public CanOkHttp post(boolean isPublic) {
 
+        isPost = true;
 
         try {
             mRequest = fetchRequest(true, isPublic);
@@ -467,6 +465,7 @@ public final class CanOkHttp {
      */
     public CanOkHttp get(boolean isPublic) {
 
+        isPost = false;
 
         try {
             mRequest = fetchRequest(false, isPublic);
@@ -905,7 +904,7 @@ public final class CanOkHttp {
         Call call = mCurrentHttpClient.newCall(mRequest);
 
 
-        if (mCurrentConfig.getTag() != null) {
+        if (!TextUtils.isEmpty(mCurrentConfig.getTag())) {
             CanCallManager.putCall(mCurrentConfig.getTag(), call);
         }
 
@@ -913,17 +912,7 @@ public final class CanOkHttp {
             @Override
             public void onFailure(Call call, IOException e) {
 
-
-                boolean isCache = dealWithCache(2, "");
-                if (isDownOrUpLoad || !isCache) {
-
-                    dealWithException(e);
-                }
-
-                if (mCurrentConfig.getTag() != null && call != null) {
-                    CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
-                }
-
+                httpsTryAgain(call, null, e);
 
             }
 
@@ -959,27 +948,98 @@ public final class CanOkHttp {
 
                     }
 
+                    if (!TextUtils.isEmpty(mCurrentConfig.getTag()) && call != null) {
+                        CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
+                    }
 
                 } else {
 
-                    boolean isCache = dealWithCache(2, "");
-                    if (isDownOrUpLoad || !isCache) {
+                    httpsTryAgain(call, res, null);
 
-                        dealWithResponseFail(res);
-
-                    }
-
-
-                }
-
-
-                if (mCurrentConfig.getTag() != null && call != null) {
-                    CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
                 }
 
 
             }
         });
+    }
+
+    private void httpsTryAgain(Call call, Response res, IOException e) {
+        boolean isHttpsTry = false;
+        if (mCurrentConfig.isHttpsTry() && mCanCallBack != null && !TextUtils.isEmpty(url) && url.startsWith("https://") && mRequest != null && mRequest.isHttps()) {
+
+            boolean isNeedTry = true;
+            if (!TextUtils.isEmpty(mCurrentConfig.getTag())) {
+                isNeedTry = CanCallManager.isHaveTag(mCurrentConfig.getTag());
+            }
+
+            if (!TextUtils.isEmpty(mCurrentConfig.getTag()) && call != null) {
+                CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
+            }
+            if (isNeedTry) {
+                url = url.replace("https://", "http://");
+
+                switch (mCurrentConfig.getHttpsTryType()) {
+
+                    case 0:
+
+                        if (isPost) {
+                            post();
+                            setCallBack(mCanCallBack);
+                            isHttpsTry = true;
+                        } else {
+                            get();
+                            setCallBack(mCanCallBack);
+                            isHttpsTry = true;
+                        }
+
+                        break;
+
+                    case 1:
+
+                        if (!isPost) {
+                            get();
+                            setCallBack(mCanCallBack);
+                            isHttpsTry = true;
+                        }
+
+                        break;
+
+                    case 2:
+
+                        if (isPost) {
+                            post();
+                            setCallBack(mCanCallBack);
+                            isHttpsTry = true;
+                        }
+
+                        break;
+
+                }
+
+            }
+
+
+        }
+
+        if (!isHttpsTry) {
+
+            boolean isCache = dealWithCache(2, "");
+
+            if (isDownOrUpLoad || !isCache) {
+
+                if (res != null) {
+                    dealWithResponseFail(res);
+                } else {
+                    dealWithException(e);
+                }
+
+            }
+
+            if (!TextUtils.isEmpty(mCurrentConfig.getTag()) && call != null) {
+                CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
+            }
+
+        }
     }
 
 
@@ -1579,6 +1639,10 @@ public final class CanOkHttp {
 
         cache_key = paramsUrl.toString();
 
+        if (!TextUtils.isEmpty(cache_key) && cache_key.startsWith("https://")) {
+            cache_key = cache_key.replace("https://", "http://");
+        }
+
         return requestBuilder.build();
 
     }
@@ -1781,6 +1845,7 @@ public final class CanOkHttp {
                 .setDownloadDelayTime(1000)
                 .setDownAccessFile(false)
                 .setOpenLog(false)
+                .setHttpsTry(true)
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(application)));
 
         return config;
