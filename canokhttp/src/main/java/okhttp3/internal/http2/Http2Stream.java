@@ -51,14 +51,11 @@ public final class Http2Stream {
   final int id;
   final Http2Connection connection;
 
-  /** Request headers. Immutable and non null. */
+  /** Headers sent by the stream initiator. Immutable and non null. */
   private final List<Header> requestHeaders;
 
-  /** Response headers yet to be {@linkplain #takeResponseHeaders taken}. */
+  /** Headers sent in the stream reply. Null if reply is either not sent or not sent yet. */
   private List<Header> responseHeaders;
-
-  /** True if response headers have been sent or received. */
-  private boolean hasResponseHeaders;
 
   private final FramedDataSource source;
   final FramedDataSink sink;
@@ -109,7 +106,7 @@ public final class Http2Stream {
     }
     if ((source.finished || source.closed)
         && (sink.finished || sink.closed)
-        && hasResponseHeaders) {
+        && responseHeaders != null) {
       return false;
     }
     return true;
@@ -130,14 +127,10 @@ public final class Http2Stream {
   }
 
   /**
-   * Removes and returns the stream's received response headers, blocking if necessary until headers
-   * have been received. If the returned list contains multiple blocks of headers the blocks will be
-   * delimited by 'null'.
+   * Returns the stream's response headers, blocking if necessary if they have not been received
+   * yet.
    */
-  public synchronized List<Header> takeResponseHeaders() throws IOException {
-    if (!isLocallyInitiated()) {
-      throw new IllegalStateException("servers cannot read response headers");
-    }
+  public synchronized List<Header> getResponseHeaders() throws IOException {
     readTimeout.enter();
     try {
       while (responseHeaders == null && errorCode == null) {
@@ -146,11 +139,7 @@ public final class Http2Stream {
     } finally {
       readTimeout.exitAndThrowIfTimedOut();
     }
-    List<Header> result = responseHeaders;
-    if (result != null) {
-      responseHeaders = null;
-      return result;
-    }
+    if (responseHeaders != null) return responseHeaders;
     throw new StreamResetException(errorCode);
   }
 
@@ -168,14 +157,17 @@ public final class Http2Stream {
    * @param out true to create an output stream that we can use to send data to the remote peer.
    * Corresponds to {@code FLAG_FIN}.
    */
-  public void sendResponseHeaders(List<Header> responseHeaders, boolean out) throws IOException {
+  public void reply(List<Header> responseHeaders, boolean out) throws IOException {
     assert (!Thread.holdsLock(Http2Stream.this));
-    if (responseHeaders == null) {
-      throw new NullPointerException("responseHeaders == null");
-    }
     boolean outFinished = false;
     synchronized (this) {
-      this.hasResponseHeaders = true;
+      if (responseHeaders == null) {
+        throw new NullPointerException("responseHeaders == null");
+      }
+      if (this.responseHeaders != null) {
+        throw new IllegalStateException("reply already sent");
+      }
+      this.responseHeaders = responseHeaders;
       if (!out) {
         this.sink.finished = true;
         outFinished = true;
@@ -204,12 +196,12 @@ public final class Http2Stream {
   /**
    * Returns a sink that can be used to write data to the peer.
    *
-   * @throws IllegalStateException if this stream was initiated by the peer and a {@link
-   * #sendResponseHeaders} has not yet been sent.
+   * @throws IllegalStateException if this stream was initiated by the peer and a {@link #reply} has
+   * not yet been sent.
    */
   public Sink getSink() {
     synchronized (this) {
-      if (!hasResponseHeaders && !isLocallyInitiated()) {
+      if (responseHeaders == null && !isLocallyInitiated()) {
         throw new IllegalStateException("reply before requesting the sink");
       }
     }
@@ -259,7 +251,6 @@ public final class Http2Stream {
     assert (!Thread.holdsLock(Http2Stream.this));
     boolean open = true;
     synchronized (this) {
-      hasResponseHeaders = true;
       if (responseHeaders == null) {
         responseHeaders = headers;
         open = isOpen();
@@ -267,7 +258,6 @@ public final class Http2Stream {
       } else {
         List<Header> newHeaders = new ArrayList<>();
         newHeaders.addAll(responseHeaders);
-        newHeaders.add(null); // Delimit separate blocks of headers with null.
         newHeaders.addAll(headers);
         this.responseHeaders = newHeaders;
       }
@@ -330,7 +320,8 @@ public final class Http2Stream {
       this.maxByteCount = maxByteCount;
     }
 
-    @Override public long read(Buffer sink, long byteCount) throws IOException {
+    @Override public long read(Buffer sink, long byteCount)
+        throws IOException {
       if (byteCount < 0) throw new IllegalArgumentException("byteCount < 0: " + byteCount);
 
       long read;

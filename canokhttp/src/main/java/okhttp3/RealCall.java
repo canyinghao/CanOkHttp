@@ -63,12 +63,10 @@ final class RealCall implements Call {
             executed = true;
         }
         captureCallStackTrace();
-
         Response result = null;
         try {
             client.dispatcher().executed(this);
             result = getResponseWithInterceptorChain();
-
         } catch (Throwable e) {
             e.printStackTrace();
         } finally {
@@ -152,16 +150,12 @@ final class RealCall implements Call {
                     signalledCallback = true;
                     responseCallback.onResponse(RealCall.this, response);
                 }
-            } catch (Throwable e) {
+            } catch (IOException e) {
                 if (signalledCallback) {
                     // Do not signal the callback twice!
                     Platform.get().log(INFO, "Callback failure for " + toLoggableString(), e);
                 } else {
-                    IOException exception = null;
-                    if (e instanceof IOException) {
-                        exception = (IOException) e;
-                    }
-                    responseCallback.onFailure(RealCall.this, exception);
+                    responseCallback.onFailure(RealCall.this, e);
                 }
             } finally {
                 client.dispatcher().finished(this);

@@ -96,8 +96,4 @@ public final class Route {
     result = 31 * result + inetSocketAddress.hashCode();
     return result;
   }
-
-  @Override public String toString() {
-    return "Route{" + inetSocketAddress + "}";
-  }
 }

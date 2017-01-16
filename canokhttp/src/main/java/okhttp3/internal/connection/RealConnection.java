@@ -22,7 +22,6 @@ import java.net.ConnectException;
 import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownServiceException;
 import java.security.cert.X509Certificate;
@@ -35,27 +34,22 @@ import javax.net.ssl.SSLSocketFactory;
 import okhttp3.Address;
 import okhttp3.CertificatePinner;
 import okhttp3.Connection;
-import okhttp3.ConnectionPool;
 import okhttp3.ConnectionSpec;
 import okhttp3.Handshake;
 import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
 import okhttp3.internal.Util;
 import okhttp3.internal.Version;
-import okhttp3.internal.http.HttpCodec;
 import okhttp3.internal.http.HttpHeaders;
 import okhttp3.internal.http1.Http1Codec;
 import okhttp3.internal.http2.ErrorCode;
-import okhttp3.internal.http2.Http2Codec;
 import okhttp3.internal.http2.Http2Connection;
 import okhttp3.internal.http2.Http2Stream;
 import okhttp3.internal.platform.Platform;
 import okhttp3.internal.tls.OkHostnameVerifier;
-import okhttp3.internal.ws.RealWebSocket;
 import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
@@ -67,10 +61,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static okhttp3.internal.Util.closeQuietly;
 
 public final class RealConnection extends Http2Connection.Listener implements Connection {
-  private final ConnectionPool connectionPool;
   private final Route route;
-
-  // The fields below are initialized by connect() and never reassigned.
 
   /** The low-level TCP socket. */
   private Socket rawSocket;
@@ -79,51 +70,27 @@ public final class RealConnection extends Http2Connection.Listener implements Co
    * The application layer socket. Either an {@link SSLSocket} layered over {@link #rawSocket}, or
    * {@link #rawSocket} itself if this connection does not use SSL.
    */
-  private Socket socket;
+  public Socket socket;
   private Handshake handshake;
   private Protocol protocol;
-  private Http2Connection http2Connection;
-  private BufferedSource source;
-  private BufferedSink sink;
-
-  // The fields below track connection state and are guarded by connectionPool.
-
-  /** If true, no new streams can be created on this connection. Once true this is always true. */
-  public boolean noNewStreams;
-
+  public volatile Http2Connection http2Connection;
   public int successCount;
-
-  /**
-   * The maximum number of concurrent streams that can be carried by this connection. If {@code
-   * allocations.size() < allocationLimit} then new streams can be created on this connection.
-   */
-  public int allocationLimit = 1;
-
-  /** Current streams carried by this connection. */
+  public BufferedSource source;
+  public BufferedSink sink;
+  public int allocationLimit;
   public final List<Reference<StreamAllocation>> allocations = new ArrayList<>();
-
-  /** Nanotime timestamp when {@code allocations.size()} reached zero. */
+  public boolean noNewStreams;
   public long idleAtNanos = Long.MAX_VALUE;
 
-  public RealConnection(ConnectionPool connectionPool, Route route) {
-    this.connectionPool = connectionPool;
+  public RealConnection(Route route) {
     this.route = route;
   }
 
-  public static RealConnection testConnection(
-      ConnectionPool connectionPool, Route route, Socket socket, long idleAtNanos) {
-    RealConnection result = new RealConnection(connectionPool, route);
-    result.socket = socket;
-    result.idleAtNanos = idleAtNanos;
-    return result;
-  }
-
-  public void connect(
-      int connectTimeout, int readTimeout, int writeTimeout, boolean connectionRetryEnabled) {
+  public void connect(int connectTimeout, int readTimeout, int writeTimeout,
+      List<ConnectionSpec> connectionSpecs, boolean connectionRetryEnabled) {
     if (protocol != null) throw new IllegalStateException("already connected");
 
     RouteException routeException = null;
-    List<ConnectionSpec> connectionSpecs = route.address().connectionSpecs();
     ConnectionSpecSelector connectionSpecSelector = new ConnectionSpecSelector(connectionSpecs);
 
     if (route.address().sslSocketFactory() == null) {
@@ -138,15 +105,14 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       }
     }
 
-    while (true) {
+    while (protocol == null) {
       try {
         if (route.requiresTunnel()) {
-          connectTunnel(connectTimeout, readTimeout, writeTimeout);
+          buildTunneledConnection(connectTimeout, readTimeout, writeTimeout,
+              connectionSpecSelector);
         } else {
-          connectSocket(connectTimeout, readTimeout);
+          buildConnection(connectTimeout, readTimeout, writeTimeout, connectionSpecSelector);
         }
-        establishProtocol(connectionSpecSelector);
-        break;
       } catch (IOException e) {
         closeQuietly(socket);
         closeQuietly(rawSocket);
@@ -156,7 +122,6 @@ public final class RealConnection extends Http2Connection.Listener implements Co
         sink = null;
         handshake = null;
         protocol = null;
-        http2Connection = null;
 
         if (routeException == null) {
           routeException = new RouteException(e);
@@ -169,20 +134,14 @@ public final class RealConnection extends Http2Connection.Listener implements Co
         }
       }
     }
-
-    if (http2Connection != null) {
-      synchronized (connectionPool) {
-        allocationLimit = http2Connection.maxConcurrentStreams();
-      }
-    }
   }
 
   /**
    * Does all the work to build an HTTPS connection over a proxy tunnel. The catch here is that a
    * proxy server can issue an auth challenge and then close the connection.
    */
-  private void connectTunnel(int connectTimeout, int readTimeout, int writeTimeout)
-      throws IOException {
+  private void buildTunneledConnection(int connectTimeout, int readTimeout, int writeTimeout,
+      ConnectionSpecSelector connectionSpecSelector) throws IOException {
     Request tunnelRequest = createTunnelRequest();
     HttpUrl url = tunnelRequest.url();
     int attemptedConnections = 0;
@@ -204,9 +163,17 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       sink = null;
       source = null;
     }
+
+    establishProtocol(readTimeout, writeTimeout, connectionSpecSelector);
   }
 
   /** Does all the work necessary to build a full HTTP or HTTPS connection on a raw socket. */
+  private void buildConnection(int connectTimeout, int readTimeout, int writeTimeout,
+      ConnectionSpecSelector connectionSpecSelector) throws IOException {
+    connectSocket(connectTimeout, readTimeout);
+    establishProtocol(readTimeout, writeTimeout, connectionSpecSelector);
+  }
+
   private void connectSocket(int connectTimeout, int readTimeout) throws IOException {
     Proxy proxy = route.proxy();
     Address address = route.address();
@@ -227,26 +194,34 @@ public final class RealConnection extends Http2Connection.Listener implements Co
     sink = Okio.buffer(Okio.sink(rawSocket));
   }
 
-  private void establishProtocol(ConnectionSpecSelector connectionSpecSelector) throws IOException {
-    if (route.address().sslSocketFactory() == null) {
+  private void establishProtocol(int readTimeout, int writeTimeout,
+      ConnectionSpecSelector connectionSpecSelector) throws IOException {
+    if (route.address().sslSocketFactory() != null) {
+      connectTls(readTimeout, writeTimeout, connectionSpecSelector);
+    } else {
       protocol = Protocol.HTTP_1_1;
       socket = rawSocket;
-      return;
     }
-
-    connectTls(connectionSpecSelector);
 
     if (protocol == Protocol.HTTP_2) {
       socket.setSoTimeout(0); // Framed connection timeouts are set per-stream.
-      http2Connection = new Http2Connection.Builder(true)
+
+      Http2Connection http2Connection = new Http2Connection.Builder(true)
           .socket(socket, route.address().url().host(), source, sink)
           .listener(this)
           .build();
       http2Connection.start();
+
+      // Only assign the framed connection once the preface has been sent successfully.
+      this.allocationLimit = http2Connection.maxConcurrentStreams();
+      this.http2Connection = http2Connection;
+    } else {
+      this.allocationLimit = 1;
     }
   }
 
-  private void connectTls(ConnectionSpecSelector connectionSpecSelector) throws IOException {
+  private void connectTls(int readTimeout, int writeTimeout,
+      ConnectionSpecSelector connectionSpecSelector) throws IOException {
     Address address = route.address();
     SSLSocketFactory sslSocketFactory = address.sslSocketFactory();
     boolean success = false;
@@ -319,9 +294,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       sink.timeout().timeout(writeTimeout, MILLISECONDS);
       tunnelConnection.writeRequest(tunnelRequest.headers(), requestLine);
       tunnelConnection.finishRequest();
-      Response response = tunnelConnection.readResponseHeaders(false)
-          .request(tunnelRequest)
-          .build();
+      Response response = tunnelConnection.readResponse().request(tunnelRequest).build();
       // The response body from a CONNECT should be empty, but if it is not then we should consume
       // it before proceeding.
       long contentLength = HttpHeaders.contentLength(response);
@@ -368,36 +341,9 @@ public final class RealConnection extends Http2Connection.Listener implements Co
     return new Request.Builder()
         .url(route.address().url())
         .header("Host", Util.hostHeader(route.address().url(), true))
-        .header("Proxy-Connection", "Keep-Alive") // For HTTP/1.0 proxies like Squid.
-        .header("User-Agent", Version.userAgent())
+        .header("Proxy-Connection", "Keep-Alive")
+        .header("User-Agent", Version.userAgent()) // For HTTP/1.0 proxies like Squid.
         .build();
-  }
-
-  /** Returns true if this connection can carry a stream allocation to {@code address}. */
-  public boolean isEligible(Address address) {
-    return allocations.size() < allocationLimit
-        && address.equals(route().address())
-        && !noNewStreams;
-  }
-
-  public HttpCodec newCodec(
-      OkHttpClient client, StreamAllocation streamAllocation) throws SocketException {
-    if (http2Connection != null) {
-      return new Http2Codec(client, streamAllocation, http2Connection);
-    } else {
-      socket.setSoTimeout(client.readTimeoutMillis());
-      source.timeout().timeout(client.readTimeoutMillis(), MILLISECONDS);
-      sink.timeout().timeout(client.writeTimeoutMillis(), MILLISECONDS);
-      return new Http1Codec(client, streamAllocation, source, sink);
-    }
-  }
-
-  public RealWebSocket.Streams newWebSocketStreams(final StreamAllocation streamAllocation) {
-    return new RealWebSocket.Streams(true, source, sink) {
-      @Override public void close() throws IOException {
-        streamAllocation.streamFinished(true, streamAllocation.codec());
-      }
-    };
   }
 
   @Override public Route route() {
@@ -452,9 +398,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
 
   /** When settings are received, adjust the allocation limit. */
   @Override public void onSettings(Http2Connection connection) {
-    synchronized (connectionPool) {
-      allocationLimit = connection.maxConcurrentStreams();
-    }
+    allocationLimit = connection.maxConcurrentStreams();
   }
 
   @Override public Handshake handshake() {
@@ -470,7 +414,11 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   }
 
   @Override public Protocol protocol() {
-    return protocol;
+    if (http2Connection == null) {
+      return protocol != null ? protocol : Protocol.HTTP_1_1;
+    } else {
+      return Protocol.HTTP_2;
+    }
   }
 
   @Override public String toString() {

@@ -25,7 +25,6 @@ import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -190,7 +189,7 @@ public final class RealWebSocket implements WebSocket, WebSocketReader.FrameCall
         // Promote the HTTP streams into web socket streams.
         StreamAllocation streamAllocation = Internal.instance.streamAllocation(call);
         streamAllocation.noNewStreams(); // Prevent connection pooling!
-        Streams streams = streamAllocation.connection().newWebSocketStreams(streamAllocation);
+        Streams streams = new ClientStreams(streamAllocation);
 
         // Process all web socket messages.
         try {
@@ -275,13 +274,6 @@ public final class RealWebSocket implements WebSocket, WebSocketReader.FrameCall
       failWebSocket(e, null);
       return false;
     }
-  }
-
-  /**
-   * For testing: wait until the web socket's executor has terminated.
-   */
-  void awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException {
-    executor.awaitTermination(timeout, timeUnit);
   }
 
   synchronized int pingCount() {
@@ -495,15 +487,12 @@ public final class RealWebSocket implements WebSocket, WebSocketReader.FrameCall
   }
 
   private final class PingRunnable implements Runnable {
-    PingRunnable() {
-    }
-
     @Override public void run() {
       writePingFrame();
     }
   }
 
-  void writePingFrame() {
+  private void writePingFrame() {
     WebSocketWriter writer;
     synchronized (this) {
       if (failed) return;
@@ -566,6 +555,19 @@ public final class RealWebSocket implements WebSocket, WebSocketReader.FrameCall
       this.client = client;
       this.source = source;
       this.sink = sink;
+    }
+  }
+
+  static final class ClientStreams extends Streams {
+    private final StreamAllocation streamAllocation;
+
+    ClientStreams(StreamAllocation streamAllocation) {
+      super(true, streamAllocation.connection().source, streamAllocation.connection().sink);
+      this.streamAllocation = streamAllocation;
+    }
+
+    @Override public void close() {
+      streamAllocation.streamFinished(true, streamAllocation.codec());
     }
   }
 
