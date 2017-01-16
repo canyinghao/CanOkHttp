@@ -540,6 +540,27 @@ public final class CanOkHttp {
         return this;
     }
 
+
+    /**
+     * https失败后是否重试
+     * @param httpsTry boolean
+     * @return CanOkHttp
+     */
+    public CanOkHttp setHttpsTry(boolean httpsTry) {
+        mCurrentConfig.setHttpsTry(httpsTry);
+        return this;
+    }
+
+    /**
+     * https失败后重试类型
+     * @param httpsTryType int
+     * @return CanOkHttp
+     */
+    public CanOkHttp setHttpsTryType(int httpsTryType) {
+        mCurrentConfig.setHttpsTryType(httpsTryType);
+        return this;
+    }
+
     /**
      * 设置多长时间内只读取缓存
      *
@@ -965,7 +986,7 @@ public final class CanOkHttp {
 
     private void httpsTryAgain(Call call, Response res, IOException e) {
         boolean isHttpsTry = false;
-        if (mCurrentConfig.isHttpsTry() && mCanCallBack != null && !TextUtils.isEmpty(url) && url.startsWith("https://") && mRequest != null && mRequest.isHttps()) {
+        if (mCurrentConfig.isHttpsTry() && mCanCallBack != null && !TextUtils.isEmpty(url) && url.startsWith("https://")) {
 
             boolean isNeedTry = true;
             if (!TextUtils.isEmpty(mCurrentConfig.getTag())) {
@@ -1052,9 +1073,10 @@ public final class CanOkHttp {
     @NonNull
     private String dealWithRes(Response res) {
         String str = "";
+
         try {
             str = res.body().string();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             try {
                 str = new String(res.body().bytes(), "utf-8");

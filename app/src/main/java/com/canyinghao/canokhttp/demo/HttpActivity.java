@@ -75,6 +75,7 @@ public class HttpActivity extends BaseActivity {
                         .url(url)
                         .setTag(this)
                         .setOpenLog(true)
+                        .setHttpsTry(true)
                         .setCacheType(CacheType.NETWORK)
                         .get()
                         .setCallBack(new CanSimpleCallBack() {
