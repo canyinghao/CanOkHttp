@@ -155,38 +155,44 @@ public class ACache {
 	 * @return String 数据
 	 */
 	public String getAsString(String key) {
-		File file = mCache.get(key);
-		if (!file.exists())
-			return null;
-		boolean removeFile = false;
-		BufferedReader in = null;
-		try {
-			in = new BufferedReader(new FileReader(file));
-			String readString = "";
-			String currentLine;
-			while ((currentLine = in.readLine()) != null) {
-				readString += currentLine;
-			}
-			if (!Utils.isDue(readString)) {
-				return Utils.clearDateInfo(readString);
-			} else {
-				removeFile = true;
+		try{
+			File file = mCache.get(key);
+			if (!file.exists())
 				return null;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					e.printStackTrace();
+			boolean removeFile = false;
+			BufferedReader in = null;
+			try {
+				in = new BufferedReader(new FileReader(file));
+				String readString = "";
+				String currentLine;
+				while ((currentLine = in.readLine()) != null) {
+					readString += currentLine;
 				}
+				if (!Utils.isDue(readString)) {
+					return Utils.clearDateInfo(readString);
+				} else {
+					removeFile = true;
+					return null;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			} finally {
+				if (in != null) {
+					try {
+						in.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				if (removeFile)
+					remove(key);
 			}
-			if (removeFile)
-				remove(key);
+		}catch (Throwable e){
+			e.printStackTrace();
 		}
+
+		return null;
 	}
 
 	// =======================================
@@ -229,7 +235,7 @@ public class ACache {
 		try {
 			JSONObject obj = new JSONObject(JSONString);
 			return obj;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -420,32 +426,37 @@ public class ACache {
 	 * @return Serializable 数据
 	 */
 	public Object getAsObject(String key) {
-		byte[] data = getAsBinary(key);
-		if (data != null) {
-			ByteArrayInputStream bais = null;
-			ObjectInputStream ois = null;
-			try {
-				bais = new ByteArrayInputStream(data);
-				ois = new ObjectInputStream(bais);
-				Object reObject = ois.readObject();
-				return reObject;
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			} finally {
+		try{
+			byte[] data = getAsBinary(key);
+			if (data != null) {
+				ByteArrayInputStream bais = null;
+				ObjectInputStream ois = null;
 				try {
-					if (bais != null)
-						bais.close();
-				} catch (IOException e) {
+					bais = new ByteArrayInputStream(data);
+					ois = new ObjectInputStream(bais);
+					Object reObject = ois.readObject();
+					return reObject;
+				} catch (Exception e) {
 					e.printStackTrace();
-				}
-				try {
-					if (ois != null)
-						ois.close();
-				} catch (IOException e) {
-					e.printStackTrace();
+					return null;
+				} finally {
+					try {
+						if (bais != null)
+							bais.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					try {
+						if (ois != null)
+							ois.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
+
+		}catch (Throwable e){
+			e.printStackTrace();
 		}
 		return null;
 
