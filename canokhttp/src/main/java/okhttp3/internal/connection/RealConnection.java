@@ -19,6 +19,8 @@ package okhttp3.internal.connection;
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.net.ConnectException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.Socket;
@@ -28,9 +30,11 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+
 import okhttp3.Address;
 import okhttp3.CertificatePinner;
 import okhttp3.Connection;
@@ -81,6 +85,8 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   public final List<Reference<StreamAllocation>> allocations = new ArrayList<>();
   public boolean noNewStreams;
   public long idleAtNanos = Long.MAX_VALUE;
+
+  public String remoteAddress;
 
   public RealConnection(Route route) {
     this.route = route;
@@ -202,6 +208,16 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       protocol = Protocol.HTTP_1_1;
       socket = rawSocket;
     }
+
+    try{
+      InetSocketAddress inetSocketAddress=  (InetSocketAddress) socket.getRemoteSocketAddress();
+      InetAddress addr =inetSocketAddress.getAddress();
+
+      remoteAddress = addr.getHostAddress()+":"+inetSocketAddress.getPort();
+    }catch (Throwable e){
+      e.printStackTrace();
+    }
+
 
     if (protocol == Protocol.HTTP_2) {
       socket.setSoTimeout(0); // Framed connection timeouts are set per-stream.

@@ -44,6 +44,7 @@ public final class Response implements Closeable {
   final Protocol protocol;
   final int code;
   final String message;
+   String remoteAddress;
   final Handshake handshake;
   final Headers headers;
   final ResponseBody body;
@@ -60,6 +61,7 @@ public final class Response implements Closeable {
     this.protocol = builder.protocol;
     this.code = builder.code;
     this.message = builder.message;
+    this.remoteAddress = builder.remoteAddress;
     this.handshake = builder.handshake;
     this.headers = builder.headers.build();
     this.body = builder.body;
@@ -108,6 +110,15 @@ public final class Response implements Closeable {
   /** Returns the HTTP status message or null if it is unknown. */
   public String message() {
     return message;
+  }
+
+
+  public String remoteAddress() {
+    return remoteAddress;
+  }
+
+  public void setRemoteAddress(String remoteAddress) {
+    this.remoteAddress = remoteAddress;
   }
 
   /**
@@ -290,6 +301,7 @@ public final class Response implements Closeable {
     Protocol protocol;
     int code = -1;
     String message;
+    String remoteAddress;
     Handshake handshake;
     Headers.Builder headers;
     ResponseBody body;
@@ -338,10 +350,16 @@ public final class Response implements Closeable {
       return this;
     }
 
+    public Builder remoteAddress(String remoteAddress) {
+      this.remoteAddress = remoteAddress;
+      return this;
+    }
+
     public Builder handshake(Handshake handshake) {
       this.handshake = handshake;
       return this;
     }
+
 
     /**
      * Sets the header named {@code name} to {@code value}. If this request already has any headers

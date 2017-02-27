@@ -101,6 +101,12 @@ public final class RealInterceptorChain implements Interceptor.Chain {
     if (response == null) {
       throw new NullPointerException("interceptor " + interceptor + " returned null");
     }
+    try{
+      response.setRemoteAddress(streamAllocation.getRemoteAddress());
+    }catch (Throwable e){
+      e.printStackTrace();
+    }
+
 
     return response;
   }
