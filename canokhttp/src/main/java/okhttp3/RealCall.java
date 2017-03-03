@@ -142,6 +142,8 @@ final class RealCall implements Call {
         protected void execute() {
             boolean signalledCallback = false;
             try {
+
+
                 Response response = getResponseWithInterceptorChain();
                 if (retryAndFollowUpInterceptor.isCanceled()) {
                     signalledCallback = true;

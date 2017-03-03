@@ -343,8 +343,8 @@ public final class StreamAllocation {
     }
 
     public String getRemoteAddress() {
-        if (connection != null) {
-            return connection.remoteAddress;
+        if (route != null&&route.socketAddress()!=null) {
+            return route.socketAddress().toString();
         }
         return "";
     }

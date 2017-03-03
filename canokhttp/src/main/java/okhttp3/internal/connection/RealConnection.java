@@ -19,8 +19,6 @@ package okhttp3.internal.connection;
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.net.ConnectException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.Socket;
@@ -86,7 +84,6 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   public boolean noNewStreams;
   public long idleAtNanos = Long.MAX_VALUE;
 
-  public String remoteAddress;
 
   public RealConnection(Route route) {
     this.route = route;
@@ -207,15 +204,6 @@ public final class RealConnection extends Http2Connection.Listener implements Co
     } else {
       protocol = Protocol.HTTP_1_1;
       socket = rawSocket;
-    }
-
-    try{
-      InetSocketAddress inetSocketAddress=  (InetSocketAddress) socket.getRemoteSocketAddress();
-      InetAddress addr =inetSocketAddress.getAddress();
-
-      remoteAddress = addr.getHostAddress()+":"+inetSocketAddress.getPort();
-    }catch (Throwable e){
-      e.printStackTrace();
     }
 
 

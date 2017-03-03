@@ -102,7 +102,9 @@ public final class RealInterceptorChain implements Interceptor.Chain {
       throw new NullPointerException("interceptor " + interceptor + " returned null");
     }
     try{
-      response.setRemoteAddress(streamAllocation.getRemoteAddress());
+      if(streamAllocation!=null){
+        response.setRemoteAddress(streamAllocation.getRemoteAddress());
+      }
     }catch (Throwable e){
       e.printStackTrace();
     }
