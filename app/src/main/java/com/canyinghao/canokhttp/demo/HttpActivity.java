@@ -13,16 +13,9 @@ import com.canyinghao.canokhttp.annotation.ResultType;
 import com.canyinghao.canokhttp.callback.CanSimpleCallBack;
 import com.socks.library.KLog;
 
-import java.io.IOException;
-
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 /**
  * Created by canyinghao on 2016/10/13.
@@ -55,31 +48,7 @@ public class HttpActivity extends BaseActivity {
         ButterKnife.bind(this);
 
 
-        OkHttpClient client = CanOkHttp.getInstance().setOpenLog(false).getHttpClient();
 
-        Request request = new Request.Builder()
-
-                .url("http://mhpic.zymk.cn/comic/D/%E6%96%97%E7%BD%97%E5%A4%A7%E9%99%86/01%E8%AF%9D/1.jpg-zymk.middle").get().build();
-        Call call = client.newCall(request);
-
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, final IOException e) {
-
-
-                KLog.e(e);
-
-            }
-
-            @Override
-            public void onResponse(Call call, final Response response) throws IOException {
-
-
-                KLog.e(response.remoteAddress());
-
-
-            }
-        });
 
     }
 
@@ -128,6 +97,8 @@ public class HttpActivity extends BaseActivity {
 
 
                         });
+
+
 
                 break;
             case R.id.btn_2:

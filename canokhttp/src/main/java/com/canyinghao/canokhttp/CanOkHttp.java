@@ -9,7 +9,6 @@ import android.os.Environment;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.canyinghao.canokhttp.annotation.CacheType;
 import com.canyinghao.canokhttp.annotation.DownloadStatus;
@@ -58,6 +57,7 @@ import javax.net.ssl.X509TrustManager;
 import okhttp3.CacheControl;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.CookieJar;
 import okhttp3.FormBody;
 import okhttp3.Interceptor;
 import okhttp3.MultipartBody;
@@ -543,6 +543,7 @@ public final class CanOkHttp {
 
     /**
      * https失败后是否重试
+     *
      * @param httpsTry boolean
      * @return CanOkHttp
      */
@@ -553,6 +554,7 @@ public final class CanOkHttp {
 
     /**
      * https失败后重试类型
+     *
      * @param httpsTryType int
      * @return CanOkHttp
      */
@@ -656,6 +658,17 @@ public final class CanOkHttp {
         return this;
     }
 
+
+    /**
+     * 设置CookieJar
+     * @param cookieJar CookieJar
+     * @return CanOkHttp
+     */
+    public CanOkHttp setCookieJar(CookieJar cookieJar) {
+        mCurrentConfig.setCookieJar(cookieJar);
+
+        return this;
+    }
 
     /**
      * 下载文件的大小
