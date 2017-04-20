@@ -44,7 +44,7 @@ import java.net.UnknownServiceException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -88,9 +88,9 @@ public final class CanOkHttp {
     //   传入所有参数后得到的请求体
     private Request mRequest;
     //  请求参数
-    private Map<String, String> paramMap = new HashMap<>();
+    private Map<String, String> paramMap = new LinkedHashMap<>();
     //    请求头参数
-    private Map<String, String> headerMap = new HashMap<>();
+    private Map<String, String> headerMap = new LinkedHashMap<>();
 
     //  请求地址
     private String url = "";

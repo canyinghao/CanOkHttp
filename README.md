@@ -5,8 +5,8 @@
  ![](./pic/CanOkHttp.gif)  
 
 ##添加依赖
-```JAVA
-compile 'com.canyinghao:canokhttp:1.3.5'
+```
+compile 'com.canyinghao:canokhttp:1.5.0'
 ```
 
 ## 使用方式 
@@ -17,7 +17,7 @@ CanOkHttp是一个基于OkHttp的工具库。主要功能，带有缓存的网�
 
 日志使用的KLog，开关为KLog.init(true,"Canyinghao");
 
-```JAVA
+```
 
 CanOkHttp.getInstance()
 
@@ -68,9 +68,9 @@ setConfig、setTag等在get或post方法前调用。setTag为activity后，可�
   
 ### 依赖库
 ```
- compile 'com.squareup.okhttp3:okhttp:3.4.1'
- compile 'com.github.zhaokaiqiang.klog:library:1.5.0'
- compile 'com.android.support:appcompat-v7:24.2.1'
+     compile 'com.squareup.okio:okio:1.11.0'
+     compile 'com.github.zhaokaiqiang.klog:library:1.6.0'
+     compile 'com.android.support:appcompat-v7:25.2.0'
 ```
 
 

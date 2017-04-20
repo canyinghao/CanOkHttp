@@ -68,8 +68,6 @@ public class HttpActivity extends BaseActivity {
 
 
                 CanOkHttp.getInstance()
-                        .addHeader("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36")
-
                         .add("app", "life.time")
                         .add("appkey", "10003")
                         .add("sign", "b59bc3ef6191eb9f747dd4e83c99f2a4")
