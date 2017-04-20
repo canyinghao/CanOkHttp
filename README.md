@@ -4,7 +4,7 @@
  
  ![](./pic/CanOkHttp.gif)  
 
-##添加依赖
+## 添加依赖
 ```
 compile 'com.canyinghao:canokhttp:1.5.0'
 ```
