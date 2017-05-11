@@ -107,6 +107,8 @@ public class DownLoadActivity extends BaseActivity {
                     .setReadTimeout(600)
                     .setWriteTimeout(600)
                     .setTag(this)
+                    .setDownloadFileDir(getExternalFilesDir("download").getAbsolutePath())
+                    .setDownCoverFile(true)
                     .startDownload(url, callBack, "canyinghao.apk");
         }else{
             okHttp.startDownload(url,callBack,"canyinghao.apk");

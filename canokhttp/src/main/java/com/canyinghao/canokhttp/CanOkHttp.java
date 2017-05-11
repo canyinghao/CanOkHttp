@@ -431,6 +431,12 @@ public final class CanOkHttp {
 
         isPost = true;
 
+        boolean p = mCurrentConfig.isPublic();
+
+        if (isPublic || p) {
+            isPublic = true;
+        }
+
         try {
             mRequest = fetchRequest(true, isPublic);
         } catch (Exception e) {
@@ -466,6 +472,12 @@ public final class CanOkHttp {
     public CanOkHttp get(boolean isPublic) {
 
         isPost = false;
+
+        boolean p = mCurrentConfig.isPublic();
+
+        if (isPublic || p) {
+            isPublic = true;
+        }
 
         try {
             mRequest = fetchRequest(false, isPublic);
@@ -658,9 +670,31 @@ public final class CanOkHttp {
         return this;
     }
 
+    /**
+     * 设置下载路径
+     *
+     * @param downloadFileDir 下载路径
+     * @return CanOkHttp
+     */
+    public CanOkHttp setDownloadFileDir(String downloadFileDir) {
+        mCurrentConfig.setDownloadFileDir(downloadFileDir);
+        return this;
+    }
+
+    /**
+     * 设置下载是否覆盖
+     *
+     * @param downCoverFile 是否覆盖
+     * @return CanOkHttp
+     */
+    public CanOkHttp setDownCoverFile(boolean downCoverFile) {
+        mCurrentConfig.setDownCoverFile(downCoverFile);
+        return this;
+    }
 
     /**
      * 设置CookieJar
+     *
      * @param cookieJar CookieJar
      * @return CanOkHttp
      */
@@ -1352,11 +1386,11 @@ public final class CanOkHttp {
         RandomAccessFile accessFile = null;
         InputStream inputStream = null;
         BufferedInputStream bis = null;
-        String filePath = mCurrentConfig.getDownloadFileDir() + fileInfo.saveFileName;
+        String filePath = new File(fileInfo.saveFileDir, fileInfo.saveFileName).getAbsolutePath();
         try {
             ResponseBody responseBody = res.body();
             int length;
-            accessFile = new RandomAccessFile(fileInfo.saveFileDir + fileInfo.saveFileNameEncrypt, "rwd");
+            accessFile = new RandomAccessFile(new File(fileInfo.saveFileDir, fileInfo.saveFileNameEncrypt).getAbsoluteFile(), "rwd");
             //服务器不支持断点下载时重新下载
             if (TextUtils.isEmpty(res.header("Content-Range"))) {
                 completedSize = 0L;
@@ -1384,10 +1418,21 @@ public final class CanOkHttp {
             if (DownloadStatus.DOWNLOADING == downloadStatus) {
                 downloadStatus = DownloadStatus.COMPLETED;
                 File newFile = new File(fileInfo.saveFileDir, fileInfo.saveFileName);
-                //处理文件已存在逻辑
+
                 if (newFile.exists() && newFile.isFile()) {
-                    File copyFile = new File(fileInfo.saveFileDir, fileInfo.saveFileNameCopy);
-                    boolean isSuccess = newFile.renameTo(copyFile);
+
+
+                    //处理文件已存在逻辑
+                    boolean isSuccess = false;
+                    if (mCurrentConfig.isDownCoverFile()) {
+                        isSuccess = newFile.delete();
+                    }
+
+                    if (!isSuccess || !mCurrentConfig.isDownCoverFile()) {
+                        File copyFile = new File(fileInfo.saveFileDir, fileInfo.saveFileNameCopy);
+                        newFile.renameTo(copyFile);
+                    }
+
                 }
                 File oldFile = new File(fileInfo.saveFileDir, fileInfo.saveFileNameEncrypt);
                 if (oldFile.exists() && oldFile.isFile()) {
@@ -1879,8 +1924,10 @@ public final class CanOkHttp {
                 .setDownloadFileDir(downLoadDir)
                 .setDownloadDelayTime(1000)
                 .setDownAccessFile(false)
+                .setDownCoverFile(false)
                 .setOpenLog(false)
                 .setHttpsTry(true)
+                .setPublic(false)
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(application)));
 
         return config;

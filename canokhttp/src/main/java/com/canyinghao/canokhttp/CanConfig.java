@@ -47,6 +47,7 @@ public final class CanConfig {
     private long downloadDelayTime;//下载完成后延迟事件
 
     private boolean isDownAccessFile;//是否断点下载
+    private boolean isDownCoverFile;//是否覆盖下载
 
     private boolean isCacheInThread;//是否在线程中读缓存
     private boolean isOpenLog;//日志拦截器
@@ -55,6 +56,8 @@ public final class CanConfig {
 
 //    0 都重试 1get 2 post
     private int httpsTryType;
+
+    private boolean isPublic;
 
 
     private String tag;
@@ -270,6 +273,14 @@ public final class CanConfig {
         return isDownAccessFile;
     }
 
+    public CanConfig setDownCoverFile(boolean downCoverFile) {
+        isDownCoverFile = downCoverFile;
+        return this;
+    }
+    public boolean isDownCoverFile() {
+        return isDownCoverFile;
+    }
+
 
     public CanConfig setCookieJar(CookieJar cookieJar) {
         if (cookieJar == null) throw new NullPointerException("cookieJar == null");
@@ -334,6 +345,7 @@ public final class CanConfig {
         return this;
     }
 
+
     public CanConfig putGlobalHeaderMap(String key, String value) {
 
         this.globalHeaderMap.put(key, value);
@@ -341,8 +353,21 @@ public final class CanConfig {
         return this;
     }
 
+
+
     public Map<String, String> getGlobalHeaderMap() {
         return globalHeaderMap;
+    }
+
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public CanConfig setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+
+        return this;
     }
 
     public CanConfig clone() {
@@ -375,6 +400,7 @@ public final class CanConfig {
         this.downloadFileDir = config.downloadFileDir;
         this.downloadDelayTime = config.downloadDelayTime;
         this.isDownAccessFile = config.isDownAccessFile;
+        this.isDownCoverFile = config.isDownCoverFile;
         this.isCacheInThread = config.isCacheInThread;
 
         this.tag = config.tag;
@@ -384,6 +410,7 @@ public final class CanConfig {
         this.isOpenLog = config.isOpenLog;
         this.isHttpsTry = config.isHttpsTry;
         this.httpsTryType = config.httpsTryType;
+        this.isPublic = config.isPublic;
 
 
     }
