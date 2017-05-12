@@ -1886,15 +1886,22 @@ public final class CanOkHttp {
 
         File cacheDir = null;
         String downLoadDir = null;
-        if (Environment.getExternalStorageState().equals(
-                Environment.MEDIA_MOUNTED)) {
 
-            cacheDir = application.getExternalCacheDir();
+        try {
 
+            if (Environment.getExternalStorageState().equals(
+                    Environment.MEDIA_MOUNTED)) {
 
-            downLoadDir = Environment.getExternalStorageDirectory() + "/DownLoad/";
+                cacheDir = application.getExternalCacheDir();
 
+                downLoadDir = Environment.getExternalStorageDirectory() + "/DownLoad/";
+
+            }
+
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
+
 
         if (cacheDir == null) {
             cacheDir = application.getCacheDir();
