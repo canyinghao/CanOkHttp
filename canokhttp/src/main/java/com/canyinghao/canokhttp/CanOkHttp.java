@@ -125,11 +125,17 @@ public final class CanOkHttp {
      * @return 是否
      */
     private boolean isNetworkAvailable(Context context) {
-        ConnectivityManager cm = (ConnectivityManager) context
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo net = cm.getActiveNetworkInfo();
+        try{
+            ConnectivityManager cm = (ConnectivityManager) context
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            final NetworkInfo net = cm.getActiveNetworkInfo();
 
-        return net != null && net.getState() == NetworkInfo.State.CONNECTED;
+            return net != null && net.getState() == NetworkInfo.State.CONNECTED;
+        }catch (Throwable e){
+            e.printStackTrace();
+        }
+
+        return true;
     }
 
     /**
