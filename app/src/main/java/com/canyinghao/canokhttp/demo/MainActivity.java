@@ -66,7 +66,7 @@ public class MainActivity extends BaseActivity {
 
             case R.id.btn_5:
 
-                startActivity(new Intent(this,ThreadActivity.class));
+                startActivity(new Intent(this,WebActivity.class));
 
 
                 break;

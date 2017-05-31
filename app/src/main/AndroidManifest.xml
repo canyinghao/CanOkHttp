@@ -32,6 +32,7 @@
         <activity android:name=".UpLoadActivity"/>
         <activity android:name=".TestActivity"/>
         <activity android:name=".ThreadActivity"/>
+        <activity android:name=".WebActivity"/>
 
     </application>
 

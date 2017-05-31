@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Libs</string>
+    <string name="can_downing">下载中&#8230;</string>
+
+    <string name="can_down_open">下载完成，点击打开</string>
+
+    <string name="can_down_fail">下载失败，请重试</string>
 </resources>
