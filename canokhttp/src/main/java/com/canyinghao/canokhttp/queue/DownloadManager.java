@@ -35,7 +35,7 @@ public class DownloadManager {
     private NotificationManager notificationMrg;
 
     private Map<String, CanFileGlobalCallBack> downMap = new ArrayMap<>();
-    private Map<String, Integer> downIdMap = new ArrayMap<>();
+    private Map<String, Long> downIdMap = new ArrayMap<>();
 
     private CanFileGlobalCallBack globalCallBack;
 
@@ -117,7 +117,7 @@ public class DownloadManager {
         }
 
 
-        downIdMap.put(url, 1000 + count++);
+        downIdMap.put(url, System.currentTimeMillis());
 
         final String finalFileName = fileName;
 
@@ -257,10 +257,11 @@ public class DownloadManager {
 
         NotificationCompat.Builder builder = getNotifyBuilderProgress(context, fileName,
                 context.getString(R.string.can_downing), progress + "%", null,
-                R.mipmap.ic_launcher, null, 100, progress,
+                R.mipmap.icon, null, 100, progress,
                 false,
                 null, Notification.DEFAULT_LIGHTS, true, false);
 
+        builder.setWhen(getNotifyTime(request));
 
         if (notificationMrg == null) {
             notificationMrg = (NotificationManager)
@@ -286,7 +287,7 @@ public class DownloadManager {
 
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.mipmap.icon)
                 .setContentTitle(fileName)
                 .setContentText(contentText).setAutoCancel(true)
                 .setContentIntent(contentIntent)
@@ -315,7 +316,7 @@ public class DownloadManager {
 
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.mipmap.icon)
                 .setContentTitle(fileName)
                 .setContentText(contentText).setAutoCancel(true)
                 .setContentIntent(pendingIntent)
@@ -332,10 +333,23 @@ public class DownloadManager {
 
     private int getNotifyId(Request request) {
         String key = request.url;
-        int id = 1000;
+        int id = 10000;
+        if (downIdMap.containsKey(key)) {
+           long time = downIdMap.get(key);
+            id = (int) (time%10000);
+        }
+
+        return id;
+    }
+
+
+    private long getNotifyTime(Request request) {
+        String key = request.url;
+        long id = System.currentTimeMillis();
         if (downIdMap.containsKey(key)) {
             id = downIdMap.get(key);
         }
+
         return id;
     }
 
