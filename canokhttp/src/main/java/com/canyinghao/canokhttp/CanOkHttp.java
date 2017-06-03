@@ -982,59 +982,67 @@ public final class CanOkHttp {
             CanCallManager.putCall(mCurrentConfig.getTag(), call);
         }
 
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
+        try{
 
-                httpsTryAgain(call, null, e);
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
 
-            }
-
-            @Override
-            public void onResponse(Call call, Response res) throws IOException {
-
-
-                if (res.isSuccessful() && null != res.body()) {
-
-
-                    if (isDownOrUpLoad) {
-
-                        if (fileInfo != null && fileInfo.isUpLoad) {
-
-                            String str = dealWithRes(res);
-
-
-                            sendResponseMsg(str);
-
-                        } else {
-
-                            dealDownloadFile(res, fileInfo);
-                        }
-
-
-                    } else {
-
-
-                        String str = dealWithRes(res);
-
-                        dealWithCache(1, str);
-                        sendResponseMsg(str);
-
-                    }
-
-                    if (!TextUtils.isEmpty(mCurrentConfig.getTag()) && call != null) {
-                        CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
-                    }
-
-                } else {
-
-                    httpsTryAgain(call, res, null);
+                    httpsTryAgain(call, null, e);
 
                 }
 
+                @Override
+                public void onResponse(Call call, Response res) throws IOException {
 
-            }
-        });
+
+                    if (res.isSuccessful() && null != res.body()) {
+
+
+                        if (isDownOrUpLoad) {
+
+                            if (fileInfo != null && fileInfo.isUpLoad) {
+
+                                String str = dealWithRes(res);
+
+
+                                sendResponseMsg(str);
+
+                            } else {
+
+                                dealDownloadFile(res, fileInfo);
+                            }
+
+
+                        } else {
+
+
+                            String str = dealWithRes(res);
+
+                            dealWithCache(1, str);
+                            sendResponseMsg(str);
+
+                        }
+
+                        if (!TextUtils.isEmpty(mCurrentConfig.getTag()) && call != null) {
+                            CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
+                        }
+
+                    } else {
+
+                        httpsTryAgain(call, res, null);
+
+                    }
+
+
+                }
+            });
+
+        }catch (Throwable e){
+            e.printStackTrace();
+            httpsTryAgain(call, null, null);
+        }
+
     }
 
     private void httpsTryAgain(Call call, Response res, IOException e) {
