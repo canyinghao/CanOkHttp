@@ -6,6 +6,11 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 
+import com.socks.library.KLog;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -26,6 +31,20 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+
+        String text = "xxxx{emoji:兔斯基/5}xxxx{emoji:兔斯基/5}";
+
+        Pattern pattern = Pattern.compile("\\{emoji:\\S+?\\}");
+        Matcher matcherGif = pattern.matcher(text);
+        KLog.e("xxxxxxx");
+
+        while(matcherGif.find()) {
+            String key = matcherGif.group(0);
+            KLog.e(key);
+
+
+        }
+        btn1.setText(text);
 
     }
 

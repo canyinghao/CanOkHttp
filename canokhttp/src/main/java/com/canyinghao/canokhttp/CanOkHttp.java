@@ -1669,9 +1669,9 @@ public final class CanOkHttp {
                     for (String name : map.keySet()) {
                         builder.add(name, map.get(name));
                         if (TextUtils.isEmpty(params.toString())) {
-                            logInfo = "?" + name + "=" + paramMap.get(name);
+                            logInfo = "?" + name + "=" + map.get(name);
                         } else {
-                            logInfo = "&" + name + "=" + paramMap.get(name);
+                            logInfo = "&" + name + "=" + map.get(name);
                         }
                         params.append(logInfo);
                     }
@@ -1706,9 +1706,9 @@ public final class CanOkHttp {
                     String logInfo;
                     for (String name : map.keySet()) {
                         if (TextUtils.isEmpty(params.toString())) {
-                            logInfo = "?" + name + "=" + paramMap.get(name);
+                            logInfo = "?" + name + "=" + map.get(name);
                         } else {
-                            logInfo = "&" + name + "=" + paramMap.get(name);
+                            logInfo = "&" + name + "=" + map.get(name);
                         }
                         params.append(logInfo);
                     }
