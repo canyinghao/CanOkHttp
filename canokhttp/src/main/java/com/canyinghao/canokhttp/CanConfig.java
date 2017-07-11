@@ -59,6 +59,7 @@ public final class CanConfig {
 
     private boolean isPublic;
 
+    private boolean isUpLoadProgress;
 
     private String tag;
     private CookieJar cookieJar;
@@ -301,6 +302,14 @@ public final class CanConfig {
         return isOpenLog;
     }
 
+    public boolean isUpLoadProgress() {
+        return isUpLoadProgress;
+    }
+
+    public CanConfig setUpLoadProgress(boolean upLoadProgress) {
+        isUpLoadProgress = upLoadProgress;
+        return this;
+    }
 
     public boolean isHttpsTry() {
         return isHttpsTry;
@@ -411,6 +420,7 @@ public final class CanConfig {
         this.isHttpsTry = config.isHttpsTry;
         this.httpsTryType = config.httpsTryType;
         this.isPublic = config.isPublic;
+        this.isUpLoadProgress = config.isUpLoadProgress;
 
 
     }

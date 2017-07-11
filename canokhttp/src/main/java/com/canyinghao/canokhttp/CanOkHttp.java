@@ -666,6 +666,16 @@ public final class CanOkHttp {
     }
 
     /**
+     * 是否监听上传进度
+     * @param isUpDateProgress boolean
+     * @return CanOkHttp
+     */
+    public CanOkHttp setUpDateProgress(boolean isUpDateProgress) {
+        mCurrentConfig.setUpLoadProgress(isUpDateProgress);
+        return this;
+    }
+
+    /**
      * 设置下载状态，在下载中时改为暂停，可停止下载
      *
      * @param downloadStatus 下载状态
@@ -831,7 +841,7 @@ public final class CanOkHttp {
             mRequest = new Request
                     .Builder()
                     .url(url)
-                    .post(new ProgressRequestBody(requestBody, this))
+                    .post(mCurrentConfig.isUpLoadProgress()?new ProgressRequestBody(requestBody, this):requestBody)
                     .build();
 
         } catch (Exception e) {
@@ -1941,6 +1951,7 @@ public final class CanOkHttp {
                 .setOpenLog(false)
                 .setHttpsTry(true)
                 .setPublic(false)
+                .setUpLoadProgress(false)
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(application)));
 
         return config;
