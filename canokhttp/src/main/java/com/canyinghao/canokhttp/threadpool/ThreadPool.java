@@ -81,4 +81,11 @@ public class ThreadPool {
 
         this.submit(job, listener,Schedulers.io(),AndroidSchedulers.mainThread());
     }
+
+
+    public synchronized <T> void submit(Job<T> job, final FutureListener<T> listener,Scheduler schedule) {
+
+
+        this.submit(job, listener,schedule,AndroidSchedulers.mainThread());
+    }
 }
