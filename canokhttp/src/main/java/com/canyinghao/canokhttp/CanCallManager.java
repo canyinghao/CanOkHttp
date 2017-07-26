@@ -42,7 +42,7 @@ public final class CanCallManager {
             callList.put(call.hashCode(), call);
             allCallsMap.put(tag, callList);
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
 
@@ -56,10 +56,12 @@ public final class CanCallManager {
      */
     public static void cancelCallByActivityDestroy(@NonNull Class<?> cls) {
 
-
-        String tag = cls.getCanonicalName();
-        cancelCallByTag(tag);
-
+        try {
+            String tag = cls.getCanonicalName();
+            cancelCallByTag(tag);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -71,21 +73,24 @@ public final class CanCallManager {
      */
     public static void cancelCallByTag(@NonNull String tag) {
 
+        try {
+            if (allCallsMap.containsKey(tag)) {
 
-        if (allCallsMap.containsKey(tag)) {
+                SparseArray<Call> callList = allCallsMap.get(tag);
+                if (null != callList) {
+                    final int len = callList.size();
+                    for (int i = 0; i < len; i++) {
+                        Call call = callList.valueAt(i);
+                        if (null != call && !call.isCanceled())
+                            call.cancel();
+                    }
+                    callList.clear();
+                    allCallsMap.remove(tag);
 
-            SparseArray<Call> callList = allCallsMap.get(tag);
-            if (null != callList) {
-                final int len = callList.size();
-                for (int i = 0; i < len; i++) {
-                    Call call = callList.valueAt(i);
-                    if (null != call && !call.isCanceled())
-                        call.cancel();
                 }
-                callList.clear();
-                allCallsMap.remove(tag);
-
             }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
 
     }
@@ -97,24 +102,26 @@ public final class CanCallManager {
      * @param call 请求
      */
     static void cancelCall(@NonNull String tag, @NonNull Call call) {
+        try {
+            if (allCallsMap.containsKey(tag)) {
 
-        if (allCallsMap.containsKey(tag)) {
+                SparseArray<Call> callList = allCallsMap.get(tag);
+                if (null != callList) {
 
-            SparseArray<Call> callList = allCallsMap.get(tag);
-            if (null != callList) {
+                    Call c = callList.get(call.hashCode());
+                    if (null != c && !c.isCanceled())
+                        c.cancel();
+                    callList.delete(call.hashCode());
+                    if (callList.size() == 0) {
+                        allCallsMap.remove(tag);
+                    }
 
-                Call c = callList.get(call.hashCode());
-                if (null != c && !c.isCanceled())
-                    c.cancel();
-                callList.delete(call.hashCode());
-                if (callList.size() == 0) {
-                    allCallsMap.remove(tag);
+
                 }
-
-
             }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
-
 
     }
 
@@ -125,11 +132,15 @@ public final class CanCallManager {
      * @param tag 请求标识
      */
     static boolean isHaveTag(@NonNull String tag) {
+        try {
+            if (allCallsMap.containsKey(tag)) {
 
-        if (allCallsMap.containsKey(tag)) {
-
-            return true;
+                return true;
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
+
         return false;
 
     }
