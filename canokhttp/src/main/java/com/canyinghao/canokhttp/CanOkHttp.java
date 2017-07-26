@@ -23,10 +23,8 @@ import com.canyinghao.canokhttp.handler.OkMessage;
 import com.canyinghao.canokhttp.model.FileLoadBean;
 import com.canyinghao.canokhttp.progress.ProgressRequestBody;
 import com.canyinghao.canokhttp.progress.ProgressResponseBody;
-import com.canyinghao.canokhttp.threadpool.Future;
 import com.canyinghao.canokhttp.threadpool.FutureListener;
 import com.canyinghao.canokhttp.threadpool.Job;
-import com.canyinghao.canokhttp.threadpool.JobContext;
 import com.canyinghao.canokhttp.threadpool.ThreadPool;
 import com.canyinghao.canokhttp.util.CanOkHttpUtil;
 import com.socks.library.KLog;
@@ -939,18 +937,16 @@ public final class CanOkHttp {
                 ThreadPool.getInstance().submit(new Job<Boolean>() {
 
                     @Override
-                    public Boolean run(JobContext job) {
+                    public Boolean run() {
 
 
                         return dealWithCache(0, "");
                     }
                 }, new FutureListener<Boolean>() {
                     @Override
-                    public void onFutureDone(Future<Boolean> future) {
+                    public void onFutureDone(Boolean future) {
 
-                        boolean b = future.get();
-
-                        if (!b) {
+                        if (future==null||!future) {
 
                             Message msg = new OkMessage(OkHandler.RUN_ON_UI,
                                     CanOkHttp.this)
