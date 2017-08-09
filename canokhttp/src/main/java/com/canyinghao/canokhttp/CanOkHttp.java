@@ -115,6 +115,19 @@ public final class CanOkHttp {
 
     }
 
+    public Map<String, String> getHeaderMap() {
+        return headerMap;
+    }
+
+    public Map<String, String> getParamMap() {
+        return paramMap;
+    }
+
+    public String getMethod(){
+
+        return  isPost?"POST":"GET";
+
+    }
 
     /**
      * 网络是否可用
@@ -422,23 +435,32 @@ public final class CanOkHttp {
      */
     public CanOkHttp post() {
 
-        return post(false);
+        return post(0);
     }
 
     /**
      * post方法
      *
-     * @param isPublic 是否添加公共参数
+     * @param publicType 是否添加公共参数
      * @return CanOkHttp
      */
-    public CanOkHttp post(boolean isPublic) {
+    public CanOkHttp post(int  publicType) {
 
         isPost = true;
 
-        boolean p = mCurrentConfig.isPublic();
 
-        if (isPublic || p) {
-            isPublic = true;
+        boolean isPublic =mCurrentConfig.isPublic();
+
+        switch (publicType){
+            case  0:
+                isPublic =mCurrentConfig.isPublic();
+                break;
+            case  1:
+                isPublic =true;
+                break;
+            case  2:
+                isPublic =false;
+                break;
         }
 
         try {
@@ -463,24 +485,33 @@ public final class CanOkHttp {
     public CanOkHttp get() {
 
 
-        return get(false);
+        return get(0);
     }
 
 
     /**
      * get 方法
      *
-     * @param isPublic 是否添加公共参数
+     * @param publicType 是否添加公共参数 0 使用全局设置 1强制使用 2强制关闭
      * @return CanOkHttp
      */
-    public CanOkHttp get(boolean isPublic) {
+    public CanOkHttp get(int  publicType) {
 
         isPost = false;
 
-        boolean p = mCurrentConfig.isPublic();
 
-        if (isPublic || p) {
-            isPublic = true;
+        boolean isPublic =mCurrentConfig.isPublic();
+
+        switch (publicType){
+            case  0:
+                isPublic =mCurrentConfig.isPublic();
+                break;
+            case  1:
+                isPublic =true;
+                break;
+            case  2:
+                isPublic =false;
+                break;
         }
 
         try {
