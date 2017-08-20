@@ -47,15 +47,24 @@ public class ThreadPool {
                     @Override
                     public void onNext(T value) {
 
-                        if (listener != null) {
-                            listener.onFutureDone(value);
+                        try{
+                            if (listener != null) {
+                                listener.onFutureDone(value);
+                            }
+                        }catch (Throwable e){
+                            e.printStackTrace();
                         }
+
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        if (listener != null) {
-                            listener.onFutureDone(null);
+                        try{
+                            if (listener != null) {
+                                listener.onFutureDone(null);
+                            }
+                        }catch (Throwable t){
+                            t.printStackTrace();
                         }
                     }
 
