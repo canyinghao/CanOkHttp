@@ -39,6 +39,7 @@ public class ThreadPool {
 
                 T t = job.run();
                 e.onNext(t);
+                e.onComplete();
 
             }
         }).subscribeOn(schedule)
