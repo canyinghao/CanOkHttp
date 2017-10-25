@@ -449,11 +449,11 @@ public final class CanOkHttp {
         isPost = true;
 
 
-        boolean isPublic =mCurrentConfig.isPublic();
+        boolean isPublic =false;
 
         switch (publicType){
             case  0:
-                isPublic =mCurrentConfig.isPublic();
+                isPublic =mCurrentConfig.getPublicType()==2||mCurrentConfig.getPublicType()==3;
                 break;
             case  1:
                 isPublic =true;
@@ -500,11 +500,11 @@ public final class CanOkHttp {
         isPost = false;
 
 
-        boolean isPublic =mCurrentConfig.isPublic();
+        boolean isPublic =false;
 
         switch (publicType){
             case  0:
-                isPublic =mCurrentConfig.isPublic();
+                isPublic =mCurrentConfig.getPublicType()==1||mCurrentConfig.getPublicType()==3;
                 break;
             case  1:
                 isPublic =true;
@@ -1977,7 +1977,7 @@ public final class CanOkHttp {
                 .setDownCoverFile(false)
                 .setOpenLog(false)
                 .setHttpsTry(true)
-                .setPublic(false)
+                .setPublicType(0)
                 .setUpLoadProgress(false)
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(application)));
 

@@ -57,7 +57,8 @@ public final class CanConfig {
 //    0 都重试 1get 2 post
     private int httpsTryType;
 
-    private boolean isPublic;
+//    0 no 1 get 2post  3 all
+    private int publicType;
 
     private boolean isUpLoadProgress;
 
@@ -369,12 +370,12 @@ public final class CanConfig {
     }
 
 
-    public boolean isPublic() {
-        return isPublic;
+    public int getPublicType() {
+        return publicType;
     }
 
-    public CanConfig setPublic(boolean isPublic) {
-        this.isPublic = isPublic;
+    public CanConfig setPublicType(int publicType) {
+        this.publicType = publicType;
 
         return this;
     }
@@ -419,7 +420,7 @@ public final class CanConfig {
         this.isOpenLog = config.isOpenLog;
         this.isHttpsTry = config.isHttpsTry;
         this.httpsTryType = config.httpsTryType;
-        this.isPublic = config.isPublic;
+        this.publicType = config.publicType;
         this.isUpLoadProgress = config.isUpLoadProgress;
 
 
