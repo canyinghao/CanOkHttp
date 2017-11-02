@@ -25,6 +25,7 @@ public class App extends Application implements
         CanOkHttp.init(this,CanOkHttp.getDefaultConfig(this).setJson(true)
                 .setRetryOnConnectionFailure(true)
                 .setDownloadDelayTime(1000)
+                .setUseClientType(3)
                 .setMaxRetry(2).setHttpsTry(true));
 
         KLog.init(true,"Canyinghao");

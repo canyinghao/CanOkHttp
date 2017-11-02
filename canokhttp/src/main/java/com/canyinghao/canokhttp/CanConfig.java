@@ -13,6 +13,7 @@ import java.util.Map;
 
 import okhttp3.CookieJar;
 import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 
 /**
  * CanConfig
@@ -60,6 +61,9 @@ public final class CanConfig {
 //    0 no 1 get 2post  3 all
     private int publicType;
 
+//    0 no 1 get 2 post 3 all
+    private int useClientType;
+
     private boolean isUpLoadProgress;
 
     private String tag;
@@ -67,6 +71,8 @@ public final class CanConfig {
 
     private Map<String, String> globalParamMap = new HashMap<>();  //全局参数
     private Map<String, String> globalHeaderMap = new HashMap<>();  //全局请求头
+
+    private OkHttpClient okHttpClient;
 
     public Application getApplication() {
         return application;
@@ -380,6 +386,25 @@ public final class CanConfig {
         return this;
     }
 
+    public CanConfig setOkHttpClient(OkHttpClient okHttpClient) {
+        this.okHttpClient = okHttpClient;
+
+        return this;
+    }
+
+    public OkHttpClient getOkHttpClient() {
+        return okHttpClient;
+    }
+
+    public CanConfig setUseClientType(int useClientType) {
+        this.useClientType = useClientType;
+        return this;
+    }
+
+    public int getUseClientType() {
+        return useClientType;
+    }
+
     public CanConfig clone() {
 
         return new CanConfig(this);
@@ -421,6 +446,7 @@ public final class CanConfig {
         this.isHttpsTry = config.isHttpsTry;
         this.httpsTryType = config.httpsTryType;
         this.publicType = config.publicType;
+        this.useClientType = config.useClientType;
         this.isUpLoadProgress = config.isUpLoadProgress;
 
 

@@ -1,5 +1,6 @@
 package com.canyinghao.canokhttp;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -123,9 +124,9 @@ public final class CanOkHttp {
         return paramMap;
     }
 
-    public String getMethod(){
+    public String getMethod() {
 
-        return  isPost?"POST":"GET";
+        return isPost ? "POST" : "GET";
 
     }
 
@@ -136,13 +137,13 @@ public final class CanOkHttp {
      * @return 是否
      */
     private boolean isNetworkAvailable(Context context) {
-        try{
+        try {
             ConnectivityManager cm = (ConnectivityManager) context
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
-            final NetworkInfo net = cm.getActiveNetworkInfo();
+            @SuppressLint("MissingPermission") final NetworkInfo net = cm.getActiveNetworkInfo();
 
             return net != null && net.getState() == NetworkInfo.State.CONNECTED;
-        }catch (Throwable e){
+        } catch (Throwable e) {
             e.printStackTrace();
         }
 
@@ -283,8 +284,39 @@ public final class CanOkHttp {
      */
     private void initClient() {
 
-        //实例化client
-        mCurrentHttpClient = getHttpClient();
+        if (isDownOrUpLoad) {
+            mCurrentHttpClient = getHttpClient();
+        } else {
+            int useClientType = mCurrentConfig.getUseClientType();
+
+            if (useClientType == 0) {
+                mCurrentHttpClient = getHttpClient();
+            } else if (useClientType == 1 && !isPost) {
+                mCurrentHttpClient = globalConfig.getOkHttpClient();
+                if (mCurrentHttpClient == null) {
+                    mCurrentHttpClient = getHttpClient();
+                    globalConfig.setOkHttpClient(mCurrentHttpClient);
+                }
+            } else if (useClientType == 2 && isPost) {
+                mCurrentHttpClient = globalConfig.getOkHttpClient();
+                if (mCurrentHttpClient == null) {
+                    mCurrentHttpClient = getHttpClient();
+                    globalConfig.setOkHttpClient(mCurrentHttpClient);
+                }
+            } else if (useClientType == 3) {
+                mCurrentHttpClient = globalConfig.getOkHttpClient();
+                if (mCurrentHttpClient == null) {
+                    mCurrentHttpClient = getHttpClient();
+                    globalConfig.setOkHttpClient(mCurrentHttpClient);
+                }
+            } else {
+                mCurrentHttpClient = getHttpClient();
+            }
+        }
+
+        if (mCurrentHttpClient == null) {
+            mCurrentHttpClient = getHttpClient();
+        }
 
 
     }
@@ -444,22 +476,22 @@ public final class CanOkHttp {
      * @param publicType 是否添加公共参数
      * @return CanOkHttp
      */
-    public CanOkHttp post(int  publicType) {
+    public CanOkHttp post(int publicType) {
 
         isPost = true;
 
 
-        boolean isPublic =false;
+        boolean isPublic = false;
 
-        switch (publicType){
-            case  0:
-                isPublic =mCurrentConfig.getPublicType()==2||mCurrentConfig.getPublicType()==3;
+        switch (publicType) {
+            case 0:
+                isPublic = mCurrentConfig.getPublicType() == 2 || mCurrentConfig.getPublicType() == 3;
                 break;
-            case  1:
-                isPublic =true;
+            case 1:
+                isPublic = true;
                 break;
-            case  2:
-                isPublic =false;
+            case 2:
+                isPublic = false;
                 break;
         }
 
@@ -495,22 +527,22 @@ public final class CanOkHttp {
      * @param publicType 是否添加公共参数 0 使用全局设置 1强制使用 2强制关闭
      * @return CanOkHttp
      */
-    public CanOkHttp get(int  publicType) {
+    public CanOkHttp get(int publicType) {
 
         isPost = false;
 
 
-        boolean isPublic =false;
+        boolean isPublic = false;
 
-        switch (publicType){
-            case  0:
-                isPublic =mCurrentConfig.getPublicType()==1||mCurrentConfig.getPublicType()==3;
+        switch (publicType) {
+            case 0:
+                isPublic = mCurrentConfig.getPublicType() == 1 || mCurrentConfig.getPublicType() == 3;
                 break;
-            case  1:
-                isPublic =true;
+            case 1:
+                isPublic = true;
                 break;
-            case  2:
-                isPublic =false;
+            case 2:
+                isPublic = false;
                 break;
         }
 
@@ -623,6 +655,12 @@ public final class CanOkHttp {
         return this;
     }
 
+    public CanOkHttp setUseClientType(int useClientType) {
+        mCurrentConfig.setUseClientType(useClientType);
+
+        return this;
+    }
+
 
     /**
      * 设置缓存存活时间
@@ -696,6 +734,7 @@ public final class CanOkHttp {
 
     /**
      * 是否监听上传进度
+     *
      * @param isUpDateProgress boolean
      * @return CanOkHttp
      */
@@ -870,7 +909,7 @@ public final class CanOkHttp {
             mRequest = new Request
                     .Builder()
                     .url(url)
-                    .post(mCurrentConfig.isUpLoadProgress()?new ProgressRequestBody(requestBody, this):requestBody)
+                    .post(mCurrentConfig.isUpLoadProgress() ? new ProgressRequestBody(requestBody, this) : requestBody)
                     .build();
 
         } catch (Exception e) {
@@ -977,7 +1016,7 @@ public final class CanOkHttp {
                     @Override
                     public void onFutureDone(Boolean future) {
 
-                        if (future==null||!future) {
+                        if (future == null || !future) {
 
                             Message msg = new OkMessage(OkHandler.RUN_ON_UI,
                                     CanOkHttp.this)
