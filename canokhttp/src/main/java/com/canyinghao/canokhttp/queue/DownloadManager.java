@@ -57,6 +57,7 @@ public class DownloadManager {
 
     public void enqueue(final Request request, CanFileGlobalCallBack canFileCallBack) {
         final String url = request.url;
+        final String downPath = request.downPath;
 
         if (canFileCallBack != null) {
 
@@ -132,6 +133,10 @@ public class DownloadManager {
                 okHttp.addHeader(key, request.getRequestHeader().get(key));
             }
         }
+        if(!TextUtils.isEmpty(downPath)){
+            okHttp.setDownloadFileDir(downPath);
+        }
+
         okHttp.setDownCoverFile(true)
                 .startDownload(request.url, new CanFileCallBack() {
 
@@ -416,12 +421,15 @@ public class DownloadManager {
 
         private String url;
 
+        private String downPath;
+
         private boolean isNotificationVisibility = true;
 
         private Map<String, String> requestHeader = new ArrayMap<>();
 
-        public Request(String url) {
+        public Request(String url,String downPath) {
             this.url = url;
+            this.downPath = downPath;
         }
 
 

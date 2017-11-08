@@ -52,7 +52,7 @@ public class WebActivity extends BaseActivity  {
             public void onDownloadStart(String url, String userAgent, String contentDisposition, final String mimetype,
                                         long contentLength) {
 
-                final DownloadManager.Request request=   new DownloadManager.Request(url);
+                final DownloadManager.Request request=   new DownloadManager.Request(url,"/sdcard/");
 
 
                 downloadManager.enqueue(request, new CanFileGlobalCallBack() {
