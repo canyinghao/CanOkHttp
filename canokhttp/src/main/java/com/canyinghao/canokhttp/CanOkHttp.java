@@ -216,7 +216,8 @@ public final class CanOkHttp {
 
             int retryNum = 0;
             Response response = chain.proceed(request);
-            while (!response.isSuccessful() && retryNum < mCurrentConfig.getMaxRetry()) {
+            int code = response.code();
+            while (!response.isSuccessful() && code != 500 && code != 404 && retryNum < mCurrentConfig.getMaxRetry()) {
                 retryNum++;
                 response = chain.proceed(request);
             }
