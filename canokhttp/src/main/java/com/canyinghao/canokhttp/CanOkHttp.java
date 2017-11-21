@@ -1770,7 +1770,12 @@ public final class CanOkHttp {
             }
 
             if (isGlobal) {
-                Map<String, String> map = mCurrentConfig.getGlobalParamMap();
+
+                Map<String, String> map =  mCurrentConfig.getGlobalGetParamMap();
+
+                if(map==null){
+                    map = mCurrentConfig.getGlobalParamMap();
+                }
                 if (map != null && !map.isEmpty()) {
                     String logInfo;
                     for (String name : map.keySet()) {

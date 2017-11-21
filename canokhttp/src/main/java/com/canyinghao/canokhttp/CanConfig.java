@@ -70,6 +70,7 @@ public final class CanConfig {
     private CookieJar cookieJar;
 
     private Map<String, String> globalParamMap = new HashMap<>();  //全局参数
+    private Map<String, String> globalGetParamMap = new HashMap<>();  //全局参数
     private Map<String, String> globalHeaderMap = new HashMap<>();  //全局请求头
 
     private OkHttpClient okHttpClient;
@@ -355,6 +356,15 @@ public final class CanConfig {
         return globalParamMap;
     }
 
+    public CanConfig setGlobalGetParamMap(Map<String, String> globalGetParamMap) {
+        this.globalGetParamMap = globalGetParamMap;
+        return this;
+    }
+
+    public Map<String, String> getGlobalGetParamMap() {
+        return globalGetParamMap;
+    }
+
     public CanConfig setGlobalHeaderMap(Map<String, String> globalHeaderMap) {
         this.globalHeaderMap = globalHeaderMap;
 
@@ -441,6 +451,7 @@ public final class CanConfig {
         this.tag = config.tag;
         this.cookieJar = config.cookieJar;
         this.globalParamMap = config.globalParamMap;
+        this.globalGetParamMap = config.globalGetParamMap;
         this.globalHeaderMap = config.globalHeaderMap;
         this.isOpenLog = config.isOpenLog;
         this.isHttpsTry = config.isHttpsTry;
