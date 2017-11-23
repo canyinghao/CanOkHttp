@@ -9,8 +9,6 @@ import com.canyinghao.canokhttp.annotation.CacheType;
 import com.canyinghao.canokhttp.callback.CanCacheCallBack;
 import com.socks.library.KLog;
 
-import okhttp3.OkHttpClient;
-
 /**
  * Created by jianyang on 2016/11/3.
  */
@@ -28,10 +26,10 @@ public class TestActivity extends BaseActivity {
                     @Override
                     public void onClick(View v) {
 
-                        OkHttpClient okHttp = CanOkHttp.getInstance().getHttpClient();
+
 
                         for(int i=0;i<1000;i++){
-                            quest(okHttp,i);
+                            quest(i);
                         }
                     }
                 });
@@ -41,13 +39,12 @@ public class TestActivity extends BaseActivity {
 
 
 
-    private void quest(OkHttpClient okHttp,int index){
+    private void quest(int index){
 
 
         CanOkHttp.getInstance()
                 .setCacheType(CacheType.CACHE_NETWORK)
                 .url("https://www.baidu.com?index="+index)
-                .setOkHttp(okHttp)
                 .get()
                 .setCallBack(new CanCacheCallBack() {
                     @Override
