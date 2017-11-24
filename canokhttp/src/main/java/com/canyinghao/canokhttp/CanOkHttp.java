@@ -220,6 +220,7 @@ public final class CanOkHttp {
             while (!response.isSuccessful() && code != 500 && code != 404 && retryNum < mCurrentConfig.getMaxRetry()) {
                 retryNum++;
                 response = chain.proceed(request);
+                code = response.code();
             }
             return response;
         }
