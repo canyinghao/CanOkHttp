@@ -5,9 +5,7 @@ import android.app.Application;
 
 import com.canyinghao.canokhttp.annotation.CacheType;
 
-
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,9 +67,9 @@ public final class CanConfig {
     private String tag;
     private CookieJar cookieJar;
 
-    private Map<String, String> globalParamMap = new HashMap<>();  //全局参数
-    private Map<String, String> globalGetParamMap = new HashMap<>();  //全局参数
-    private Map<String, String> globalHeaderMap = new HashMap<>();  //全局请求头
+    private Map<String, String> globalParamMap ;  //全局参数
+    private Map<String, String> globalGetParamMap ;  //全局参数
+    private Map<String, String> globalHeaderMap ;  //全局请求头
 
     private OkHttpClient okHttpClient;
 
@@ -344,12 +342,6 @@ public final class CanConfig {
     }
 
 
-    public CanConfig putGlobalParamMap(String key, String value) {
-
-        this.globalParamMap.put(key, value);
-
-        return this;
-    }
 
 
     public Map<String, String> getGlobalParamMap() {
@@ -371,13 +363,6 @@ public final class CanConfig {
         return this;
     }
 
-
-    public CanConfig putGlobalHeaderMap(String key, String value) {
-
-        this.globalHeaderMap.put(key, value);
-
-        return this;
-    }
 
 
 
