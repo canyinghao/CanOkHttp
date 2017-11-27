@@ -200,7 +200,7 @@ public final class CanOkHttp {
             };
             sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
             clientBuilder.sslSocketFactory(sc.getSocketFactory(), trustManager);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
@@ -291,35 +291,26 @@ public final class CanOkHttp {
         } else {
             int useClientType = mCurrentConfig.getUseClientType();
 
-            if (useClientType == 0) {
-                mCurrentHttpClient = getHttpClient();
-            } else if (useClientType == 1 && !isPost) {
-                mCurrentHttpClient = globalConfig.getOkHttpClient();
-                if (mCurrentHttpClient == null) {
+            if (mCurrentHttpClient == null) {
+                if (useClientType == 0) {
                     mCurrentHttpClient = getHttpClient();
-                    globalConfig.setOkHttpClient(mCurrentHttpClient);
-                }
-            } else if (useClientType == 2 && isPost) {
-                mCurrentHttpClient = globalConfig.getOkHttpClient();
-                if (mCurrentHttpClient == null) {
+                } else if (useClientType == 1 && !isPost) {
+                    mCurrentHttpClient = globalConfig.getOkHttpClient();
+                } else if (useClientType == 2 && isPost) {
+                    mCurrentHttpClient = globalConfig.getOkHttpClient();
+                } else if (useClientType == 3) {
+                    mCurrentHttpClient = globalConfig.getOkHttpClient();
+                } else {
                     mCurrentHttpClient = getHttpClient();
-                    globalConfig.setOkHttpClient(mCurrentHttpClient);
                 }
-            } else if (useClientType == 3) {
-                mCurrentHttpClient = globalConfig.getOkHttpClient();
-                if (mCurrentHttpClient == null) {
-                    mCurrentHttpClient = getHttpClient();
-                    globalConfig.setOkHttpClient(mCurrentHttpClient);
-                }
-            } else {
-                mCurrentHttpClient = getHttpClient();
             }
+
         }
 
         if (mCurrentHttpClient == null) {
             mCurrentHttpClient = getHttpClient();
+            globalConfig.setOkHttpClient(mCurrentHttpClient);
         }
-
 
     }
 
@@ -331,6 +322,7 @@ public final class CanOkHttp {
     public OkHttpClient getHttpClient() {
 
 
+        KLog.e("getHttpClient");
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .connectTimeout(mCurrentConfig.getConnectTimeout(), TimeUnit.SECONDS)
                 .readTimeout(mCurrentConfig.getReadTimeout(), TimeUnit.SECONDS)
