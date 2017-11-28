@@ -287,30 +287,11 @@ public final class CanOkHttp {
     private void initClient() {
 
         if (isDownOrUpLoad) {
-            mCurrentHttpClient = getHttpClient();
+            mCurrentHttpClient = getHttpClient(true);
         } else {
-            int useClientType = mCurrentConfig.getUseClientType();
-
-            if (mCurrentHttpClient == null) {
-                if (useClientType == 0) {
-                    mCurrentHttpClient = getHttpClient();
-                } else if (useClientType == 1 && !isPost) {
-                    mCurrentHttpClient = globalConfig.getOkHttpClient();
-                } else if (useClientType == 2 && isPost) {
-                    mCurrentHttpClient = globalConfig.getOkHttpClient();
-                } else if (useClientType == 3) {
-                    mCurrentHttpClient = globalConfig.getOkHttpClient();
-                } else {
-                    mCurrentHttpClient = getHttpClient();
-                }
-            }
-
-        }
-
-        if (mCurrentHttpClient == null) {
             mCurrentHttpClient = getHttpClient();
-            globalConfig.setOkHttpClient(mCurrentHttpClient);
         }
+
 
     }
 
@@ -320,9 +301,35 @@ public final class CanOkHttp {
      * @return OkHttpClient
      */
     public OkHttpClient getHttpClient() {
+        return getHttpClient(false);
+    }
 
+    /**
+     * 取得一个 OkHttpClient
+     *
+     * @return OkHttpClient
+     */
+    public OkHttpClient getHttpClient(boolean isNew) {
+
+        if (!isNew) {
+            if (mCurrentHttpClient != null) {
+                return mCurrentHttpClient;
+            }
+            int useClientType = mCurrentConfig.getUseClientType();
+            if ((useClientType == 1 && !isPost) ||
+                    (useClientType == 2 && isPost) ||
+                    useClientType == 3) {
+                mCurrentHttpClient = globalConfig.getOkHttpClient();
+
+                if (mCurrentHttpClient != null) {
+                    return mCurrentHttpClient;
+                }
+            }
+
+        }
 
         KLog.e("getHttpClient");
+
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .connectTimeout(mCurrentConfig.getConnectTimeout(), TimeUnit.SECONDS)
                 .readTimeout(mCurrentConfig.getReadTimeout(), TimeUnit.SECONDS)
@@ -354,9 +361,13 @@ public final class CanOkHttp {
         if (null != mCurrentConfig.getCookieJar()) {
             clientBuilder.cookieJar(mCurrentConfig.getCookieJar());
         }
+        OkHttpClient okHttpClient = clientBuilder.build();
 
+        if (!isNew) {
+            globalConfig.setOkHttpClient(okHttpClient);
+        }
 
-        return clientBuilder.build();
+        return okHttpClient;
 
 
     }
@@ -1764,9 +1775,9 @@ public final class CanOkHttp {
 
             if (isGlobal) {
 
-                Map<String, String> map =  mCurrentConfig.getGlobalGetParamMap();
+                Map<String, String> map = mCurrentConfig.getGlobalGetParamMap();
 
-                if(map==null){
+                if (map == null) {
                     map = mCurrentConfig.getGlobalParamMap();
                 }
                 if (map != null && !map.isEmpty()) {
