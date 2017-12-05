@@ -15,19 +15,23 @@
  */
 package okhttp3;
 
+import android.support.annotation.Nullable;
+
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.ProxySelector;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -36,6 +40,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+
 import okhttp3.internal.Internal;
 import okhttp3.internal.Util;
 import okhttp3.internal.cache.InternalCache;
@@ -46,6 +51,9 @@ import okhttp3.internal.platform.Platform;
 import okhttp3.internal.tls.CertificateChainCleaner;
 import okhttp3.internal.tls.OkHostnameVerifier;
 import okhttp3.internal.ws.RealWebSocket;
+
+import static okhttp3.internal.Util.assertionError;
+import static okhttp3.internal.Util.checkDuration;
 
 /**
  * Factory for {@linkplain Call calls}, which can be used to send HTTP requests and read their
@@ -122,7 +130,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       Protocol.HTTP_2, Protocol.HTTP_1_1);
 
   static final List<ConnectionSpec> DEFAULT_CONNECTION_SPECS = Util.immutableList(
-      ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT);
+      ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT);
 
   static {
     Internal.instance = new Internal() {
@@ -134,7 +142,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
         builder.addLenient(name, value);
       }
 
-      @Override public void setCache(Builder builder, InternalCache internalCache) {
+      @Override public void setCache(OkHttpClient.Builder builder, InternalCache internalCache) {
         builder.setInternalCache(internalCache);
       }
 
@@ -143,9 +151,18 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
         return pool.connectionBecameIdle(connection);
       }
 
-      @Override public RealConnection get(
+      @Override public RealConnection get(ConnectionPool pool, Address address,
+          StreamAllocation streamAllocation, Route route) {
+        return pool.get(address, streamAllocation, route);
+      }
+
+      @Override public boolean equalsNonHost(Address a, Address b) {
+        return a.equalsNonHost(b);
+      }
+
+      @Override public Socket deduplicate(
           ConnectionPool pool, Address address, StreamAllocation streamAllocation) {
-        return pool.get(address, streamAllocation);
+        return pool.deduplicate(address, streamAllocation);
       }
 
       @Override public void put(ConnectionPool pool, RealConnection connection) {
@@ -154,6 +171,10 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
 
       @Override public RouteDatabase routeDatabase(ConnectionPool connectionPool) {
         return connectionPool.routeDatabase;
+      }
+
+      @Override public int code(Response.Builder responseBuilder) {
+        return responseBuilder.code;
       }
 
       @Override
@@ -171,24 +192,26 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       }
 
       @Override public Call newWebSocketCall(OkHttpClient client, Request originalRequest) {
-        return new RealCall(client, originalRequest, true);
+        return RealCall.newRealCall(client, originalRequest, true);
       }
     };
   }
 
   final Dispatcher dispatcher;
-  final Proxy proxy;
+  final @Nullable Proxy proxy;
   final List<Protocol> protocols;
   final List<ConnectionSpec> connectionSpecs;
   final List<Interceptor> interceptors;
   final List<Interceptor> networkInterceptors;
+  final EventListener.Factory eventListenerFactory;
   final ProxySelector proxySelector;
   final CookieJar cookieJar;
-  final Cache cache;
-  final InternalCache internalCache;
+  final @Nullable
+  Cache cache;
+  final @Nullable InternalCache internalCache;
   final SocketFactory socketFactory;
-  final SSLSocketFactory sslSocketFactory;
-  final CertificateChainCleaner certificateChainCleaner;
+  final @Nullable SSLSocketFactory sslSocketFactory;
+  final @Nullable CertificateChainCleaner certificateChainCleaner;
   final HostnameVerifier hostnameVerifier;
   final CertificatePinner certificatePinner;
   final Authenticator proxyAuthenticator;
@@ -214,6 +237,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
     this.connectionSpecs = builder.connectionSpecs;
     this.interceptors = Util.immutableList(builder.interceptors);
     this.networkInterceptors = Util.immutableList(builder.networkInterceptors);
+    this.eventListenerFactory = builder.eventListenerFactory;
     this.proxySelector = builder.proxySelector;
     this.cookieJar = builder.cookieJar;
     this.cache = builder.cache;
@@ -248,6 +272,13 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
     this.readTimeout = builder.readTimeout;
     this.writeTimeout = builder.writeTimeout;
     this.pingInterval = builder.pingInterval;
+
+    if (interceptors.contains(null)) {
+      throw new IllegalStateException("Null interceptor: " + interceptors);
+    }
+    if (networkInterceptors.contains(null)) {
+      throw new IllegalStateException("Null network interceptor: " + networkInterceptors);
+    }
   }
 
   private X509TrustManager systemDefaultTrustManager() {
@@ -262,7 +293,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       }
       return (X509TrustManager) trustManagers[0];
     } catch (GeneralSecurityException e) {
-      throw new AssertionError(); // The system has no TLS. Just give up.
+      throw assertionError("No System TLS", e); // The system has no TLS. Just give up.
     }
   }
 
@@ -272,7 +303,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       sslContext.init(null, new TrustManager[] { trustManager }, null);
       return sslContext.getSocketFactory();
     } catch (GeneralSecurityException e) {
-      throw new AssertionError(); // The system has no TLS. Just give up.
+      throw assertionError("No System TLS", e); // The system has no TLS. Just give up.
     }
   }
 
@@ -390,18 +421,22 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
     return networkInterceptors;
   }
 
+  public EventListener.Factory eventListenerFactory() {
+    return eventListenerFactory;
+  }
+
   /**
    * Prepares the {@code request} to be executed at some point in the future.
    */
   @Override public Call newCall(Request request) {
-    return new RealCall(this, request, false /* for web socket */);
+    return RealCall.newRealCall(this, request, false /* for web socket */);
   }
 
   /**
    * Uses {@code request} to connect a new web socket.
    */
   @Override public WebSocket newWebSocket(Request request, WebSocketListener listener) {
-    RealWebSocket webSocket = new RealWebSocket(request, listener, new SecureRandom());
+    RealWebSocket webSocket = new RealWebSocket(request, listener, new Random());
     webSocket.connect(this);
     return webSocket;
   }
@@ -412,18 +447,19 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
 
   public static final class Builder {
     Dispatcher dispatcher;
-    Proxy proxy;
+    @Nullable Proxy proxy;
     List<Protocol> protocols;
     List<ConnectionSpec> connectionSpecs;
     final List<Interceptor> interceptors = new ArrayList<>();
     final List<Interceptor> networkInterceptors = new ArrayList<>();
+    EventListener.Factory eventListenerFactory;
     ProxySelector proxySelector;
     CookieJar cookieJar;
-    Cache cache;
-    InternalCache internalCache;
+    @Nullable Cache cache;
+    @Nullable InternalCache internalCache;
     SocketFactory socketFactory;
-    SSLSocketFactory sslSocketFactory;
-    CertificateChainCleaner certificateChainCleaner;
+    @Nullable SSLSocketFactory sslSocketFactory;
+    @Nullable CertificateChainCleaner certificateChainCleaner;
     HostnameVerifier hostnameVerifier;
     CertificatePinner certificatePinner;
     Authenticator proxyAuthenticator;
@@ -442,6 +478,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       dispatcher = new Dispatcher();
       protocols = DEFAULT_PROTOCOLS;
       connectionSpecs = DEFAULT_CONNECTION_SPECS;
+      eventListenerFactory = EventListener.factory(EventListener.NONE);
       proxySelector = ProxySelector.getDefault();
       cookieJar = CookieJar.NO_COOKIES;
       socketFactory = SocketFactory.getDefault();
@@ -467,6 +504,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       this.connectionSpecs = okHttpClient.connectionSpecs;
       this.interceptors.addAll(okHttpClient.interceptors);
       this.networkInterceptors.addAll(okHttpClient.networkInterceptors);
+      this.eventListenerFactory = okHttpClient.eventListenerFactory;
       this.proxySelector = okHttpClient.proxySelector;
       this.cookieJar = okHttpClient.cookieJar;
       this.internalCache = okHttpClient.internalCache;
@@ -530,21 +568,12 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       return this;
     }
 
-    private static int checkDuration(String name, long duration, TimeUnit unit) {
-      if (duration < 0) throw new IllegalArgumentException(name + " < 0");
-      if (unit == null) throw new NullPointerException("unit == null");
-      long millis = unit.toMillis(duration);
-      if (millis > Integer.MAX_VALUE) throw new IllegalArgumentException(name + " too large.");
-      if (millis == 0 && duration > 0) throw new IllegalArgumentException(name + " too small.");
-      return (int) millis;
-    }
-
     /**
      * Sets the HTTP proxy that will be used by connections created by this client. This takes
      * precedence over {@link #proxySelector}, which is only honored when this proxy is null (which
      * it is by default). To disable proxy use completely, call {@code setProxy(Proxy.NO_PROXY)}.
      */
-    public Builder proxy(Proxy proxy) {
+    public Builder proxy(@Nullable Proxy proxy) {
       this.proxy = proxy;
       return this;
     }
@@ -575,13 +604,13 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
     }
 
     /** Sets the response cache to be used to read and write cached responses. */
-    void setInternalCache(InternalCache internalCache) {
+    void setInternalCache(@Nullable InternalCache internalCache) {
       this.internalCache = internalCache;
       this.cache = null;
     }
 
     /** Sets the response cache to be used to read and write cached responses. */
-    public Builder cache(Cache cache) {
+    public Builder cache(@Nullable Cache cache) {
       this.cache = cache;
       this.internalCache = null;
       return this;
@@ -623,13 +652,8 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
      */
     public Builder sslSocketFactory(SSLSocketFactory sslSocketFactory) {
       if (sslSocketFactory == null) throw new NullPointerException("sslSocketFactory == null");
-      X509TrustManager trustManager = Platform.get().trustManager(sslSocketFactory);
-      if (trustManager == null) {
-        throw new IllegalStateException("Unable to extract the trust manager on " + Platform.get()
-            + ", sslSocketFactory is " + sslSocketFactory.getClass());
-      }
       this.sslSocketFactory = sslSocketFactory;
-      this.certificateChainCleaner = CertificateChainCleaner.get(trustManager);
+      this.certificateChainCleaner = Platform.get().buildCertificateChainCleaner(sslSocketFactory);
       return this;
     }
 
@@ -822,9 +846,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       }
 
       // Remove protocols that we no longer support.
-      if (protocols.contains(Protocol.SPDY_3)) {
-        protocols.remove(Protocol.SPDY_3);
-      }
+      protocols.remove(Protocol.SPDY_3);
 
       // Assign as an unmodifiable list. This is effectively immutable.
       this.protocols = Collections.unmodifiableList(protocols);
@@ -846,6 +868,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
     }
 
     public Builder addInterceptor(Interceptor interceptor) {
+      if (interceptor == null) throw new IllegalArgumentException("interceptor == null");
       interceptors.add(interceptor);
       return this;
     }
@@ -860,7 +883,34 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
     }
 
     public Builder addNetworkInterceptor(Interceptor interceptor) {
+      if (interceptor == null) throw new IllegalArgumentException("interceptor == null");
       networkInterceptors.add(interceptor);
+      return this;
+    }
+
+    /**
+     * Configure a single client scoped listener that will receive all analytic events
+     * for this client.
+     *
+     * @see EventListener for semantics and restrictions on listener implementations.
+     */
+    public Builder eventListener(EventListener eventListener) {
+      if (eventListener == null) throw new NullPointerException("eventListener == null");
+      this.eventListenerFactory = EventListener.factory(eventListener);
+      return this;
+    }
+
+    /**
+     * Configure a factory to provide per-call scoped listeners that will receive analytic events
+     * for this client.
+     *
+     * @see EventListener for semantics and restrictions on listener implementations.
+     */
+    public Builder eventListenerFactory(EventListener.Factory eventListenerFactory) {
+      if (eventListenerFactory == null) {
+        throw new NullPointerException("eventListenerFactory == null");
+      }
+      this.eventListenerFactory = eventListenerFactory;
       return this;
     }
 

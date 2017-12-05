@@ -76,7 +76,7 @@ public final class BridgeInterceptor implements Interceptor {
     // If we add an "Accept-Encoding: gzip" header field we're responsible for also decompressing
     // the transfer stream.
     boolean transparentGzip = false;
-    if (userRequest.header("Accept-Encoding") == null) {
+    if (userRequest.header("Accept-Encoding") == null && userRequest.header("Range") == null) {
       transparentGzip = true;
       requestBuilder.header("Accept-Encoding", "gzip");
     }
@@ -106,7 +106,8 @@ public final class BridgeInterceptor implements Interceptor {
           .removeAll("Content-Length")
           .build();
       responseBuilder.headers(strippedHeaders);
-      responseBuilder.body(new RealResponseBody(strippedHeaders, Okio.buffer(responseBody)));
+      String contentType = networkResponse.header("Content-Type");
+      responseBuilder.body(new RealResponseBody(contentType, -1L, Okio.buffer(responseBody)));
     }
 
     return responseBuilder.build();

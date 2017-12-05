@@ -43,7 +43,7 @@ public class TestActivity extends BaseActivity {
 
 
         CanOkHttp.getInstance()
-                .setCacheType(CacheType.CACHE_NETWORK)
+                .setCacheType(CacheType.NETWORK)
                 .url("https://www.baidu.com?index="+index)
                 .get()
                 .setCallBack(new CanCacheCallBack() {

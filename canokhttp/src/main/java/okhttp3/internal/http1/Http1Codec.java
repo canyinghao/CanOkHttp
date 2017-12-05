@@ -55,7 +55,7 @@ import static okhttp3.internal.http.StatusLine.HTTP_CONTINUE;
  *     <li>Open a sink to write the request body. Either {@linkplain #newFixedLengthSink
  *         fixed-length} or {@link #newChunkedSink chunked}.
  *     <li>Write to and then close that sink.
- *     <li>{@linkplain #readResponse Read response headers}.
+ *     <li>{@linkplain #readResponseHeaders Read response headers}.
  *     <li>Open a source to read the response body. Either {@linkplain #newFixedLengthSource
  *         fixed-length}, {@linkplain #newChunkedSource chunked} or {@linkplain
  *         #newUnknownLengthSource unknown length}.
@@ -74,6 +74,7 @@ public final class Http1Codec implements HttpCodec {
   private static final int STATE_OPEN_RESPONSE_BODY = 4;
   private static final int STATE_READING_RESPONSE_BODY = 5;
   private static final int STATE_CLOSED = 6;
+  private static final int HEADER_LIMIT = 256 * 1024;
 
   /** The client that configures this stream. May be null for HTTPS proxy tunnels. */
   final OkHttpClient client;
@@ -83,6 +84,7 @@ public final class Http1Codec implements HttpCodec {
   final BufferedSource source;
   final BufferedSink sink;
   int state = STATE_IDLE;
+  private long headerLimit = HEADER_LIMIT;
 
   public Http1Codec(OkHttpClient client, StreamAllocation streamAllocation, BufferedSource source,
       BufferedSink sink) {
@@ -128,38 +130,36 @@ public final class Http1Codec implements HttpCodec {
     writeRequest(request.headers(), requestLine);
   }
 
-  @Override public Response.Builder readResponseHeaders() throws IOException {
-    return readResponse();
-  }
-
   @Override public ResponseBody openResponseBody(Response response) throws IOException {
-    Source source = getTransferStream(response);
-    return new RealResponseBody(response.headers(), Okio.buffer(source));
-  }
+    streamAllocation.eventListener.responseBodyStart(streamAllocation.call);
+    String contentType = response.header("Content-Type");
 
-  private Source getTransferStream(Response response) throws IOException {
     if (!HttpHeaders.hasBody(response)) {
-      return newFixedLengthSource(0);
+      Source source = newFixedLengthSource(0);
+      return new RealResponseBody(contentType, 0, Okio.buffer(source));
     }
 
     if ("chunked".equalsIgnoreCase(response.header("Transfer-Encoding"))) {
-      return newChunkedSource(response.request().url());
+      Source source = newChunkedSource(response.request().url());
+      return new RealResponseBody(contentType, -1L, Okio.buffer(source));
     }
 
     long contentLength = HttpHeaders.contentLength(response);
     if (contentLength != -1) {
-      return newFixedLengthSource(contentLength);
+      Source source = newFixedLengthSource(contentLength);
+      return new RealResponseBody(contentType, contentLength, Okio.buffer(source));
     }
 
-    // Wrap the input stream from the connection (rather than just returning
-    // "socketIn" directly here), so that we can control its use after the
-    // reference escapes.
-    return newUnknownLengthSource();
+    return new RealResponseBody(contentType, -1L, Okio.buffer(newUnknownLengthSource()));
   }
 
   /** Returns true if this connection is closed. */
   public boolean isClosed() {
     return state == STATE_CLOSED;
+  }
+
+  @Override public void flushRequest() throws IOException {
+    sink.flush();
   }
 
   @Override public void finishRequest() throws IOException {
@@ -180,27 +180,26 @@ public final class Http1Codec implements HttpCodec {
     state = STATE_OPEN_REQUEST_BODY;
   }
 
-  /** Parses bytes of a response header from an HTTP transport. */
-  public Response.Builder readResponse() throws IOException {
+  @Override public Response.Builder readResponseHeaders(boolean expectContinue) throws IOException {
     if (state != STATE_OPEN_REQUEST_BODY && state != STATE_READ_RESPONSE_HEADERS) {
       throw new IllegalStateException("state: " + state);
     }
 
     try {
-      while (true) {
-        StatusLine statusLine = StatusLine.parse(source.readUtf8LineStrict());
+      StatusLine statusLine = StatusLine.parse(readHeaderLine());
 
-        Response.Builder responseBuilder = new Response.Builder()
-            .protocol(statusLine.protocol)
-            .code(statusLine.code)
-            .message(statusLine.message)
-            .headers(readHeaders());
+      Response.Builder responseBuilder = new Response.Builder()
+          .protocol(statusLine.protocol)
+          .code(statusLine.code)
+          .message(statusLine.message)
+          .headers(readHeaders());
 
-        if (statusLine.code != HTTP_CONTINUE) {
-          state = STATE_OPEN_RESPONSE_BODY;
-          return responseBuilder;
-        }
+      if (expectContinue && statusLine.code == HTTP_CONTINUE) {
+        return null;
       }
+
+      state = STATE_OPEN_RESPONSE_BODY;
+      return responseBuilder;
     } catch (EOFException e) {
       // Provide more context if the server ends the stream before sending a response.
       IOException exception = new IOException("unexpected end of stream on " + streamAllocation);
@@ -209,11 +208,17 @@ public final class Http1Codec implements HttpCodec {
     }
   }
 
+  private String readHeaderLine() throws IOException {
+    String line = source.readUtf8LineStrict(headerLimit);
+    headerLimit -= line.length();
+    return line;
+  }
+
   /** Reads headers or trailers. */
   public Headers readHeaders() throws IOException {
     Headers.Builder headers = new Headers.Builder();
     // parse the result headers until the first blank line
-    for (String line; (line = source.readUtf8LineStrict()).length() != 0; ) {
+    for (String line; (line = readHeaderLine()).length() != 0; ) {
       Internal.instance.addLenient(headers, line);
     }
     return headers.build();
@@ -344,16 +349,30 @@ public final class Http1Codec implements HttpCodec {
   private abstract class AbstractSource implements Source {
     protected final ForwardingTimeout timeout = new ForwardingTimeout(source.timeout());
     protected boolean closed;
+    protected long bytesRead = 0;
 
     @Override public Timeout timeout() {
       return timeout;
+    }
+
+    @Override public long read(Buffer sink, long byteCount) throws IOException {
+      try {
+        long read = source.read(sink, byteCount);
+        if (read > 0) {
+          bytesRead += read;
+        }
+        return read;
+      } catch (IOException e) {
+        endOfInput(false, e);
+        throw e;
+      }
     }
 
     /**
      * Closes the cache entry and makes the socket available for reuse. This should be invoked when
      * the end of the body has been reached.
      */
-    protected final void endOfInput(boolean reuseConnection) throws IOException {
+    protected final void endOfInput(boolean reuseConnection, IOException e) throws IOException {
       if (state == STATE_CLOSED) return;
       if (state != STATE_READING_RESPONSE_BODY) throw new IllegalStateException("state: " + state);
 
@@ -361,7 +380,7 @@ public final class Http1Codec implements HttpCodec {
 
       state = STATE_CLOSED;
       if (streamAllocation != null) {
-        streamAllocation.streamFinished(!reuseConnection, Http1Codec.this);
+        streamAllocation.streamFinished(!reuseConnection, Http1Codec.this, bytesRead, e);
       }
     }
   }
@@ -370,10 +389,10 @@ public final class Http1Codec implements HttpCodec {
   private class FixedLengthSource extends AbstractSource {
     private long bytesRemaining;
 
-    public FixedLengthSource(long length) throws IOException {
+    FixedLengthSource(long length) throws IOException {
       bytesRemaining = length;
       if (bytesRemaining == 0) {
-        endOfInput(true);
+        endOfInput(true, null);
       }
     }
 
@@ -382,15 +401,16 @@ public final class Http1Codec implements HttpCodec {
       if (closed) throw new IllegalStateException("closed");
       if (bytesRemaining == 0) return -1;
 
-      long read = source.read(sink, Math.min(bytesRemaining, byteCount));
+      long read = super.read(sink, Math.min(bytesRemaining, byteCount));
       if (read == -1) {
-        endOfInput(false); // The server didn't supply the promised content length.
-        throw new ProtocolException("unexpected end of stream");
+        ProtocolException e = new ProtocolException("unexpected end of stream");
+        endOfInput(false, e); // The server didn't supply the promised content length.
+        throw e;
       }
 
       bytesRemaining -= read;
       if (bytesRemaining == 0) {
-        endOfInput(true);
+        endOfInput(true, null);
       }
       return read;
     }
@@ -399,7 +419,7 @@ public final class Http1Codec implements HttpCodec {
       if (closed) return;
 
       if (bytesRemaining != 0 && !Util.discard(this, DISCARD_STREAM_TIMEOUT_MILLIS, MILLISECONDS)) {
-        endOfInput(false);
+        endOfInput(false, null);
       }
 
       closed = true;
@@ -427,10 +447,11 @@ public final class Http1Codec implements HttpCodec {
         if (!hasMoreChunks) return -1;
       }
 
-      long read = source.read(sink, Math.min(byteCount, bytesRemainingInChunk));
+      long read = super.read(sink, Math.min(byteCount, bytesRemainingInChunk));
       if (read == -1) {
-        endOfInput(false); // The server didn't supply the promised chunk length.
-        throw new ProtocolException("unexpected end of stream");
+        ProtocolException e = new ProtocolException("unexpected end of stream");
+        endOfInput(false, e); // The server didn't supply the promised chunk length.
+        throw e;
       }
       bytesRemainingInChunk -= read;
       return read;
@@ -454,14 +475,14 @@ public final class Http1Codec implements HttpCodec {
       if (bytesRemainingInChunk == 0L) {
         hasMoreChunks = false;
         HttpHeaders.receiveHeaders(client.cookieJar(), url, readHeaders());
-        endOfInput(true);
+        endOfInput(true, null);
       }
     }
 
     @Override public void close() throws IOException {
       if (closed) return;
       if (hasMoreChunks && !Util.discard(this, DISCARD_STREAM_TIMEOUT_MILLIS, MILLISECONDS)) {
-        endOfInput(false);
+        endOfInput(false, null);
       }
       closed = true;
     }
@@ -480,10 +501,10 @@ public final class Http1Codec implements HttpCodec {
       if (closed) throw new IllegalStateException("closed");
       if (inputExhausted) return -1;
 
-      long read = source.read(sink, byteCount);
+      long read = super.read(sink, byteCount);
       if (read == -1) {
         inputExhausted = true;
-        endOfInput(true);
+        endOfInput(true, null);
         return -1;
       }
       return read;
@@ -492,7 +513,7 @@ public final class Http1Codec implements HttpCodec {
     @Override public void close() throws IOException {
       if (closed) return;
       if (!inputExhausted) {
-        endOfInput(false);
+        endOfInput(false, null);
       }
       closed = true;
     }

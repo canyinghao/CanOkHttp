@@ -15,6 +15,8 @@
  */
 package okhttp3;
 
+import android.support.annotation.Nullable;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import okhttp3.RealCall.AsyncCall;
 import okhttp3.internal.Util;
 
@@ -38,10 +41,11 @@ import okhttp3.internal.Util;
 public final class Dispatcher {
   private int maxRequests = 64;
   private int maxRequestsPerHost = 5;
-  private Runnable idleCallback;
+  private @Nullable
+  Runnable idleCallback;
 
   /** Executes calls. Created lazily. */
-  private ExecutorService executorService;
+  private @Nullable ExecutorService executorService;
 
   /** Ready async calls in the order they'll be run. */
   private final Deque<AsyncCall> readyAsyncCalls = new ArrayDeque<>();
@@ -119,7 +123,7 @@ public final class Dispatcher {
    * means that if you are doing synchronous calls the network layer will not truly be idle until
    * every returned {@link Response} has been closed.
    */
-  public synchronized void setIdleCallback(Runnable idleCallback) {
+  public synchronized void setIdleCallback(@Nullable Runnable idleCallback) {
     this.idleCallback = idleCallback;
   }
 

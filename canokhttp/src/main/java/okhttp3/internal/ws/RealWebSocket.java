@@ -25,8 +25,11 @@ import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import android.support.annotation.Nullable;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -166,6 +169,7 @@ public final class RealWebSocket implements WebSocket, WebSocketReader.FrameCall
 
   public void connect(OkHttpClient client) {
     client = client.newBuilder()
+        .eventListener(EventListener.NONE)
         .protocols(ONLY_HTTP1)
         .build();
     final int pingIntervalMillis = client.pingIntervalMillis();
@@ -189,7 +193,7 @@ public final class RealWebSocket implements WebSocket, WebSocketReader.FrameCall
         // Promote the HTTP streams into web socket streams.
         StreamAllocation streamAllocation = Internal.instance.streamAllocation(call);
         streamAllocation.noNewStreams(); // Prevent connection pooling!
-        Streams streams = new ClientStreams(streamAllocation);
+        Streams streams = streamAllocation.connection().newWebSocketStreams(streamAllocation);
 
         // Process all web socket messages.
         try {
@@ -274,6 +278,24 @@ public final class RealWebSocket implements WebSocket, WebSocketReader.FrameCall
       failWebSocket(e, null);
       return false;
     }
+  }
+
+  /**
+   * For testing: wait until the web socket's executor has terminated.
+   */
+  void awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException {
+    executor.awaitTermination(timeout, timeUnit);
+  }
+
+  /**
+   * For testing: force this web socket to release its threads.
+   */
+  void tearDown() throws InterruptedException {
+    if (cancelFuture != null) {
+      cancelFuture.cancel(false);
+    }
+    executor.shutdown();
+    executor.awaitTermination(10, TimeUnit.SECONDS);
   }
 
   synchronized int pingCount() {
@@ -487,12 +509,15 @@ public final class RealWebSocket implements WebSocket, WebSocketReader.FrameCall
   }
 
   private final class PingRunnable implements Runnable {
+    PingRunnable() {
+    }
+
     @Override public void run() {
       writePingFrame();
     }
   }
 
-  private void writePingFrame() {
+  void writePingFrame() {
     WebSocketWriter writer;
     synchronized (this) {
       if (failed) return;
@@ -506,7 +531,7 @@ public final class RealWebSocket implements WebSocket, WebSocketReader.FrameCall
     }
   }
 
-  void failWebSocket(Exception e, Response response) {
+  public void failWebSocket(Exception e, @Nullable Response response) {
     Streams streamsToClose;
     synchronized (this) {
       if (failed) return; // Already failed.
@@ -555,19 +580,6 @@ public final class RealWebSocket implements WebSocket, WebSocketReader.FrameCall
       this.client = client;
       this.source = source;
       this.sink = sink;
-    }
-  }
-
-  static final class ClientStreams extends Streams {
-    private final StreamAllocation streamAllocation;
-
-    ClientStreams(StreamAllocation streamAllocation) {
-      super(true, streamAllocation.connection().source, streamAllocation.connection().sink);
-      this.streamAllocation = streamAllocation;
-    }
-
-    @Override public void close() {
-      streamAllocation.streamFinished(true, streamAllocation.codec());
     }
   }
 

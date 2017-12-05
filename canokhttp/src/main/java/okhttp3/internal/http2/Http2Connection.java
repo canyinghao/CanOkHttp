@@ -68,7 +68,7 @@ public final class Http2Connection implements Closeable {
 
   static final ExecutorService executor = new ThreadPoolExecutor(0,
       Integer.MAX_VALUE, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
-      Util.threadFactory("OkHttp FramedConnection", true));
+      Util.threadFactory("OkHttp Http2Connection", true));
 
   /** True if this peer initiated the connection. */
   final boolean client;
@@ -541,7 +541,7 @@ public final class Http2Connection implements Closeable {
       return this;
     }
 
-    public Http2Connection build() throws IOException {
+    public Http2Connection build() {
       return new Http2Connection(this);
     }
   }
@@ -562,10 +562,8 @@ public final class Http2Connection implements Closeable {
       ErrorCode connectionErrorCode = ErrorCode.INTERNAL_ERROR;
       ErrorCode streamErrorCode = ErrorCode.INTERNAL_ERROR;
       try {
-        if (!client) {
-          reader.readConnectionPreface();
-        }
-        while (reader.nextFrame(this)) {
+        reader.readConnectionPreface(this);
+        while (reader.nextFrame(false, this)) {
         }
         connectionErrorCode = ErrorCode.NO_ERROR;
         streamErrorCode = ErrorCode.CANCEL;
@@ -607,12 +605,12 @@ public final class Http2Connection implements Closeable {
       }
       Http2Stream stream;
       synchronized (Http2Connection.this) {
-        // If we're shutdown, don't bother with this stream.
-        if (shutdown) return;
-
         stream = getStream(streamId);
 
         if (stream == null) {
+          // If we're shutdown, don't bother with this stream.
+          if (shutdown) return;
+
           // If the stream ID is less than the last created ID, assume it's already closed.
           if (streamId <= lastGoodStreamId) return;
 
@@ -629,7 +627,7 @@ public final class Http2Connection implements Closeable {
               try {
                 listener.onStream(newStream);
               } catch (IOException e) {
-                Platform.get().log(INFO, "FramedConnection.Listener failure for " + hostname, e);
+                Platform.get().log(INFO, "Http2Connection.Listener failure for " + hostname, e);
                 try {
                   newStream.close(ErrorCode.PROTOCOL_ERROR);
                 } catch (IOException ignored) {
@@ -867,8 +865,8 @@ public final class Http2Connection implements Closeable {
 
     /**
      * Handle a new stream from this connection's peer. Implementations should respond by either
-     * {@linkplain Http2Stream#reply replying to the stream} or {@linkplain Http2Stream#close
-     * closing it}. This response does not need to be synchronous.
+     * {@linkplain Http2Stream#sendResponseHeaders replying to the stream} or {@linkplain
+     * Http2Stream#close closing it}. This response does not need to be synchronous.
      */
     public abstract void onStream(Http2Stream stream) throws IOException;
 

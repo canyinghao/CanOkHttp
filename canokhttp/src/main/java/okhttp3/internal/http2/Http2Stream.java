@@ -34,7 +34,7 @@ public final class Http2Stream {
   // blocking operations are performed while the lock is held.
 
   /**
-   * The total number of bytes consumed by the application (with {@link FramedDataSource#read}), but
+   * The total number of bytes consumed by the application (with {@link FramingSource#read}), but
    * not yet acknowledged by sending a {@code WINDOW_UPDATE} frame on this stream.
    */
   // Visible for testing
@@ -51,14 +51,17 @@ public final class Http2Stream {
   final int id;
   final Http2Connection connection;
 
-  /** Headers sent by the stream initiator. Immutable and non null. */
+  /** Request headers. Immutable and non null. */
   private final List<Header> requestHeaders;
 
-  /** Headers sent in the stream reply. Null if reply is either not sent or not sent yet. */
+  /** Response headers yet to be {@linkplain #takeResponseHeaders taken}. */
   private List<Header> responseHeaders;
 
-  private final FramedDataSource source;
-  final FramedDataSink sink;
+  /** True if response headers have been sent or received. */
+  private boolean hasResponseHeaders;
+
+  private final FramingSource source;
+  final FramingSink sink;
   final StreamTimeout readTimeout = new StreamTimeout();
   final StreamTimeout writeTimeout = new StreamTimeout();
 
@@ -77,9 +80,8 @@ public final class Http2Stream {
     this.connection = connection;
     this.bytesLeftInWriteWindow =
         connection.peerSettings.getInitialWindowSize();
-    this.source = new FramedDataSource(
-        connection.okHttpSettings.getInitialWindowSize());
-    this.sink = new FramedDataSink();
+    this.source = new FramingSource(connection.okHttpSettings.getInitialWindowSize());
+    this.sink = new FramingSink();
     this.source.finished = inFinished;
     this.sink.finished = outFinished;
     this.requestHeaders = requestHeaders;
@@ -106,7 +108,7 @@ public final class Http2Stream {
     }
     if ((source.finished || source.closed)
         && (sink.finished || sink.closed)
-        && responseHeaders != null) {
+        && hasResponseHeaders) {
       return false;
     }
     return true;
@@ -127,10 +129,14 @@ public final class Http2Stream {
   }
 
   /**
-   * Returns the stream's response headers, blocking if necessary if they have not been received
-   * yet.
+   * Removes and returns the stream's received response headers, blocking if necessary until headers
+   * have been received. If the returned list contains multiple blocks of headers the blocks will be
+   * delimited by 'null'.
    */
-  public synchronized List<Header> getResponseHeaders() throws IOException {
+  public synchronized List<Header> takeResponseHeaders() throws IOException {
+    if (!isLocallyInitiated()) {
+      throw new IllegalStateException("servers cannot read response headers");
+    }
     readTimeout.enter();
     try {
       while (responseHeaders == null && errorCode == null) {
@@ -139,7 +145,11 @@ public final class Http2Stream {
     } finally {
       readTimeout.exitAndThrowIfTimedOut();
     }
-    if (responseHeaders != null) return responseHeaders;
+    List<Header> result = responseHeaders;
+    if (result != null) {
+      responseHeaders = null;
+      return result;
+    }
     throw new StreamResetException(errorCode);
   }
 
@@ -157,17 +167,14 @@ public final class Http2Stream {
    * @param out true to create an output stream that we can use to send data to the remote peer.
    * Corresponds to {@code FLAG_FIN}.
    */
-  public void reply(List<Header> responseHeaders, boolean out) throws IOException {
+  public void sendResponseHeaders(List<Header> responseHeaders, boolean out) throws IOException {
     assert (!Thread.holdsLock(Http2Stream.this));
+    if (responseHeaders == null) {
+      throw new NullPointerException("responseHeaders == null");
+    }
     boolean outFinished = false;
     synchronized (this) {
-      if (responseHeaders == null) {
-        throw new NullPointerException("responseHeaders == null");
-      }
-      if (this.responseHeaders != null) {
-        throw new IllegalStateException("reply already sent");
-      }
-      this.responseHeaders = responseHeaders;
+      this.hasResponseHeaders = true;
       if (!out) {
         this.sink.finished = true;
         outFinished = true;
@@ -196,12 +203,12 @@ public final class Http2Stream {
   /**
    * Returns a sink that can be used to write data to the peer.
    *
-   * @throws IllegalStateException if this stream was initiated by the peer and a {@link #reply} has
-   * not yet been sent.
+   * @throws IllegalStateException if this stream was initiated by the peer and a {@link
+   * #sendResponseHeaders} has not yet been sent.
    */
   public Sink getSink() {
     synchronized (this) {
-      if (responseHeaders == null && !isLocallyInitiated()) {
+      if (!hasResponseHeaders && !isLocallyInitiated()) {
         throw new IllegalStateException("reply before requesting the sink");
       }
     }
@@ -251,6 +258,7 @@ public final class Http2Stream {
     assert (!Thread.holdsLock(Http2Stream.this));
     boolean open = true;
     synchronized (this) {
+      hasResponseHeaders = true;
       if (responseHeaders == null) {
         responseHeaders = headers;
         open = isOpen();
@@ -258,6 +266,7 @@ public final class Http2Stream {
       } else {
         List<Header> newHeaders = new ArrayList<>();
         newHeaders.addAll(responseHeaders);
+        newHeaders.add(null); // Delimit separate blocks of headers with null.
         newHeaders.addAll(headers);
         this.responseHeaders = newHeaders;
       }
@@ -297,11 +306,11 @@ public final class Http2Stream {
    * synchronization to safely receive incoming data frames, it is not intended for use by multiple
    * readers.
    */
-  private final class FramedDataSource implements Source {
+  private final class FramingSource implements Source {
     /** Buffer to receive data from the network into. Only accessed by the reader thread. */
     private final Buffer receiveBuffer = new Buffer();
 
-    /** Buffer with readable data. Guarded by FramedStream.this. */
+    /** Buffer with readable data. Guarded by Http2Stream.this. */
     private final Buffer readBuffer = new Buffer();
 
     /** Maximum number of bytes to buffer before reporting a flow control error. */
@@ -316,12 +325,11 @@ public final class Http2Stream {
      */
     boolean finished;
 
-    FramedDataSource(long maxByteCount) {
+    FramingSource(long maxByteCount) {
       this.maxByteCount = maxByteCount;
     }
 
-    @Override public long read(Buffer sink, long byteCount)
-        throws IOException {
+    @Override public long read(Buffer sink, long byteCount) throws IOException {
       if (byteCount < 0) throw new IllegalArgumentException("byteCount < 0: " + byteCount);
 
       long read;
@@ -449,10 +457,8 @@ public final class Http2Stream {
     }
   }
 
-  /**
-   * A sink that writes outgoing data frames of a stream. This class is not thread safe.
-   */
-  final class FramedDataSink implements Sink {
+  /** A sink that writes outgoing data frames of a stream. This class is not thread safe. */
+  final class FramingSink implements Sink {
     private static final long EMIT_BUFFER_SIZE = 16384;
 
     /**
@@ -472,7 +478,7 @@ public final class Http2Stream {
       assert (!Thread.holdsLock(Http2Stream.this));
       sendBuffer.write(source, byteCount);
       while (sendBuffer.size() >= EMIT_BUFFER_SIZE) {
-        emitDataFrame(false);
+        emitFrame(false);
       }
     }
 
@@ -480,7 +486,7 @@ public final class Http2Stream {
      * Emit a single data frame to the connection. The frame's size be limited by this stream's
      * write window. This method will block until the write window is nonempty.
      */
-    private void emitDataFrame(boolean outFinished) throws IOException {
+    private void emitFrame(boolean outFinished) throws IOException {
       long toWrite;
       synchronized (Http2Stream.this) {
         writeTimeout.enter();
@@ -511,7 +517,7 @@ public final class Http2Stream {
         checkOutNotClosed();
       }
       while (sendBuffer.size() > 0) {
-        emitDataFrame(false);
+        emitFrame(false);
         connection.flush();
       }
     }
@@ -529,7 +535,7 @@ public final class Http2Stream {
         // Emit the remaining data, setting the END_STREAM flag on the last frame.
         if (sendBuffer.size() > 0) {
           while (sendBuffer.size() > 0) {
-            emitDataFrame(true);
+            emitFrame(true);
           }
         } else {
           // Send an empty frame just so we can set the END_STREAM flag.
