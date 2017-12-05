@@ -11,8 +11,13 @@ import io.reactivex.schedulers.Schedulers;
 
 public class ThreadPool {
 
+    private static int defaultSchedule;
 
     private static ThreadPool instance;
+
+    public static void init(int defaultSchedule) {
+        ThreadPool.defaultSchedule = defaultSchedule;
+    }
 
     public static ThreadPool getInstance() {
         if (instance == null) {
@@ -31,7 +36,7 @@ public class ThreadPool {
     }
 
 
-    public synchronized <T> void submit(final Job<T> job, final FutureListener<T> listener,Scheduler schedule,Scheduler observe) {
+    public synchronized <T> void submit(final Job<T> job, final FutureListener<T> listener, Scheduler schedule, Scheduler observe) {
 
         Observable.create(new ObservableOnSubscribe<T>() {
             @Override
@@ -48,11 +53,11 @@ public class ThreadPool {
                     @Override
                     public void onNext(T value) {
 
-                        try{
+                        try {
                             if (listener != null) {
                                 listener.onFutureDone(value);
                             }
-                        }catch (Throwable e){
+                        } catch (Throwable e) {
                             e.printStackTrace();
                         }
 
@@ -60,11 +65,11 @@ public class ThreadPool {
 
                     @Override
                     public void onError(Throwable e) {
-                        try{
+                        try {
                             if (listener != null) {
                                 listener.onFutureDone(null);
                             }
-                        }catch (Throwable t){
+                        } catch (Throwable t) {
                             t.printStackTrace();
                         }
                     }
@@ -87,15 +92,38 @@ public class ThreadPool {
 
 
     public synchronized <T> void submit(Job<T> job, final FutureListener<T> listener) {
+        Scheduler scheduler = null;
+        switch (defaultSchedule) {
 
 
-        this.submit(job, listener,Schedulers.io(),AndroidSchedulers.mainThread());
+            case 1:
+                scheduler = Schedulers.computation();
+                break;
+
+            case 2:
+                scheduler = Schedulers.io();
+                break;
+
+            case 3:
+                scheduler = Schedulers.trampoline();
+                break;
+
+            case 4:
+                scheduler = Schedulers.newThread();
+                break;
+
+            default:
+                scheduler = Schedulers.single();
+                break;
+        }
+
+        this.submit(job, listener, scheduler, AndroidSchedulers.mainThread());
     }
 
 
-    public synchronized <T> void submit(Job<T> job, final FutureListener<T> listener,Scheduler schedule) {
+    public synchronized <T> void submit(Job<T> job, final FutureListener<T> listener, Scheduler schedule) {
 
 
-        this.submit(job, listener,schedule,AndroidSchedulers.mainThread());
+        this.submit(job, listener, schedule, AndroidSchedulers.mainThread());
     }
 }
