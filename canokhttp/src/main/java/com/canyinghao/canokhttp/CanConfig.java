@@ -73,6 +73,8 @@ public final class CanConfig {
 
     private OkHttpClient okHttpClient;
 
+    private String timeStamp;//时间戳
+
     public Application getApplication() {
         return application;
     }
@@ -400,6 +402,16 @@ public final class CanConfig {
         return useClientType;
     }
 
+
+    public CanConfig setTimeStamp(String timeStamp) {
+        this.timeStamp = timeStamp;
+        return this;
+    }
+
+    public String getTimeStamp() {
+        return timeStamp;
+    }
+
     public CanConfig clone() {
 
         return new CanConfig(this);
@@ -444,6 +456,7 @@ public final class CanConfig {
         this.publicType = config.publicType;
         this.useClientType = config.useClientType;
         this.isUpLoadProgress = config.isUpLoadProgress;
+        this.timeStamp = config.timeStamp;
 
 
     }

@@ -1702,6 +1702,8 @@ public final class CanOkHttp {
                 requestBuilder.addHeader(key, headerMap.get(key));
             }
         }
+
+
         if (isGlobal) {
             Map<String, String> globalHeaderMap = mCurrentConfig.getGlobalHeaderMap();
             if (globalHeaderMap != null && !globalHeaderMap.isEmpty()) {
@@ -1709,6 +1711,7 @@ public final class CanOkHttp {
                     requestBuilder.addHeader(key, globalHeaderMap.get(key));
                 }
             }
+
         }
 
 
@@ -1718,6 +1721,7 @@ public final class CanOkHttp {
             FormBody.Builder builder = new FormBody.Builder();
 
             StringBuilder params = new StringBuilder();
+
             if (!paramMap.isEmpty()) {
 
                 String logInfo;
@@ -1736,6 +1740,21 @@ public final class CanOkHttp {
             }
 
             if (isGlobal) {
+                String timeStamp = mCurrentConfig.getTimeStamp();
+                if(!TextUtils.isEmpty(timeStamp)){
+                    String  time = String.valueOf(System.currentTimeMillis());
+                    builder.add(timeStamp, time);
+
+                    String logInfo;
+
+                    if (TextUtils.isEmpty(params.toString())) {
+                        logInfo = "?" + timeStamp + "=" + time;
+                    } else {
+                        logInfo = "&" + timeStamp + "=" + time;
+                    }
+                    params.append(logInfo);
+                }
+
                 Map<String, String> map = mCurrentConfig.getGlobalParamMap();
                 if (map != null && !map.isEmpty()) {
                     String logInfo;
