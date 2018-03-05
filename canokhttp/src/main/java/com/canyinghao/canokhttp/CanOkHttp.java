@@ -38,11 +38,13 @@ import java.io.RandomAccessFile;
 import java.net.ConnectException;
 import java.net.HttpRetryException;
 import java.net.SocketTimeoutException;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.UnknownServiceException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +79,8 @@ public final class CanOkHttp {
 
     //    全局的config，在Application里执行init得到
     private static CanConfig globalConfig;
-
+    private static Map<String, ArrayList<String>> linesMap;
+    private static long userId = 0;
     //  当前CanOkHttp持有的config，默认从globalConfig克隆得到
     private CanConfig mCurrentConfig;
     //    应用Application
@@ -93,6 +96,7 @@ public final class CanOkHttp {
 
     //  请求地址
     private String url = "";
+    private String host = "";
     //  缓存的key，由url和参数得到
     private String cache_key = "";
     //  回调ui线程中
@@ -110,10 +114,20 @@ public final class CanOkHttp {
     //是否是post方法
     private boolean isPost;
 
+    private boolean isChangeLine;
+
     public static CanOkHttp getInstance() {
 
         return new CanOkHttp();
 
+    }
+
+    public static void setLinesMap(Map<String, ArrayList<String>> linesMap) {
+        CanOkHttp.linesMap = linesMap;
+    }
+
+    public static void setUserId(long userId) {
+        CanOkHttp.userId = userId;
     }
 
     public Map<String, String> getHeaderMap() {
@@ -462,7 +476,26 @@ public final class CanOkHttp {
 
 
         this.url = url;
+        if (TextUtils.isEmpty(this.host)) {
+            this.host = getIP(url);
+        }
+
+
         return this;
+    }
+
+
+    private String getIP(String url) {
+
+        try {
+            URI uri = URI.create(url);
+            URI effectiveURI = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), null, null, null);
+            return effectiveURI.toString();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+
+        return "";
     }
 
     /**
@@ -1067,8 +1100,8 @@ public final class CanOkHttp {
             @Override
             public void onFailure(Call call, IOException e) {
 
-                httpsTryAgain(call, null, e);
-
+//                httpsTryAgain(call, null, e);
+                changeLineTryAgain(call, null, e);
             }
 
             @Override
@@ -1109,13 +1142,85 @@ public final class CanOkHttp {
 
                 } else {
 
-                    httpsTryAgain(call, res, null);
+//                    httpsTryAgain(call, res, null);
+                    changeLineTryAgain(call, res, null);
 
                 }
 
 
             }
         });
+    }
+
+
+    private void changeLineTryAgain(Call call, Response res, IOException e) {
+
+        boolean changeLine = false;
+
+        if (!isChangeLine && linesMap != null && linesMap.containsKey(this.host)) {
+
+            boolean isNeedTry = true;
+            if (!TextUtils.isEmpty(mCurrentConfig.getTag())) {
+                isNeedTry = CanCallManager.isHaveTag(mCurrentConfig.getTag());
+            }
+
+            if (!TextUtils.isEmpty(mCurrentConfig.getTag()) && call != null) {
+                CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
+            }
+
+            if (isNeedTry) {
+                switch (mCurrentConfig.getHttpsTryType()) {
+
+                    case 0:
+
+                        if (isPost) {
+                            changeLine = true;
+                            isChangeLine = true;
+                            post();
+                            setCallBack(mCanCallBack);
+                        } else {
+                            changeLine = true;
+                            isChangeLine = true;
+                            get();
+                            setCallBack(mCanCallBack);
+                        }
+
+                        break;
+
+                    case 1:
+
+                        if (!isPost) {
+                            changeLine = true;
+                            isChangeLine = true;
+                            get();
+                            setCallBack(mCanCallBack);
+                        }
+
+                        break;
+
+                    case 2:
+
+                        if (isPost) {
+                            changeLine = true;
+                            isChangeLine = true;
+                            post();
+                            setCallBack(mCanCallBack);
+                        }
+
+                        break;
+
+                }
+            }
+
+
+        }
+
+        if (!changeLine) {
+
+            httpsTryAgain(call, res, e);
+        }
+
+
     }
 
     private void httpsTryAgain(Call call, Response res, IOException e) {
@@ -1695,6 +1800,15 @@ public final class CanOkHttp {
     private Request fetchRequest(boolean isPost, boolean isGlobal) {
 
 
+        String currentUrl = url;
+        if (!isChangeLine && linesMap != null && linesMap.containsKey(this.host)) {
+            ArrayList<String> array = linesMap.get(this.host);
+            if(array!=null&&!array.isEmpty()){
+                currentUrl = url.replace(this.host, array.get((int) (userId%array.size())));
+            }
+
+        }
+
         Request.Builder requestBuilder = new Request.Builder();
 
         if (!headerMap.isEmpty()) {
@@ -1716,7 +1830,7 @@ public final class CanOkHttp {
 
 
         StringBuilder paramsUrl = new StringBuilder();
-        paramsUrl.append(url);
+        paramsUrl.append(currentUrl);
         if (isPost) {
             FormBody.Builder builder = new FormBody.Builder();
 
@@ -1741,8 +1855,8 @@ public final class CanOkHttp {
 
             if (isGlobal) {
                 String timeStamp = mCurrentConfig.getTimeStamp();
-                if(!TextUtils.isEmpty(timeStamp)){
-                    String  time = String.valueOf(System.currentTimeMillis());
+                if (!TextUtils.isEmpty(timeStamp)) {
+                    String time = String.valueOf(System.currentTimeMillis());
                     builder.add(timeStamp, time);
 
                     String logInfo;
@@ -1774,7 +1888,7 @@ public final class CanOkHttp {
             paramsUrl.append(params);
             okHttpLog(paramsUrl.toString(), false);
             requestBuilder
-                    .url(url)
+                    .url(currentUrl)
                     .cacheControl(CacheControl.FORCE_NETWORK)
                     .post(builder.build());
         } else {

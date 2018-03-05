@@ -13,6 +13,10 @@ import com.canyinghao.canokhttp.annotation.ResultType;
 import com.canyinghao.canokhttp.callback.CanSimpleCallBack;
 import com.socks.library.KLog;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -38,7 +42,7 @@ public class HttpActivity extends BaseActivity {
     @Bind(R.id.tv_result)
     TextView tvResult;
 
-    public String url = "https://api.k780.com:88/";
+    public String url = "https://api.k780.com:88/some/";
 
 
     @Override
@@ -47,6 +51,11 @@ public class HttpActivity extends BaseActivity {
         setContentView(R.layout.activity_http);
         ButterKnife.bind(this);
 
+        Map<String,ArrayList<String>> map = new HashMap<>();
+        ArrayList<String>  temp = new ArrayList<>();
+        temp.add("http://apii.k780.com/");
+        map.put("https://api.k780.com:88/",temp);
+        CanOkHttp.setLinesMap(map);
 
 
 
@@ -65,6 +74,8 @@ public class HttpActivity extends BaseActivity {
             case R.id.btn_1:
 
 //                仅网络请求（NETWORK）
+
+
 
 
                 CanOkHttp.getInstance()
