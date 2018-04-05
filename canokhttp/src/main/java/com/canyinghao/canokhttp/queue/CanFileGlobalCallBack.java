@@ -9,6 +9,10 @@ import com.canyinghao.canokhttp.annotation.ResultType;
 
 public interface CanFileGlobalCallBack {
 
+
+    void onStart(String url);
+
+
     void onFailure(String url, @ResultType int type, int code, String e);
 
 

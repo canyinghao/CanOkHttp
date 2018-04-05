@@ -2,6 +2,7 @@ package com.canyinghao.canokhttp.demo;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -10,6 +11,7 @@ import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.annotation.DownloadStatus;
 import com.canyinghao.canokhttp.annotation.ResultType;
 import com.canyinghao.canokhttp.callback.CanFileCallBack;
+import com.canyinghao.canokhttp.queue.DownloadManager;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -28,7 +30,7 @@ public class DownLoadActivity extends BaseActivity {
     TextView tvResult;
 
 //    private String url = "http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4";
-    private String url = "http://www.canyinghao.com/assets/work/canyinghao/canyinghao.apk";
+    private String url = "http://d.yx934.com/yx934/425YX/JUEZHANPINGANJINGJHJC/JUEZHANPINGANJINGJHJC_1074033.apk";
 
 
 
@@ -51,7 +53,9 @@ public class DownLoadActivity extends BaseActivity {
 
             case R.id.btn_1:
 
-                startDownLoad();
+//                startDownLoad();
+
+                startDown();
 
                 break;
 
@@ -122,4 +126,31 @@ public class DownLoadActivity extends BaseActivity {
         super.onDestroy();
 //        CanCallManager.cancelCallByTag("canyinghao");
     }
+
+
+
+    DownloadManager downloadManager;
+    private void startDown() {
+        String downDir = getExternalCacheDir().getAbsolutePath();
+        if (!TextUtils.isEmpty(downDir) && !downDir.endsWith("/")) {
+            downDir += "/";
+        }
+
+        String[] urls = {"http://d.yx934.com/yx934/425YX/JUEZHANPINGANJINGJHJC/JUEZHANPINGANJINGJHJC_1074033.apk",
+                "http://www.canyinghao.com/assets/work/cancalc/cancalc.apk",
+                "http://www.canyinghao.com/assets/work/canyinghao/canyinghao.apk"};
+
+        String url = urls[0];
+
+        DownloadManager.Request request = new DownloadManager.Request(url, downDir);
+        request.setNotificationVisibility(true);
+
+
+        if(downloadManager==null){
+            downloadManager = new DownloadManager(getApplicationContext());
+        }
+
+        downloadManager.enqueue(request, null);
+    }
+
 }
