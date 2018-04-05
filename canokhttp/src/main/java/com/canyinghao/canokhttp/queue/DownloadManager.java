@@ -138,6 +138,7 @@ public class DownloadManager {
         }
 
         okHttp.setDownCoverFile(true)
+                .setTag(url)
                 .startDownload(request.url, new CanFileCallBack() {
 
                     private long showTime;
