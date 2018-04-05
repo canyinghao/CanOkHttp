@@ -57,6 +57,11 @@ public class WebActivity extends BaseActivity  {
 
                 downloadManager.enqueue(request, new CanFileGlobalCallBack() {
                     @Override
+                    public void onStart(String url) {
+
+                    }
+
+                    @Override
                     public void onFailure(String url,@ResultType int type, int code, String e) {
                         KLog.e("onFailure");
                     }

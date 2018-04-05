@@ -27,6 +27,7 @@ public class App extends Application implements
                 .setDownloadDelayTime(1000)
                 .setPublicType(3)
                 .setUseClientType(3)
+                .setDownAccessFile(true)
                 .setMaxRetry(2).setHttpsTry(true));
 
         KLog.init(true,"Canyinghao");

@@ -30,7 +30,8 @@ public class DownLoadActivity extends BaseActivity {
     TextView tvResult;
 
 //    private String url = "http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4";
-    private String url = "http://d.yx934.com/yx934/425YX/JUEZHANPINGANJINGJHJC/JUEZHANPINGANJINGJHJC_1074033.apk";
+//    private String url = "http://d.yx934.com/yx934/425YX/JUEZHANPINGANJINGJHJC/JUEZHANPINGANJINGJHJC_1074033.apk";
+    private String url = "https://raw.githubusercontent.com/linglongxin24/DylanStepCount/master/app-debug.apk";
 
 
 
@@ -53,9 +54,9 @@ public class DownLoadActivity extends BaseActivity {
 
             case R.id.btn_1:
 
-//                startDownLoad();
+                startDownLoad();
 
-                startDown();
+//                startDown();
 
                 break;
 
