@@ -45,6 +45,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -93,6 +94,8 @@ public final class CanOkHttp {
     private Map<String, String> paramMap = new LinkedHashMap<>();
     //    请求头参数
     private Map<String, String> headerMap = new LinkedHashMap<>();
+    //  可重复请求参数
+    private Map<String, String> repeatMap = new IdentityHashMap<>();
 
     //  请求地址
     private String url = "";
@@ -452,6 +455,21 @@ public final class CanOkHttp {
         return this;
     }
 
+
+    /**
+     * 添加可重复参数
+     *
+     * @param key   键
+     * @param value 值
+     * @return CanOkHttp
+     */
+    public CanOkHttp addRepeat(@NonNull String key, @NonNull String value) {
+
+
+        repeatMap.put(key, value);
+
+        return this;
+    }
 
     /**
      * 添加头部参数
@@ -1853,6 +1871,23 @@ public final class CanOkHttp {
 
             }
 
+            if (!repeatMap.isEmpty()) {
+
+                String logInfo;
+                for (String name : repeatMap.keySet()) {
+                    builder.add(name, repeatMap.get(name));
+
+                    if (TextUtils.isEmpty(params.toString())) {
+                        logInfo = "?" + name + "=" + repeatMap.get(name);
+                    } else {
+                        logInfo = "&" + name + "=" + repeatMap.get(name);
+                    }
+
+                    params.append(logInfo);
+                }
+
+            }
+
             if (isGlobal) {
                 String timeStamp = mCurrentConfig.getTimeStamp();
                 if (!TextUtils.isEmpty(timeStamp)) {
@@ -1905,6 +1940,20 @@ public final class CanOkHttp {
                     params.append(logInfo);
                 }
             }
+
+
+            if (!repeatMap.isEmpty()) {
+                String logInfo;
+                for (String name : repeatMap.keySet()) {
+                    if (TextUtils.isEmpty(params.toString())) {
+                        logInfo = "?" + name + "=" + repeatMap.get(name);
+                    } else {
+                        logInfo = "&" + name + "=" + repeatMap.get(name);
+                    }
+                    params.append(logInfo);
+                }
+            }
+
 
             if (isGlobal) {
 
