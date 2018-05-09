@@ -54,9 +54,9 @@ public class DownLoadActivity extends BaseActivity {
 
             case R.id.btn_1:
 
-                startDownLoad();
+//                startDownLoad();
 
-//                startDown();
+                startDown();
 
                 break;
 
@@ -141,7 +141,7 @@ public class DownLoadActivity extends BaseActivity {
                 "http://www.canyinghao.com/assets/work/cancalc/cancalc.apk",
                 "http://www.canyinghao.com/assets/work/canyinghao/canyinghao.apk"};
 
-        String url = urls[0];
+        String url = "http://apkdown.zymk.cn/api/ChannelName/GetApkByChanne?packName=com.comic.manhuatai&channeCode=360";
 
         DownloadManager.Request request = new DownloadManager.Request(url, downDir);
         request.setNotificationVisibility(true);

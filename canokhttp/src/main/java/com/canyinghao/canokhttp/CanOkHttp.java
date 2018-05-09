@@ -1860,11 +1860,16 @@ public final class CanOkHttp {
                 for (String name : paramMap.keySet()) {
                     builder.add(name, paramMap.get(name));
 
-                    if (TextUtils.isEmpty(params.toString())) {
-                        logInfo = "?" + name + "=" + paramMap.get(name);
-                    } else {
+                    if(!TextUtils.isEmpty(url)&&url.contains("?")){
                         logInfo = "&" + name + "=" + paramMap.get(name);
+                    }else{
+                        if (TextUtils.isEmpty(params.toString())) {
+                            logInfo = "?" + name + "=" + paramMap.get(name);
+                        } else {
+                            logInfo = "&" + name + "=" + paramMap.get(name);
+                        }
                     }
+
 
                     params.append(logInfo);
                 }
@@ -1877,11 +1882,16 @@ public final class CanOkHttp {
                 for (String name : repeatMap.keySet()) {
                     builder.add(name, repeatMap.get(name));
 
-                    if (TextUtils.isEmpty(params.toString())) {
-                        logInfo = "?" + name + "=" + repeatMap.get(name);
-                    } else {
+                    if(!TextUtils.isEmpty(url)&&url.contains("?")){
                         logInfo = "&" + name + "=" + repeatMap.get(name);
+                    }else{
+                        if (TextUtils.isEmpty(params.toString())) {
+                            logInfo = "?" + name + "=" + repeatMap.get(name);
+                        } else {
+                            logInfo = "&" + name + "=" + repeatMap.get(name);
+                        }
                     }
+
 
                     params.append(logInfo);
                 }
@@ -1896,11 +1906,16 @@ public final class CanOkHttp {
 
                     String logInfo;
 
-                    if (TextUtils.isEmpty(params.toString())) {
-                        logInfo = "?" + timeStamp + "=" + time;
-                    } else {
+                    if(!TextUtils.isEmpty(url)&&url.contains("?")){
                         logInfo = "&" + timeStamp + "=" + time;
+                    }else{
+                        if (TextUtils.isEmpty(params.toString())) {
+                            logInfo = "?" + timeStamp + "=" + time;
+                        } else {
+                            logInfo = "&" + timeStamp + "=" + time;
+                        }
                     }
+
                     params.append(logInfo);
                 }
 
@@ -1909,11 +1924,16 @@ public final class CanOkHttp {
                     String logInfo;
                     for (String name : map.keySet()) {
                         builder.add(name, map.get(name));
-                        if (TextUtils.isEmpty(params.toString())) {
-                            logInfo = "?" + name + "=" + map.get(name);
-                        } else {
+                        if(!TextUtils.isEmpty(url)&&url.contains("?")){
                             logInfo = "&" + name + "=" + map.get(name);
+                        }else{
+                            if (TextUtils.isEmpty(params.toString())) {
+                                logInfo = "?" + name + "=" + map.get(name);
+                            } else {
+                                logInfo = "&" + name + "=" + map.get(name);
+                            }
                         }
+
                         params.append(logInfo);
                     }
 
@@ -1932,11 +1952,16 @@ public final class CanOkHttp {
             if (!paramMap.isEmpty()) {
                 String logInfo;
                 for (String name : paramMap.keySet()) {
-                    if (TextUtils.isEmpty(params.toString())) {
-                        logInfo = "?" + name + "=" + paramMap.get(name);
-                    } else {
+                    if(!TextUtils.isEmpty(url)&&url.contains("?")){
                         logInfo = "&" + name + "=" + paramMap.get(name);
+                    }else{
+                        if (TextUtils.isEmpty(params.toString())) {
+                            logInfo = "?" + name + "=" + paramMap.get(name);
+                        } else {
+                            logInfo = "&" + name + "=" + paramMap.get(name);
+                        }
                     }
+
                     params.append(logInfo);
                 }
             }
@@ -1945,11 +1970,16 @@ public final class CanOkHttp {
             if (!repeatMap.isEmpty()) {
                 String logInfo;
                 for (String name : repeatMap.keySet()) {
-                    if (TextUtils.isEmpty(params.toString())) {
-                        logInfo = "?" + name + "=" + repeatMap.get(name);
-                    } else {
+                    if(!TextUtils.isEmpty(url)&&url.contains("?")){
                         logInfo = "&" + name + "=" + repeatMap.get(name);
+                    }else{
+                        if (TextUtils.isEmpty(params.toString())) {
+                            logInfo = "?" + name + "=" + repeatMap.get(name);
+                        } else {
+                            logInfo = "&" + name + "=" + repeatMap.get(name);
+                        }
                     }
+
                     params.append(logInfo);
                 }
             }
@@ -1965,11 +1995,16 @@ public final class CanOkHttp {
                 if (map != null && !map.isEmpty()) {
                     String logInfo;
                     for (String name : map.keySet()) {
-                        if (TextUtils.isEmpty(params.toString())) {
-                            logInfo = "?" + name + "=" + map.get(name);
-                        } else {
+                        if(!TextUtils.isEmpty(url)&&url.contains("?")){
                             logInfo = "&" + name + "=" + map.get(name);
+                        }else{
+                            if (TextUtils.isEmpty(params.toString())) {
+                                logInfo = "?" + name + "=" + map.get(name);
+                            } else {
+                                logInfo = "&" + name + "=" + map.get(name);
+                            }
                         }
+
                         params.append(logInfo);
                     }
 

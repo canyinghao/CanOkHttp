@@ -11,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by canyinghao on 2016/10/13.
@@ -22,12 +24,16 @@ public class App extends Application implements
     @Override
     public void onCreate() {
         super.onCreate();
+        Map<String,String> some = new HashMap<>();
+        some.put("test","test");
+        some.put("test1","test1");
         CanOkHttp.init(this,CanOkHttp.getDefaultConfig(this).setJson(true)
                 .setRetryOnConnectionFailure(true)
                 .setDownloadDelayTime(1000)
                 .setPublicType(3)
                 .setUseClientType(3)
                 .setDownAccessFile(true)
+                .setGlobalParamMap(some)
                 .setMaxRetry(2).setHttpsTry(true));
 
         KLog.init(true,"Canyinghao");
