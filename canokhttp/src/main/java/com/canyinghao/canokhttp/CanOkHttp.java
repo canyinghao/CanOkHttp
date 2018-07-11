@@ -1808,6 +1808,233 @@ public final class CanOkHttp {
     }
 
 
+
+    /**
+     * 获取完整链接
+     *
+     * @param isPost     boolean
+     * @param publicType int
+     * @return String
+     */
+    public String getFullUrl(boolean isPost, int publicType) {
+        boolean isGlobal = false;
+        if (isPost) {
+
+            switch (publicType) {
+                case 0:
+                    isGlobal = mCurrentConfig.getPublicType() == 2 || mCurrentConfig.getPublicType() == 3;
+                    break;
+                case 1:
+                    isGlobal = true;
+                    break;
+                case 2:
+                    isGlobal = false;
+                    break;
+            }
+        } else {
+
+            switch (publicType) {
+                case 0:
+                    isGlobal = mCurrentConfig.getPublicType() == 1 || mCurrentConfig.getPublicType() == 3;
+                    break;
+                case 1:
+                    isGlobal = true;
+                    break;
+                case 2:
+                    isGlobal = false;
+                    break;
+            }
+
+        }
+
+        String fullUrl = "";
+        String currentUrl = url;
+        if (!isChangeLine && linesMap != null && linesMap.containsKey(this.host)) {
+            ArrayList<String> array = linesMap.get(this.host);
+            if (array != null && !array.isEmpty()) {
+                currentUrl = url.replace(this.host, array.get((int) (userId % array.size())));
+            }
+
+        }
+
+        StringBuilder paramsUrl = new StringBuilder();
+        paramsUrl.append(currentUrl);
+        if (isPost) {
+            FormBody.Builder builder = new FormBody.Builder();
+
+            StringBuilder params = new StringBuilder();
+
+            if (!paramMap.isEmpty()) {
+
+                String logInfo;
+                for (String name : paramMap.keySet()) {
+                    builder.add(name, paramMap.get(name));
+
+                    if (!TextUtils.isEmpty(url) && url.contains("?")) {
+                        logInfo = "&" + name + "=" + paramMap.get(name);
+                    } else {
+                        if (TextUtils.isEmpty(params.toString())) {
+                            logInfo = "?" + name + "=" + paramMap.get(name);
+                        } else {
+                            logInfo = "&" + name + "=" + paramMap.get(name);
+                        }
+                    }
+
+
+                    params.append(logInfo);
+                }
+
+            }
+
+            if (!repeatMap.isEmpty()) {
+
+                String logInfo;
+                for (String name : repeatMap.keySet()) {
+                    builder.add(name, repeatMap.get(name));
+
+                    if (!TextUtils.isEmpty(url) && url.contains("?")) {
+                        logInfo = "&" + name + "=" + repeatMap.get(name);
+                    } else {
+                        if (TextUtils.isEmpty(params.toString())) {
+                            logInfo = "?" + name + "=" + repeatMap.get(name);
+                        } else {
+                            logInfo = "&" + name + "=" + repeatMap.get(name);
+                        }
+                    }
+
+
+                    params.append(logInfo);
+                }
+
+            }
+
+            if (isGlobal) {
+                String timeStamp = mCurrentConfig.getTimeStamp();
+                if (!TextUtils.isEmpty(timeStamp)) {
+                    String time = String.valueOf(System.currentTimeMillis());
+                    builder.add(timeStamp, time);
+
+                    String logInfo;
+
+                    if (!TextUtils.isEmpty(url) && url.contains("?")) {
+                        logInfo = "&" + timeStamp + "=" + time;
+                    } else {
+                        if (TextUtils.isEmpty(params.toString())) {
+                            logInfo = "?" + timeStamp + "=" + time;
+                        } else {
+                            logInfo = "&" + timeStamp + "=" + time;
+                        }
+                    }
+
+                    params.append(logInfo);
+                }
+
+                Map<String, String> map = mCurrentConfig.getGlobalParamMap();
+                if (map != null && !map.isEmpty()) {
+                    String logInfo;
+                    for (String name : map.keySet()) {
+                        builder.add(name, map.get(name));
+                        if (!TextUtils.isEmpty(url) && url.contains("?")) {
+                            logInfo = "&" + name + "=" + map.get(name);
+                        } else {
+                            if (TextUtils.isEmpty(params.toString())) {
+                                logInfo = "?" + name + "=" + map.get(name);
+                            } else {
+                                logInfo = "&" + name + "=" + map.get(name);
+                            }
+                        }
+
+                        params.append(logInfo);
+                    }
+
+                }
+            }
+
+            paramsUrl.append(params);
+
+        } else {
+
+            StringBuilder params = new StringBuilder();
+            if (!paramMap.isEmpty()) {
+                String logInfo;
+                for (String name : paramMap.keySet()) {
+                    if (!TextUtils.isEmpty(url) && url.contains("?")) {
+                        logInfo = "&" + name + "=" + paramMap.get(name);
+                    } else {
+                        if (TextUtils.isEmpty(params.toString())) {
+                            logInfo = "?" + name + "=" + paramMap.get(name);
+                        } else {
+                            logInfo = "&" + name + "=" + paramMap.get(name);
+                        }
+                    }
+
+                    params.append(logInfo);
+                }
+            }
+
+
+            if (!repeatMap.isEmpty()) {
+                String logInfo;
+                for (String name : repeatMap.keySet()) {
+                    if (!TextUtils.isEmpty(url) && url.contains("?")) {
+                        logInfo = "&" + name + "=" + repeatMap.get(name);
+                    } else {
+                        if (TextUtils.isEmpty(params.toString())) {
+                            logInfo = "?" + name + "=" + repeatMap.get(name);
+                        } else {
+                            logInfo = "&" + name + "=" + repeatMap.get(name);
+                        }
+                    }
+
+                    params.append(logInfo);
+                }
+            }
+
+
+            if (isGlobal) {
+
+                Map<String, String> map = mCurrentConfig.getGlobalGetParamMap();
+
+                if (map == null) {
+                    map = mCurrentConfig.getGlobalParamMap();
+                }
+                if (map != null && !map.isEmpty()) {
+                    String logInfo;
+                    for (String name : map.keySet()) {
+                        if (!TextUtils.isEmpty(url) && url.contains("?")) {
+                            logInfo = "&" + name + "=" + map.get(name);
+                        } else {
+                            if (TextUtils.isEmpty(params.toString())) {
+                                logInfo = "?" + name + "=" + map.get(name);
+                            } else {
+                                logInfo = "&" + name + "=" + map.get(name);
+                            }
+                        }
+
+                        params.append(logInfo);
+                    }
+
+                }
+            }
+
+            paramsUrl.append(params);
+
+
+        }
+
+
+        fullUrl = paramsUrl.toString();
+
+        if (!TextUtils.isEmpty(fullUrl) && fullUrl.startsWith("https://")) {
+            fullUrl = fullUrl.replace("https://", "http://");
+        }
+
+        return fullUrl;
+
+    }
+
+
+
     /**
      * 获取参数
      *
