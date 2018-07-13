@@ -440,6 +440,18 @@ public final class CanOkHttp {
     }
 
 
+
+    /**
+     * @param str String
+     * @return String
+     */
+    public String checkString(String str){
+        if(TextUtils.isEmpty(str)){
+            return "";
+        }
+        return str;
+    }
+
     /**
      * 添加参数
      *
@@ -450,10 +462,11 @@ public final class CanOkHttp {
     public CanOkHttp add(@NonNull String key, @NonNull String value) {
 
 
-        paramMap.put(key, value);
+        paramMap.put(checkString(key), checkString(value));
 
         return this;
     }
+
 
 
     /**
@@ -466,7 +479,7 @@ public final class CanOkHttp {
     public CanOkHttp addRepeat(@NonNull String key, @NonNull String value) {
 
 
-        repeatMap.put(key, value);
+        repeatMap.put(checkString(key), checkString(value));
 
         return this;
     }
@@ -480,7 +493,7 @@ public final class CanOkHttp {
      */
     public CanOkHttp addHeader(@NonNull String key, @NonNull String value) {
 
-        headerMap.put(key, value);
+        headerMap.put(checkString(key), checkString(value));
         return this;
     }
 
