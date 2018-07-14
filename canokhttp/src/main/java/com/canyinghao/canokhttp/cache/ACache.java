@@ -57,6 +57,7 @@ public class ACache {
 	private static final int MAX_COUNT = Integer.MAX_VALUE; // 不限制存放数据的数量
 	private static Map<String, ACache> mInstanceMap = new HashMap<String, ACache>();
 	private ACacheManager mCache;
+	private boolean isHashCode = true;
 
 	public static ACache get(Context ctx) throws Exception {
 		return get(ctx, "ACache");
@@ -65,6 +66,12 @@ public class ACache {
 	public static ACache get(Context ctx, String cacheName) throws Exception {
 		File f = new File(ctx.getCacheDir(), cacheName);
 		return get(f, MAX_SIZE, MAX_COUNT);
+	}
+
+
+	public static ACache get(File cacheDir,boolean isHashCode) throws Exception {
+
+		return get(cacheDir, MAX_SIZE, MAX_COUNT,isHashCode);
 	}
 
 	public static ACache get(File cacheDir) throws Exception {
@@ -87,6 +94,16 @@ public class ACache {
 			manager = new ACache(cacheDir, max_zise, max_count);
 			mInstanceMap.put(cacheDir.getAbsolutePath() + myPid(), manager);
 		}
+		return manager;
+	}
+
+	public static ACache get(File cacheDir, long max_zise, int max_count,boolean isHashCode) throws Exception {
+		ACache manager = mInstanceMap.get(cacheDir.getAbsoluteFile() + myPid());
+		if (manager == null) {
+			manager = new ACache(cacheDir, max_zise, max_count);
+			mInstanceMap.put(cacheDir.getAbsolutePath() + myPid(), manager);
+		}
+		manager.isHashCode = isHashCode;
 		return manager;
 	}
 
@@ -656,7 +673,11 @@ public class ACache {
 		}
 
 		private File newFile(String key) {
-			return new File(cacheDir, key.hashCode() + "");
+			if(isHashCode){
+				return new File(cacheDir, key.hashCode() + "");
+			}else{
+				return new File(cacheDir, key + "");
+			}
 		}
 
 		private boolean remove(String key) {
