@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import okhttp3.CookieJar;
+import okhttp3.Dns;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 
@@ -72,6 +73,8 @@ public final class CanConfig {
     private Map<String, String> globalHeaderMap ;  //全局请求头
 
     private OkHttpClient okHttpClient;
+
+    private Dns dns;
 
     private String timeStamp;//时间戳
 
@@ -392,6 +395,18 @@ public final class CanConfig {
     public OkHttpClient getOkHttpClient() {
         return okHttpClient;
     }
+
+
+    public CanConfig setDns(Dns dns) {
+        this.dns = dns;
+
+        return this;
+    }
+
+    public Dns getDns() {
+        return this.dns ;
+    }
+
 
     public CanConfig setUseClientType(int useClientType) {
         this.useClientType = useClientType;

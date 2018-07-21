@@ -60,6 +60,7 @@ import okhttp3.CacheControl;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.CookieJar;
+import okhttp3.Dns;
 import okhttp3.FormBody;
 import okhttp3.Interceptor;
 import okhttp3.MultipartBody;
@@ -378,6 +379,11 @@ public final class CanOkHttp {
         if (null != mCurrentConfig.getCookieJar()) {
             clientBuilder.cookieJar(mCurrentConfig.getCookieJar());
         }
+
+        if (null != mCurrentConfig.getDns()) {
+            clientBuilder.dns(mCurrentConfig.getDns());
+        }
+
         OkHttpClient okHttpClient = clientBuilder.build();
 
         if (!isNew) {
@@ -787,6 +793,16 @@ public final class CanOkHttp {
      */
     public CanOkHttp setMaxRetry(int maxRetry) {
         mCurrentConfig.setMaxRetry(maxRetry);
+        return this;
+    }
+
+
+    /**
+     * @param dns Dns
+     * @return CanOkHttp
+     */
+    public CanOkHttp setDns(Dns dns) {
+        mCurrentConfig.setDns(dns);
         return this;
     }
 
