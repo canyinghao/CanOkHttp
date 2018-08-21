@@ -76,17 +76,17 @@ public class HttpActivity extends BaseActivity {
 //                仅网络请求（NETWORK）
 
 
-                String someUrl  = CanOkHttp.getInstance()
-                        .add("app", "life.time")
-                        .add("appkey", "10003")
-                        .add("sign", "b59bc3ef6191eb9f747dd4e83c99f2a4")
-                        .add("format", "json")
-                        .add(String.valueOf("format"), "json")
-                        .url(url)
-                        .getFullUrl(true,0);
+//                String someUrl  = CanOkHttp.getInstance()
+//                        .add("app", "life.time")
+//                        .add("appkey", "10003")
+//                        .add("sign", "b59bc3ef6191eb9f747dd4e83c99f2a4")
+//                        .add("format", "json")
+//                        .add(String.valueOf("format"), "json")
+//                        .url(url)
+//                        .getFullUrl(true,0);
 
 
-           KLog.e(someUrl);
+//           KLog.e(someUrl);
 
                 CanOkHttp.getInstance()
                         .add("app", "life.time")
@@ -96,10 +96,8 @@ public class HttpActivity extends BaseActivity {
                         .add(String.valueOf("format"), "json")
                         .url(url)
                         .setTag(this)
-                        .setOpenLog(true)
-                        .setHttpsTry(true)
                         .setCacheType(CacheType.NETWORK)
-                        .post()
+                        .get()
                         .setCallBack(new CanSimpleCallBack() {
 
                             @Override

@@ -490,6 +490,22 @@ public final class CanOkHttp {
         return this;
     }
 
+
+    /**
+     * 添加参数
+     *
+     * @param map   键
+     * @return CanOkHttp
+     */
+    public CanOkHttp addMap(Map<String, String> map) {
+
+        paramMap.putAll(map);
+
+
+        return this;
+    }
+
+
     /**
      * 添加头部参数
      *

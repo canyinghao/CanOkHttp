@@ -27,6 +27,11 @@ public class App extends Application implements
         Map<String,String> some = new HashMap<>();
         some.put("test","test");
         some.put("test1","test1");
+
+        Map<String,String> someget = new HashMap<>();
+        someget.put("test2","test2");
+        someget.put("test3","test3");
+
         CanOkHttp.init(this,CanOkHttp.getDefaultConfig(this).setJson(true)
                 .setRetryOnConnectionFailure(true)
                 .setDownloadDelayTime(1000)
@@ -34,6 +39,7 @@ public class App extends Application implements
                 .setUseClientType(3)
                 .setDownAccessFile(true)
                 .setGlobalParamMap(some)
+                .setGlobalGetParamMap(someget)
                 .setMaxRetry(2).setHttpsTry(true));
 
         KLog.init(true,"Canyinghao");
