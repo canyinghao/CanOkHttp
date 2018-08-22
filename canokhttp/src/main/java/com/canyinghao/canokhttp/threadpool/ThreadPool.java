@@ -38,7 +38,7 @@ public class ThreadPool {
 
     }
 
-    public <T, O> void single(O o, final Job<T> job, final FutureListener<T> listener, Scheduler schedule, Scheduler observe) {
+    public <T, O> void single(O o, final SingleJob<O,T> job, final FutureListener<T> listener, Scheduler schedule, Scheduler observe) {
 
         Single.just(o)
                 .map(new Function<O, T>() {
@@ -46,7 +46,7 @@ public class ThreadPool {
                     @Override
                     public T apply(O o) throws Exception {
 
-                        return job.run();
+                        return job.run(o);
                     }
                 }).observeOn(observe)
                 .subscribeOn(schedule)
@@ -81,14 +81,14 @@ public class ThreadPool {
     }
 
 
-    public <T, O> void single(O o, Job<T> job) {
+    public <T, O> void single(O o, SingleJob<O,T> job) {
 
 
         this.single(o, job, null);
     }
 
 
-    public <T, O> void single(O o, Job<T> job, final FutureListener<T> listener) {
+    public <T, O> void single(O o, SingleJob<O,T> job, final FutureListener<T> listener) {
         Scheduler scheduler = null;
         switch (defaultSchedule) {
 
@@ -118,7 +118,7 @@ public class ThreadPool {
     }
 
 
-    public <T, O> void single(O o, Job<T> job, final FutureListener<T> listener, Scheduler schedule) {
+    public <T, O> void single(O o, SingleJob<O,T> job, final FutureListener<T> listener, Scheduler schedule) {
 
 
         this.single(o, job, listener, schedule, AndroidSchedulers.mainThread());
