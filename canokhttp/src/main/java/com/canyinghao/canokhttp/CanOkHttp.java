@@ -120,6 +120,8 @@ public final class CanOkHttp {
 
     private boolean isChangeLine;
 
+    private int tempPublicType;
+
     public static CanOkHttp getInstance() {
 
         return new CanOkHttp();
@@ -585,7 +587,7 @@ public final class CanOkHttp {
                 isPublic = false;
                 break;
         }
-
+        tempPublicType = publicType;
         try {
             mRequest = fetchRequest(true, isPublic);
         } catch (Exception e) {
@@ -636,6 +638,7 @@ public final class CanOkHttp {
                 isPublic = false;
                 break;
         }
+        tempPublicType = publicType;
 
         try {
             mRequest = fetchRequest(false, isPublic);
@@ -1239,12 +1242,12 @@ public final class CanOkHttp {
                         if (isPost) {
                             changeLine = true;
                             isChangeLine = true;
-                            post();
+                            post(tempPublicType);
                             setCallBack(mCanCallBack);
                         } else {
                             changeLine = true;
                             isChangeLine = true;
-                            get();
+                            get(tempPublicType);
                             setCallBack(mCanCallBack);
                         }
 
@@ -1255,7 +1258,7 @@ public final class CanOkHttp {
                         if (!isPost) {
                             changeLine = true;
                             isChangeLine = true;
-                            get();
+                            get(tempPublicType);
                             setCallBack(mCanCallBack);
                         }
 
@@ -1266,7 +1269,7 @@ public final class CanOkHttp {
                         if (isPost) {
                             changeLine = true;
                             isChangeLine = true;
-                            post();
+                            post(tempPublicType);
                             setCallBack(mCanCallBack);
                         }
 
@@ -1306,11 +1309,11 @@ public final class CanOkHttp {
                     case 0:
 
                         if (isPost) {
-                            post();
+                            post(tempPublicType);
                             setCallBack(mCanCallBack);
                             isHttpsTry = true;
                         } else {
-                            get();
+                            get(tempPublicType);
                             setCallBack(mCanCallBack);
                             isHttpsTry = true;
                         }
@@ -1320,7 +1323,7 @@ public final class CanOkHttp {
                     case 1:
 
                         if (!isPost) {
-                            get();
+                            get(tempPublicType);
                             setCallBack(mCanCallBack);
                             isHttpsTry = true;
                         }
@@ -1330,7 +1333,7 @@ public final class CanOkHttp {
                     case 2:
 
                         if (isPost) {
-                            post();
+                            post(tempPublicType);
                             setCallBack(mCanCallBack);
                             isHttpsTry = true;
                         }
