@@ -1648,6 +1648,7 @@ public final class CanOkHttp {
         try {
             ResponseBody responseBody = res.body();
             int length;
+
             accessFile = new RandomAccessFile(new File(fileInfo.saveFileDir, fileInfo.saveFileNameEncrypt).getAbsoluteFile(), "rwd");
             //服务器不支持断点下载时重新下载
             if (TextUtils.isEmpty(res.header("Content-Range"))) {
@@ -1709,7 +1710,7 @@ public final class CanOkHttp {
             sendFailMsg(ResultType.FAIL_WRITE_READ_TIME_OUT, 0, "读写超时");
 
             return;
-        } catch (Exception e) {
+        } catch (Throwable e) {
 
             e.printStackTrace();
             sendFailMsg(ResultType.FAIL_CONNECTION_TIME_OUT, 0, "连接超时");

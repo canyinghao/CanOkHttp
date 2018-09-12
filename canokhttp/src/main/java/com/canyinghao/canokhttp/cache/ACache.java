@@ -79,33 +79,38 @@ public class ACache {
         return get(cacheDir, MAX_SIZE, MAX_COUNT, isHashCode);
     }
 
+    public static ACache get(File cacheDir, long max_size,boolean isHashCode) throws Exception {
+
+        return get(cacheDir, max_size, MAX_COUNT, isHashCode);
+    }
+
     public static ACache get(File cacheDir) throws Exception {
         return get(cacheDir, MAX_SIZE, MAX_COUNT);
     }
 
-    public static ACache get(Context ctx, long max_zise, int max_count) throws Exception {
+    public static ACache get(Context ctx, long max_size, int max_count) throws Exception {
         File f = new File(ctx.getCacheDir(), "ACache");
-        return get(f, max_zise, max_count);
+        return get(f, max_size, max_count);
     }
 
-    public static ACache get(File cacheDir, long max_zise) throws Exception {
+    public static ACache get(File cacheDir, long max_size) throws Exception {
 
-        return get(cacheDir, max_zise, MAX_COUNT);
+        return get(cacheDir, max_size, MAX_COUNT);
     }
 
-    public static ACache get(File cacheDir, long max_zise, int max_count) throws Exception {
+    public static ACache get(File cacheDir, long max_size, int max_count) throws Exception {
         ACache manager = mInstanceMap.get(cacheDir.getAbsoluteFile() + myPid());
         if (manager == null) {
-            manager = new ACache(cacheDir, max_zise, max_count);
+            manager = new ACache(cacheDir, max_size, max_count);
             mInstanceMap.put(cacheDir.getAbsolutePath() + myPid(), manager);
         }
         return manager;
     }
 
-    public static ACache get(File cacheDir, long max_zise, int max_count, boolean isHashCode) throws Exception {
+    public static ACache get(File cacheDir, long max_size, int max_count, boolean isHashCode) throws Exception {
         ACache manager = mInstanceMap.get(cacheDir.getAbsoluteFile() + myPid());
         if (manager == null) {
-            manager = new ACache(cacheDir, max_zise, max_count);
+            manager = new ACache(cacheDir, max_size, max_count);
             mInstanceMap.put(cacheDir.getAbsolutePath() + myPid(), manager);
         }
         manager.isHashCode = isHashCode;
