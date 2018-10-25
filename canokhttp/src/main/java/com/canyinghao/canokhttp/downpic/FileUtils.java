@@ -305,6 +305,8 @@ public class FileUtils {
                 return "webp";
             } else if (bytes[0] == (byte) 0x47 && bytes[1] == (byte) 0x49) {
                 return "gif";
+            } else if (bytes[0] == (byte) 0x52) {
+                return "webp";
             }
 
             return "undefined";
