@@ -15,7 +15,7 @@ import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.annotation.ResultType;
 import com.canyinghao.canokhttp.callback.CanSimpleCallBack;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -25,17 +25,17 @@ import butterknife.OnClick;
 
 public class UpLoadActivity extends BaseActivity {
 
-    @Bind(R.id.uploadProgress)
+    @BindView(R.id.uploadProgress)
     ProgressBar uploadProgress;
-    @Bind(R.id.tvFile)
+    @BindView(R.id.tvFile)
     TextView tvFile;
 
-    @Bind(R.id.tvResult)
+    @BindView(R.id.tvResult)
     TextView tvResult;
 
-    @Bind(R.id.btn_1)
+    @BindView(R.id.btn_1)
     AppCompatButton btn1;
-    @Bind(R.id.btn_2)
+    @BindView(R.id.btn_2)
     AppCompatButton btn2;
 
 

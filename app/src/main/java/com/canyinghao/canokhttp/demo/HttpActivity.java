@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -27,19 +27,19 @@ import butterknife.OnClick;
 
 public class HttpActivity extends BaseActivity {
 
-    @Bind(R.id.btn_1)
+    @BindView(R.id.btn_1)
     AppCompatButton btn1;
-    @Bind(R.id.btn_2)
+    @BindView(R.id.btn_2)
     AppCompatButton btn2;
-    @Bind(R.id.btn_3)
+    @BindView(R.id.btn_3)
     AppCompatButton btn3;
-    @Bind(R.id.btn_4)
+    @BindView(R.id.btn_4)
     AppCompatButton btn4;
-    @Bind(R.id.btn_5)
+    @BindView(R.id.btn_5)
     AppCompatButton btn5;
-    @Bind(R.id.btn_6)
+    @BindView(R.id.btn_6)
     AppCompatButton btn6;
-    @Bind(R.id.tv_result)
+    @BindView(R.id.tv_result)
     TextView tvResult;
 
     public String url = "https://api.k780.com:88/some/";

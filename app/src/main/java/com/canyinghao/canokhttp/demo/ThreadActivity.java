@@ -5,7 +5,7 @@ import android.support.annotation.Nullable;
 import android.widget.Button;
 import android.widget.TextView;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
@@ -15,9 +15,9 @@ import butterknife.ButterKnife;
 public class ThreadActivity extends BaseActivity {
 
 
-    @Bind(R.id.btn_1)
+    @BindView(R.id.btn_1)
     Button btn1;
-    @Bind(R.id.tv_result)
+    @BindView(R.id.tv_result)
     TextView tvResult;
 
     @Override

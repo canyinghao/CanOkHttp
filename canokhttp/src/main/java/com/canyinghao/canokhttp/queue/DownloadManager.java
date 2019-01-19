@@ -1,12 +1,14 @@
 package com.canyinghao.canokhttp.queue;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
@@ -30,6 +32,9 @@ import java.util.Set;
  */
 
 public class DownloadManager {
+
+    public static final String PUSH_CHANNEL_ID = "PUSH_NOTIFY_ID";
+    public static final String PUSH_CHANNEL_NAME = "PUSH_NOTIFY_NAME";
 
     private Context context;
     private NotificationManager notificationMrg;
@@ -248,10 +253,7 @@ public class DownloadManager {
     private void hideDownNotify(Context context, Request request) {
 
 
-        if (notificationMrg == null) {
-            notificationMrg = (NotificationManager)
-                    context.getSystemService(Context.NOTIFICATION_SERVICE);
-        }
+        notificationMrg = getNotificationManager(context);
 
         notificationMrg.cancel(getNotifyId(request));
     }
@@ -269,13 +271,25 @@ public class DownloadManager {
 
         builder.setWhen(getNotifyTime(request));
 
-        if (notificationMrg == null) {
-            notificationMrg = (NotificationManager)
-                    context.getSystemService(Context.NOTIFICATION_SERVICE);
-        }
+        notificationMrg = getNotificationManager(context);
 
 
         notificationMrg.notify(getNotifyId(request), builder.build());
+    }
+
+    private NotificationManager getNotificationManager(Context context) {
+        if (notificationMrg == null) {
+            notificationMrg = (NotificationManager)
+                    context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel channel = new NotificationChannel(PUSH_CHANNEL_ID, PUSH_CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
+                if (notificationMrg != null) {
+                    notificationMrg.createNotificationChannel(channel);
+                }
+            }
+        }
+        return notificationMrg;
     }
 
     /**
@@ -292,7 +306,7 @@ public class DownloadManager {
                 intent, 0);
 
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context,PUSH_CHANNEL_ID)
                 .setSmallIcon(R.mipmap.icon)
                 .setContentTitle(fileName)
                 .setContentText(contentText).setAutoCancel(true)
@@ -300,10 +314,7 @@ public class DownloadManager {
                 .setDefaults(Notification.DEFAULT_ALL);
 
 
-        if (notificationMrg == null) {
-            notificationMrg = (NotificationManager)
-                    context.getSystemService(Context.NOTIFICATION_SERVICE);
-        }
+        notificationMrg = getNotificationManager(context);
 
         notificationMrg.notify(getNotifyId(request), builder.build());
     }
@@ -321,7 +332,7 @@ public class DownloadManager {
                 new Intent(), 0);
 
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context,PUSH_CHANNEL_ID)
                 .setSmallIcon(R.mipmap.icon)
                 .setContentTitle(fileName)
                 .setContentText(contentText).setAutoCancel(true)
@@ -329,10 +340,7 @@ public class DownloadManager {
                 .setDefaults(Notification.DEFAULT_ALL);
 
 
-        if (notificationMrg == null) {
-            notificationMrg = (NotificationManager)
-                    context.getSystemService(Context.NOTIFICATION_SERVICE);
-        }
+        notificationMrg = getNotificationManager(context);
 
         notificationMrg.notify(getNotifyId(request), builder.build());
     }
@@ -394,7 +402,7 @@ public class DownloadManager {
                 new Intent(), 0);
 
 
-        return new NotificationCompat.Builder(context)
+        return new NotificationCompat.Builder(context,PUSH_CHANNEL_ID)
                 .setLargeIcon(largeIcon).setSmallIcon(smallIcon)
                 .setContentInfo(contentInfo).setContentTitle(contentTitle)
                 .setContentText(contentText).setAutoCancel(autoCancel)

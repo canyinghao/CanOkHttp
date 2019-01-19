@@ -13,7 +13,7 @@ import com.canyinghao.canokhttp.annotation.ResultType;
 import com.canyinghao.canokhttp.callback.CanFileCallBack;
 import com.canyinghao.canokhttp.queue.DownloadManager;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -24,9 +24,9 @@ import butterknife.OnClick;
 public class DownLoadActivity extends BaseActivity {
 
 
-    @Bind(R.id.downloadProgress)
+    @BindView(R.id.downloadProgress)
     ProgressBar downloadProgress;
-    @Bind(R.id.tvResult)
+    @BindView(R.id.tvResult)
     TextView tvResult;
 
 //    private String url = "http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4";

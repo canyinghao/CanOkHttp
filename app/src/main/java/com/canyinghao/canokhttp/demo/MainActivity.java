@@ -10,7 +10,7 @@ import com.socks.library.KLog;
 
 import java.io.IOException;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import okhttp3.CacheControl;
@@ -27,7 +27,7 @@ import okhttp3.Response;
 
 public class MainActivity extends BaseActivity {
 
-    @Bind(R.id.btn_1)
+    @BindView(R.id.btn_1)
     AppCompatButton btn1;
 
 
