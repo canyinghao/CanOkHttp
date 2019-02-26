@@ -99,7 +99,8 @@ public final class CanOkHttp {
     private Map<String, String> headerMap = new LinkedHashMap<>();
     //  可重复请求参数
     private Map<String, String> repeatMap = new IdentityHashMap<>();
-
+    //  json请求参数
+    private JSONObject jsonMap = new JSONObject();
     //  请求地址
     private String url = "";
     private String host = "";
@@ -488,6 +489,19 @@ public final class CanOkHttp {
 
 
         repeatMap.put(checkString(key), checkString(value));
+
+        return this;
+    }
+    /**
+     * 添加json参数
+     *
+     * @param key   键
+     * @param value 值
+     * @return CanOkHttp
+     */
+    public CanOkHttp addJSON(@NonNull String key, @NonNull Object value){
+
+        jsonMap.put(key,value);
 
         return this;
     }
@@ -2126,7 +2140,6 @@ public final class CanOkHttp {
         if (isPost) {
             FormBody.Builder builder = new FormBody.Builder();
 
-            JSONObject jsonObject = new JSONObject();
 
             StringBuilder params = new StringBuilder();
 
@@ -2136,7 +2149,7 @@ public final class CanOkHttp {
                 String logInfo;
                 for (String name : paramMap.keySet()) {
                     builder.add(name, paramMap.get(name));
-                    jsonObject.put(name, paramMap.get(name));
+                    jsonMap.put(name, paramMap.get(name));
                     if (!TextUtils.isEmpty(url) && url.contains("?")) {
                         logInfo = "&" + name + "=" + paramMap.get(name);
                     } else {
@@ -2158,7 +2171,7 @@ public final class CanOkHttp {
                 String logInfo;
                 for (String name : repeatMap.keySet()) {
                     builder.add(name, repeatMap.get(name));
-                    jsonObject.put(name, repeatMap.get(name));
+                    jsonMap.put(name, repeatMap.get(name));
                     if (!TextUtils.isEmpty(url) && url.contains("?")) {
                         logInfo = "&" + name + "=" + repeatMap.get(name);
                     } else {
@@ -2180,7 +2193,7 @@ public final class CanOkHttp {
                 if (!TextUtils.isEmpty(timeStamp)) {
                     String time = String.valueOf(System.currentTimeMillis());
                     builder.add(timeStamp, time);
-                    jsonObject.put(timeStamp, time);
+                    jsonMap.put(timeStamp, time);
                     String logInfo;
 
                     if (!TextUtils.isEmpty(url) && url.contains("?")) {
@@ -2201,7 +2214,7 @@ public final class CanOkHttp {
                     String logInfo;
                     for (String name : map.keySet()) {
                         builder.add(name, map.get(name));
-                        jsonObject.put(name, map.get(name));
+                        jsonMap.put(name, map.get(name));
                         if (!TextUtils.isEmpty(url) && url.contains("?")) {
                             logInfo = "&" + name + "=" + map.get(name);
                         } else {
@@ -2219,11 +2232,13 @@ public final class CanOkHttp {
             }
 
             paramsUrl.append(params);
-            okHttpLog(paramsUrl.toString(), false);
 
+            okHttpLog(paramsUrl.toString(), false);
             RequestBody requestBody = null;
             if (mCurrentConfig.isApplicationJson()) {
-                requestBody = FormBody.create(MediaType.parse("application/json"), jsonObject.toJSONString());
+                String jsonStr = jsonMap.toJSONString();
+                requestBody = FormBody.create(MediaType.parse("application/json"), jsonStr);
+                KLog.json(jsonStr);
             } else {
                 requestBody = builder.build();
             }
