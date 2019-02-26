@@ -717,6 +717,33 @@ public final class CanOkHttp {
     }
 
     /**
+     *
+     *
+     * @param isApplicationJson 是否是Application/Json
+     * @return CanOkHttp
+     */
+    public CanOkHttp setApplicationJson(boolean isApplicationJson) {
+
+        mCurrentConfig.setApplicationJson(isApplicationJson);
+
+        return this;
+    }
+
+
+    /**
+     *
+     * @param otherMethod 设置请求方式
+     * @return CanOkHttp
+     */
+    public CanOkHttp setOtherMethod(String  otherMethod) {
+
+        mCurrentConfig.setOtherMethod(otherMethod);
+
+        return this;
+    }
+
+
+    /**
      * 设置cache类型
      *
      * @param cacheType cache类型
