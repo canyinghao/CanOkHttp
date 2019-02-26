@@ -65,6 +65,9 @@ public final class CanConfig {
 
     private boolean isUpLoadProgress;
 
+    private boolean isApplicationJson;
+
+
     private String tag;
     private CookieJar cookieJar;
 
@@ -77,6 +80,8 @@ public final class CanConfig {
     private Dns dns;
 
     private String timeStamp;//时间戳
+    //    其它请求方式，delete 、put 等
+    private String otherMethod;
 
     public Application getApplication() {
         return application;
@@ -322,6 +327,15 @@ public final class CanConfig {
         return this;
     }
 
+    public boolean isApplicationJson() {
+        return isApplicationJson;
+    }
+
+    public CanConfig setApplicationJson(boolean applicationJson) {
+        isApplicationJson = applicationJson;
+        return this;
+    }
+
     public boolean isHttpsTry() {
         return isHttpsTry;
     }
@@ -433,6 +447,14 @@ public final class CanConfig {
 
     }
 
+    public String getOtherMethod() {
+        return otherMethod;
+    }
+
+    public CanConfig setOtherMethod(String otherMethod) {
+        this.otherMethod = otherMethod;
+        return this;
+    }
 
     public CanConfig() {
     }
@@ -472,6 +494,8 @@ public final class CanConfig {
         this.useClientType = config.useClientType;
         this.isUpLoadProgress = config.isUpLoadProgress;
         this.timeStamp = config.timeStamp;
+        this.isApplicationJson = config.isApplicationJson;
+
 
 
     }

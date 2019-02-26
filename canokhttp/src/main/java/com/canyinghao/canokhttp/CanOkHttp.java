@@ -11,6 +11,7 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.alibaba.fastjson.JSONObject;
 import com.canyinghao.canokhttp.annotation.CacheType;
 import com.canyinghao.canokhttp.annotation.DownloadStatus;
 import com.canyinghao.canokhttp.annotation.ResultType;
@@ -63,6 +64,7 @@ import okhttp3.CookieJar;
 import okhttp3.Dns;
 import okhttp3.FormBody;
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -448,13 +450,12 @@ public final class CanOkHttp {
     }
 
 
-
     /**
      * @param str String
      * @return String
      */
-    public String checkString(String str){
-        if(TextUtils.isEmpty(str)){
+    public String checkString(String str) {
+        if (TextUtils.isEmpty(str)) {
             return "";
         }
         return str;
@@ -476,7 +477,6 @@ public final class CanOkHttp {
     }
 
 
-
     /**
      * 添加可重复参数
      *
@@ -496,7 +496,7 @@ public final class CanOkHttp {
     /**
      * 添加参数
      *
-     * @param map   键
+     * @param map 键
      * @return CanOkHttp
      */
     public CanOkHttp addMap(Map<String, String> map) {
@@ -1857,7 +1857,6 @@ public final class CanOkHttp {
     }
 
 
-
     /**
      * 获取完整链接
      *
@@ -2083,7 +2082,6 @@ public final class CanOkHttp {
     }
 
 
-
     /**
      * 获取参数
      *
@@ -2097,8 +2095,8 @@ public final class CanOkHttp {
         String currentUrl = url;
         if (!isChangeLine && linesMap != null && linesMap.containsKey(this.host)) {
             ArrayList<String> array = linesMap.get(this.host);
-            if(array!=null&&!array.isEmpty()){
-                currentUrl = url.replace(this.host, array.get((int) (userId%array.size())));
+            if (array != null && !array.isEmpty()) {
+                currentUrl = url.replace(this.host, array.get((int) (userId % array.size())));
             }
 
         }
@@ -2128,17 +2126,20 @@ public final class CanOkHttp {
         if (isPost) {
             FormBody.Builder builder = new FormBody.Builder();
 
+            JSONObject jsonObject = new JSONObject();
+
             StringBuilder params = new StringBuilder();
+
 
             if (!paramMap.isEmpty()) {
 
                 String logInfo;
                 for (String name : paramMap.keySet()) {
                     builder.add(name, paramMap.get(name));
-
-                    if(!TextUtils.isEmpty(url)&&url.contains("?")){
+                    jsonObject.put(name, paramMap.get(name));
+                    if (!TextUtils.isEmpty(url) && url.contains("?")) {
                         logInfo = "&" + name + "=" + paramMap.get(name);
-                    }else{
+                    } else {
                         if (TextUtils.isEmpty(params.toString())) {
                             logInfo = "?" + name + "=" + paramMap.get(name);
                         } else {
@@ -2157,10 +2158,10 @@ public final class CanOkHttp {
                 String logInfo;
                 for (String name : repeatMap.keySet()) {
                     builder.add(name, repeatMap.get(name));
-
-                    if(!TextUtils.isEmpty(url)&&url.contains("?")){
+                    jsonObject.put(name, repeatMap.get(name));
+                    if (!TextUtils.isEmpty(url) && url.contains("?")) {
                         logInfo = "&" + name + "=" + repeatMap.get(name);
-                    }else{
+                    } else {
                         if (TextUtils.isEmpty(params.toString())) {
                             logInfo = "?" + name + "=" + repeatMap.get(name);
                         } else {
@@ -2179,12 +2180,12 @@ public final class CanOkHttp {
                 if (!TextUtils.isEmpty(timeStamp)) {
                     String time = String.valueOf(System.currentTimeMillis());
                     builder.add(timeStamp, time);
-
+                    jsonObject.put(timeStamp, time);
                     String logInfo;
 
-                    if(!TextUtils.isEmpty(url)&&url.contains("?")){
+                    if (!TextUtils.isEmpty(url) && url.contains("?")) {
                         logInfo = "&" + timeStamp + "=" + time;
-                    }else{
+                    } else {
                         if (TextUtils.isEmpty(params.toString())) {
                             logInfo = "?" + timeStamp + "=" + time;
                         } else {
@@ -2200,9 +2201,10 @@ public final class CanOkHttp {
                     String logInfo;
                     for (String name : map.keySet()) {
                         builder.add(name, map.get(name));
-                        if(!TextUtils.isEmpty(url)&&url.contains("?")){
+                        jsonObject.put(name, map.get(name));
+                        if (!TextUtils.isEmpty(url) && url.contains("?")) {
                             logInfo = "&" + name + "=" + map.get(name);
-                        }else{
+                        } else {
                             if (TextUtils.isEmpty(params.toString())) {
                                 logInfo = "?" + name + "=" + map.get(name);
                             } else {
@@ -2218,19 +2220,34 @@ public final class CanOkHttp {
 
             paramsUrl.append(params);
             okHttpLog(paramsUrl.toString(), false);
-            requestBuilder
+
+            RequestBody requestBody = null;
+            if (mCurrentConfig.isApplicationJson()) {
+                requestBody = FormBody.create(MediaType.parse("application/json"), jsonObject.toJSONString());
+            } else {
+                requestBody = builder.build();
+            }
+
+            requestBuilder = requestBuilder
                     .url(currentUrl)
-                    .cacheControl(CacheControl.FORCE_NETWORK)
-                    .post(builder.build());
+                    .cacheControl(CacheControl.FORCE_NETWORK);
+
+
+            String otherMethod = mCurrentConfig.getOtherMethod();
+            if (TextUtils.isEmpty(otherMethod)) {
+                otherMethod = "POST";
+            }
+            requestBuilder.method(otherMethod, requestBody);
+
         } else {
 
             StringBuilder params = new StringBuilder();
             if (!paramMap.isEmpty()) {
                 String logInfo;
                 for (String name : paramMap.keySet()) {
-                    if(!TextUtils.isEmpty(url)&&url.contains("?")){
+                    if (!TextUtils.isEmpty(url) && url.contains("?")) {
                         logInfo = "&" + name + "=" + paramMap.get(name);
-                    }else{
+                    } else {
                         if (TextUtils.isEmpty(params.toString())) {
                             logInfo = "?" + name + "=" + paramMap.get(name);
                         } else {
@@ -2246,9 +2263,9 @@ public final class CanOkHttp {
             if (!repeatMap.isEmpty()) {
                 String logInfo;
                 for (String name : repeatMap.keySet()) {
-                    if(!TextUtils.isEmpty(url)&&url.contains("?")){
+                    if (!TextUtils.isEmpty(url) && url.contains("?")) {
                         logInfo = "&" + name + "=" + repeatMap.get(name);
-                    }else{
+                    } else {
                         if (TextUtils.isEmpty(params.toString())) {
                             logInfo = "?" + name + "=" + repeatMap.get(name);
                         } else {
@@ -2271,9 +2288,9 @@ public final class CanOkHttp {
                 if (map != null && !map.isEmpty()) {
                     String logInfo;
                     for (String name : map.keySet()) {
-                        if(!TextUtils.isEmpty(url)&&url.contains("?")){
+                        if (!TextUtils.isEmpty(url) && url.contains("?")) {
                             logInfo = "&" + name + "=" + map.get(name);
-                        }else{
+                        } else {
                             if (TextUtils.isEmpty(params.toString())) {
                                 logInfo = "?" + name + "=" + map.get(name);
                             } else {
