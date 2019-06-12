@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
@@ -196,16 +197,21 @@ public class DownloadManager {
                         }
 
 
-                        CanPreferenceUtil.putString(secureHashKey(url), filePath, context);
+                        try{
+                            CanPreferenceUtil.putString(secureHashKey(url), filePath, context);
 
-                        if (request.isNotificationVisibility()) {
-                            File file = new File(filePath);
-                            if (file.isFile() && file.exists()) {
-                                showDownSuccessNotify(context, finalFileName, filePath, request);
-                            } else {
-                                hideDownNotify(context, request);
+                            if (request.isNotificationVisibility()) {
+                                File file = new File(filePath);
+                                if (file.isFile() && file.exists()) {
+                                    showDownSuccessNotify(context, finalFileName, filePath, request);
+                                } else {
+                                    hideDownNotify(context, request);
+                                }
                             }
+                        }catch (Throwable e){
+                            e.printStackTrace();
                         }
+
 
                         if (downIdMap.containsKey(url)) {
                             downIdMap.remove(url);
@@ -300,7 +306,7 @@ public class DownloadManager {
 
         String contentText = context.getString(R.string.can_down_open);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(Uri.fromFile(new File(filePath)), DownFileUtils.getMimeType(filePath));
+        intent.setDataAndType(getFileUri(context,new File(filePath)), DownFileUtils.getMimeType(filePath));
 
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
                 intent, 0);
@@ -467,4 +473,16 @@ public class DownloadManager {
     }
 
 
+
+    public Uri getFileUri(Context context,File file) {
+
+        if (Build.VERSION.SDK_INT >= 24) {
+
+            return FileProvider.getUriForFile(context.getApplicationContext(), context.getApplicationContext().getPackageName() + ".fileprovider", file);
+
+        } else {
+            return Uri.fromFile(file);
+        }
+
+    }
 }

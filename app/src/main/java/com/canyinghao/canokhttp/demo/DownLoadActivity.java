@@ -6,11 +6,13 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.annotation.DownloadStatus;
 import com.canyinghao.canokhttp.annotation.ResultType;
 import com.canyinghao.canokhttp.callback.CanFileCallBack;
+import com.canyinghao.canokhttp.queue.CanFileGlobalCallBack;
 import com.canyinghao.canokhttp.queue.DownloadManager;
 
 import butterknife.BindView;
@@ -31,7 +33,7 @@ public class DownLoadActivity extends BaseActivity {
 
 //    private String url = "http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4";
 //    private String url = "http://d.yx934.com/yx934/425YX/JUEZHANPINGANJINGJHJC/JUEZHANPINGANJINGJHJC_1074033.apk";
-    private String url = "https://raw.githubusercontent.com/linglongxin24/DylanStepCount/master/app-debug.apk";
+    private String url = "http://ecyapk.oss-cn-hangzhou.aliyuncs.com/apk/com.comic.iyouman/1.7.6/com.comic.iyouman_1906062233_1.7.6_tencent.apk";
 
 
 
@@ -141,7 +143,7 @@ public class DownLoadActivity extends BaseActivity {
                 "http://www.canyinghao.com/assets/work/cancalc/cancalc.apk",
                 "http://www.canyinghao.com/assets/work/canyinghao/canyinghao.apk"};
 
-        String url = "http://apkdown.zymk.cn/api/ChannelName/GetApkByChanne?packName=com.comic.manhuatai&channeCode=360";
+        String url = "http://ecyapk.oss-cn-hangzhou.aliyuncs.com/apk/com.comic.iyouman/1.7.6/com.comic.iyouman_1906062233_1.7.6_tencent.apk";
 
         DownloadManager.Request request = new DownloadManager.Request(url, downDir);
         request.setNotificationVisibility(true);
@@ -151,7 +153,38 @@ public class DownLoadActivity extends BaseActivity {
             downloadManager = new DownloadManager(getApplicationContext());
         }
 
-        downloadManager.enqueue(request, null);
+        downloadManager.enqueue(request, new CanFileGlobalCallBack() {
+            @Override
+            public void onStart(String url) {
+
+            }
+
+            @Override
+            public void onFailure(String url, int type, int code, String e) {
+
+            }
+
+            @Override
+            public void onFileSuccess(String url, int status, String msg, String filePath) {
+
+            }
+
+            @Override
+            public void onProgress(String url, long bytesRead, long contentLength, boolean done) {
+
+            }
+
+            @Override
+            public void onDowning(String url) {
+
+                Toast.makeText(getApplicationContext(),"正在下载",Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onDownedLocal(String url, String filePath) {
+
+            }
+        });
     }
 
 }
