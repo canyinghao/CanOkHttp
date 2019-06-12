@@ -308,6 +308,9 @@ public class DownloadManager {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setDataAndType(getFileUri(context,new File(filePath)), DownFileUtils.getMimeType(filePath));
 
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
                 intent, 0);
 
