@@ -69,7 +69,7 @@ public class WebActivity extends BaseActivity  {
                     @Override
                     public void onFileSuccess(String url,@DownloadStatus int status, String msg, String filePath) {
                         KLog.e("onFileSuccess");
-                        KLog.e(DownFileUtils.getMimeType(filePath));
+                        KLog.e(DownFileUtils.getMimeType(WebActivity.this,filePath));
 
 //                        Intent intent = new Intent(Intent.ACTION_VIEW);
 //                        intent.setDataAndType(Uri.fromFile(new File(filePath)), DownFileUtils.getMimeType(filePath));
@@ -92,7 +92,7 @@ public class WebActivity extends BaseActivity  {
                     public void onDownedLocal(String url, String filePath) {
                         KLog.e("onDownedLocal");
                         Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setDataAndType(Uri.fromFile(new File(filePath)), DownFileUtils.getMimeType(filePath));
+                        intent.setDataAndType(Uri.fromFile(new File(filePath)), DownFileUtils.getMimeType(WebActivity.this,filePath));
                         startActivity(intent);
 
                     }

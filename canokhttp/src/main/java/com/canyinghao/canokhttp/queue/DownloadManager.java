@@ -112,9 +112,16 @@ public class DownloadManager {
             return;
         }
 
-
-        String[] splits = url.split("/");
         String fileName = System.currentTimeMillis() + "";
+        String tempUrl = url;
+        if(url.contains("?")){
+            String[] splits =  url.split("\\?");
+            if(splits.length>0){
+                tempUrl = splits[0];
+            }
+        }
+
+        String[] splits = tempUrl.split("/");
         if (splits.length > 0) {
             String str = splits[splits.length - 1];
 
@@ -122,6 +129,7 @@ public class DownloadManager {
                 fileName = str;
             }
         }
+
 
 
         downIdMap.put(url, System.currentTimeMillis());
@@ -306,7 +314,7 @@ public class DownloadManager {
 
         String contentText = context.getString(R.string.can_down_open);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(getFileUri(context,new File(filePath)), DownFileUtils.getMimeType(filePath));
+        intent.setDataAndType(getFileUri(context,new File(filePath)), DownFileUtils.getMimeType(context,filePath));
 
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);

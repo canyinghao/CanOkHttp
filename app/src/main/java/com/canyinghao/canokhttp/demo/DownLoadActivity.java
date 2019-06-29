@@ -143,7 +143,8 @@ public class DownLoadActivity extends BaseActivity {
                 "http://www.canyinghao.com/assets/work/cancalc/cancalc.apk",
                 "http://www.canyinghao.com/assets/work/canyinghao/canyinghao.apk"};
 
-        String url = "http://ecyapk.oss-cn-hangzhou.aliyuncs.com/apk/com.comic.iyouman/1.7.6/com.comic.iyouman_1906062233_1.7.6_tencent.apk";
+        String url = "http://ecyapk.oss-cn-hangzhou.aliyuncs.com/apk/com.comic.iyouman/1.7.6/com.comic.iyouman_1906062233_1.7.6_tencent.apk?t=5";
+//        String url = "https://20bcd96ad202702427d824bd0564da6c.dd.cdntips.com/wxz.myapp.com/16891/026FF4E7DE007D4E7DD1657DC2939498.apk?mkey=5d1705fe7671b558&f=0c6d&fsname=com.wbxm.icartoon_2.5.6_1906272233.apk&hsr=4d5s&cip=118.113.147.173&proto=https";
 
         DownloadManager.Request request = new DownloadManager.Request(url, downDir);
         request.setNotificationVisibility(true);
