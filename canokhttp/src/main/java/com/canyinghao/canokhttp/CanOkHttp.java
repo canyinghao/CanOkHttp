@@ -2155,7 +2155,9 @@ public final class CanOkHttp {
             Map<String, String> globalHeaderMap = mCurrentConfig.getGlobalHeaderMap();
             if (globalHeaderMap != null && !globalHeaderMap.isEmpty()) {
                 for (String key : globalHeaderMap.keySet()) {
-                    requestBuilder.addHeader(key, globalHeaderMap.get(key));
+                    if(!headerMap.containsKey(key)){
+                        requestBuilder.addHeader(key, globalHeaderMap.get(key));
+                    }
                 }
             }
 
