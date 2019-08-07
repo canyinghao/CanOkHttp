@@ -161,7 +161,7 @@ public class DownloadManager {
                     public void onFailure(@ResultType int type, int code, String e) {
 
 
-                        if (globalCallBack != null) {
+                        if (request.isGlobal()&&globalCallBack != null) {
                             globalCallBack.onFailure(url, type, code, e);
                         }
 
@@ -190,7 +190,7 @@ public class DownloadManager {
                     public void onFileSuccess(@DownloadStatus int status, String msg, String filePath) {
 
 
-                        if (globalCallBack != null) {
+                        if (request.isGlobal()&&globalCallBack != null) {
                             globalCallBack.onFileSuccess(url, status, msg, filePath);
                         }
 
@@ -230,7 +230,7 @@ public class DownloadManager {
                     @Override
                     public void onProgress(long bytesRead, long contentLength, boolean done) {
 
-                        if (globalCallBack != null) {
+                        if (request.isGlobal()&&globalCallBack != null) {
                             globalCallBack.onProgress(url, bytesRead, contentLength, done);
                         }
 
@@ -451,6 +451,8 @@ public class DownloadManager {
 
         private boolean isNotificationVisibility = true;
 
+        private boolean isGlobal = true;
+
         private Map<String, String> requestHeader = new ArrayMap<>();
 
         public Request(String url,String downPath) {
@@ -480,6 +482,14 @@ public class DownloadManager {
 
         public boolean isNotificationVisibility() {
             return isNotificationVisibility;
+        }
+
+        public void setGlobal(boolean global) {
+            isGlobal = global;
+        }
+
+        public boolean isGlobal() {
+            return isGlobal;
         }
     }
 
