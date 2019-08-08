@@ -112,24 +112,27 @@ public class DownloadManager {
             return;
         }
 
-        String fileName = System.currentTimeMillis() + "";
-        String tempUrl = url;
-        if(url.contains("?")){
-            String[] splits =  url.split("\\?");
-            if(splits.length>0){
-                tempUrl = splits[0];
+        String fileName = request.getFileName();
+
+        if(TextUtils.isEmpty(fileName)){
+            fileName = System.currentTimeMillis() + "";
+            String tempUrl = url;
+            if(url.contains("?")){
+                String[] splits =  url.split("\\?");
+                if(splits.length>0){
+                    tempUrl = splits[0];
+                }
+            }
+
+            String[] splits = tempUrl.split("/");
+            if (splits.length > 0) {
+                String str = splits[splits.length - 1];
+
+                if (!TextUtils.isEmpty(str)) {
+                    fileName = str;
+                }
             }
         }
-
-        String[] splits = tempUrl.split("/");
-        if (splits.length > 0) {
-            String str = splits[splits.length - 1];
-
-            if (!TextUtils.isEmpty(str)) {
-                fileName = str;
-            }
-        }
-
 
 
         downIdMap.put(url, System.currentTimeMillis());
@@ -449,6 +452,8 @@ public class DownloadManager {
 
         private String downPath;
 
+        private String fileName;
+
         private boolean isNotificationVisibility = true;
 
         private boolean isGlobal = true;
@@ -490,6 +495,14 @@ public class DownloadManager {
 
         public boolean isGlobal() {
             return isGlobal;
+        }
+
+        public void setFileName(String fileName) {
+            this.fileName = fileName;
+        }
+
+        public String getFileName() {
+            return fileName;
         }
     }
 
