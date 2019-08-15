@@ -73,7 +73,7 @@ public class DownloadManager {
 
         if (downIdMap.containsKey(url)) {
 
-            if (globalCallBack != null) {
+            if (request.isGlobal()&&globalCallBack != null) {
                 globalCallBack.onDowning(url);
             }
 
@@ -90,27 +90,30 @@ public class DownloadManager {
         }
 
 
-        String filePath = CanPreferenceUtil.getString(secureHashKey(url), "", context);
+        if(request.isSaveXml()){
+            String filePath = CanPreferenceUtil.getString(secureHashKey(url), "", context);
 
-        File file = new File(filePath);
+            File file = new File(filePath);
 
-        if (file.isFile() && file.exists()) {
+            if (file.isFile() && file.exists()) {
 
-            if (globalCallBack != null) {
-                globalCallBack.onDownedLocal(url, filePath);
-            }
-
-            if (downMap.containsKey(url)) {
-
-                CanFileGlobalCallBack callBack = downMap.get(url);
-
-                if (callBack != null) {
-                    callBack.onDownedLocal(url, filePath);
+                if (request.isGlobal()&&globalCallBack != null) {
+                    globalCallBack.onDownedLocal(url, filePath);
                 }
-            }
 
-            return;
+                if (downMap.containsKey(url)) {
+
+                    CanFileGlobalCallBack callBack = downMap.get(url);
+
+                    if (callBack != null) {
+                        callBack.onDownedLocal(url, filePath);
+                    }
+                }
+
+                return;
+            }
         }
+
 
         String fileName = request.getFileName();
 
@@ -209,7 +212,9 @@ public class DownloadManager {
 
 
                         try{
-                            CanPreferenceUtil.putString(secureHashKey(url), filePath, context);
+                            if(request.isSaveXml()){
+                                CanPreferenceUtil.putString(secureHashKey(url), filePath, context);
+                            }
 
                             if (request.isNotificationVisibility()) {
                                 File file = new File(filePath);
@@ -458,6 +463,8 @@ public class DownloadManager {
 
         private boolean isGlobal = true;
 
+        private boolean isSaveXml = true;
+
         private Map<String, String> requestHeader = new ArrayMap<>();
 
         public Request(String url,String downPath) {
@@ -503,6 +510,14 @@ public class DownloadManager {
 
         public String getFileName() {
             return fileName;
+        }
+
+        public boolean isSaveXml() {
+            return isSaveXml;
+        }
+
+        public void setSaveXml(boolean saveXml) {
+            isSaveXml = saveXml;
         }
     }
 
