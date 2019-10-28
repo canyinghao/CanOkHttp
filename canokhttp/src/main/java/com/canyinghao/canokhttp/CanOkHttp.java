@@ -933,6 +933,16 @@ public final class CanOkHttp {
         return this;
     }
 
+    public CanOkHttp setJsonMap(JSONObject jsonMap) {
+        this.jsonMap = jsonMap;
+        return this;
+    }
+
+    public CanOkHttp putJsonMap(Map<String,Object> map) {
+        jsonMap.putAll(map);
+        return this;
+    }
+
     /**
      * 下载文件的大小
      *
