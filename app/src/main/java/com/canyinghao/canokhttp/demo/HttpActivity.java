@@ -67,7 +67,7 @@ public class HttpActivity extends BaseActivity {
 
         tvResult.setText("");
 
-        CanCallManager.cancelCallByActivityDestroy(getClass());
+
 
         switch (v.getId()) {
 
@@ -117,6 +117,8 @@ public class HttpActivity extends BaseActivity {
                         });
 
 
+                KLog.e(toString());
+                CanCallManager.cancelCallByActivityDestroy(this);
 
                 break;
             case R.id.btn_2:

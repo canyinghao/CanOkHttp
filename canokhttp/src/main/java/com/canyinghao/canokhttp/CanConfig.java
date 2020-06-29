@@ -1,6 +1,5 @@
 package com.canyinghao.canokhttp;
 
-import android.app.Activity;
 import android.app.Application;
 
 import com.canyinghao.canokhttp.annotation.CacheType;
@@ -242,16 +241,8 @@ public final class CanConfig {
     }
 
     public CanConfig setTag(Object object) {
-        if (object instanceof Activity) {
-            Activity activity = (Activity) object;
-            this.tag = activity.getClass().getCanonicalName();
-        } else if (object instanceof android.support.v4.app.Fragment) {
-            android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
-            this.tag = fragment.getActivity().getClass().getCanonicalName();
-        } else if (object instanceof android.app.Fragment) {
-            android.app.Fragment fragment = (android.app.Fragment) object;
-            this.tag = fragment.getActivity().getClass().getCanonicalName();
-        } else if (object != null) {
+
+        if (object != null) {
             this.tag = object.toString();
         }
         return this;

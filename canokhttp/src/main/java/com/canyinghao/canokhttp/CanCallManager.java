@@ -52,12 +52,11 @@ public final class CanCallManager {
     /**
      * 取消请求
      *
-     * @param cls 请求标识
      */
-    public static void cancelCallByActivityDestroy(@NonNull Class<?> cls) {
+    public static void cancelCallByActivityDestroy(@NonNull Object object) {
 
         try {
-            String tag = cls.getCanonicalName();
+            String tag = object.toString();
             cancelCallByTag(tag);
         } catch (Throwable e) {
             e.printStackTrace();
