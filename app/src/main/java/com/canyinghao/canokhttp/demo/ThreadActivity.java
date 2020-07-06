@@ -1,12 +1,11 @@
 package com.canyinghao.canokhttp.demo;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.widget.Button;
 import android.widget.TextView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
+import androidx.annotation.Nullable;
+
 
 /**
  * Created by yangjian on 2016/11/14.
@@ -15,16 +14,15 @@ import butterknife.ButterKnife;
 public class ThreadActivity extends BaseActivity {
 
 
-    @BindView(R.id.btn_1)
     Button btn1;
-    @BindView(R.id.tv_result)
     TextView tvResult;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_thread);
-        ButterKnife.bind(this);
+        btn1 = findViewById(R.id.btn_1);
+        tvResult = findViewById(R.id.tv_result);
 
 //        ThreadPool.getInstance().setIdleCallback(new Runnable() {
 //            @Override

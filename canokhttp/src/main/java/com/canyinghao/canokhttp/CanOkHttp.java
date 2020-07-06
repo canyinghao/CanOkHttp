@@ -8,7 +8,6 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.alibaba.fastjson.JSONObject;
@@ -57,6 +56,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import androidx.annotation.NonNull;
 import okhttp3.CacheControl;
 import okhttp3.Call;
 import okhttp3.Callback;

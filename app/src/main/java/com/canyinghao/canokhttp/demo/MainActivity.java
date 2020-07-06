@@ -2,17 +2,14 @@ package com.canyinghao.canokhttp.demo;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 
 import com.socks.library.KLog;
 
 import java.io.IOException;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatButton;
 import okhttp3.CacheControl;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -27,7 +24,6 @@ import okhttp3.Response;
 
 public class MainActivity extends BaseActivity {
 
-    @BindView(R.id.btn_1)
     AppCompatButton btn1;
 
 
@@ -36,11 +32,25 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
 
+        btn1 = findViewById(R.id.btn_1);
+
+        View.OnClickListener clickListener = new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+                click(view);
+            }
+        };
+
+
+        btn1.setOnClickListener(clickListener);
+        findViewById(R.id.btn_2).setOnClickListener(clickListener);
+        findViewById(R.id.btn_3).setOnClickListener(clickListener);
+        findViewById(R.id.btn_4).setOnClickListener(clickListener);
+        findViewById(R.id.btn_5).setOnClickListener(clickListener);
     }
 
-    @OnClick({R.id.btn_1,R.id.btn_2,R.id.btn_3,R.id.btn_4,R.id.btn_5})
     public void click(View v){
 
         switch (v.getId()){

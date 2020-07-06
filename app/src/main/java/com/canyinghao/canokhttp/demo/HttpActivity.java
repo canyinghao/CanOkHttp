@@ -1,8 +1,6 @@
 package com.canyinghao.canokhttp.demo;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.widget.TextView;
 
@@ -17,9 +15,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatButton;
+
 
 /**
  * Created by canyinghao on 2016/10/13.
@@ -27,19 +25,12 @@ import butterknife.OnClick;
 
 public class HttpActivity extends BaseActivity {
 
-    @BindView(R.id.btn_1)
     AppCompatButton btn1;
-    @BindView(R.id.btn_2)
     AppCompatButton btn2;
-    @BindView(R.id.btn_3)
     AppCompatButton btn3;
-    @BindView(R.id.btn_4)
     AppCompatButton btn4;
-    @BindView(R.id.btn_5)
     AppCompatButton btn5;
-    @BindView(R.id.btn_6)
     AppCompatButton btn6;
-    @BindView(R.id.tv_result)
     TextView tvResult;
 
     public String url = "https://api.k780.com:88/some/";
@@ -49,7 +40,14 @@ public class HttpActivity extends BaseActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_http);
-        ButterKnife.bind(this);
+
+        btn1 = findViewById(R.id.btn_1);
+        btn2 = findViewById(R.id.btn_2);
+        btn3 = findViewById(R.id.btn_3);
+        btn4 = findViewById(R.id.btn_4);
+        btn5 = findViewById(R.id.btn_5);
+        btn6 = findViewById(R.id.btn_6);
+        tvResult = findViewById(R.id.tv_result);
 
         Map<String,ArrayList<String>> map = new HashMap<>();
         ArrayList<String>  temp = new ArrayList<>();
@@ -57,17 +55,30 @@ public class HttpActivity extends BaseActivity {
         map.put("https://api.k780.com:88/",temp);
         CanOkHttp.setLinesMap(map);
 
+        View.OnClickListener clickListener = new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+             click(view);
+            }
+        };
+
+        btn1.setOnClickListener(clickListener);
+        btn2.setOnClickListener(clickListener);
+        btn3.setOnClickListener(clickListener);
+        btn4.setOnClickListener(clickListener);
+        btn5.setOnClickListener(clickListener);
+        btn6.setOnClickListener(clickListener);
 
 
     }
 
 
-    @OnClick({R.id.btn_1, R.id.btn_2, R.id.btn_3, R.id.btn_4, R.id.btn_5, R.id.btn_6})
     public void click(View v) {
 
         tvResult.setText("");
 
-
+        CanCallManager.cancelCallByActivityDestroy(getClass());
 
         switch (v.getId()) {
 
@@ -117,8 +128,6 @@ public class HttpActivity extends BaseActivity {
                         });
 
 
-                KLog.e(toString());
-                CanCallManager.cancelCallByActivityDestroy(this);
 
                 break;
             case R.id.btn_2:

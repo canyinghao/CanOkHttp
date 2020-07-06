@@ -3,7 +3,6 @@ package com.canyinghao.canokhttp.demo;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.webkit.DownloadListener;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -17,6 +16,8 @@ import com.canyinghao.canokhttp.queue.DownloadManager;
 import com.socks.library.KLog;
 
 import java.io.File;
+
+import androidx.annotation.Nullable;
 
 /**
  * Created by canyinghao on 2017/1/9.

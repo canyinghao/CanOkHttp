@@ -1,11 +1,10 @@
 package com.canyinghao.canokhttp.progress;
 
-import android.support.annotation.NonNull;
-
 import com.canyinghao.canokhttp.CanOkHttp;
 
 import java.io.IOException;
 
+import androidx.annotation.NonNull;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import okio.Buffer;

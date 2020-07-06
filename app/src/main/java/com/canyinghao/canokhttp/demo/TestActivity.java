@@ -1,13 +1,14 @@
 package com.canyinghao.canokhttp.demo;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.view.View;
 
 import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.annotation.CacheType;
 import com.canyinghao.canokhttp.callback.CanCacheCallBack;
 import com.socks.library.KLog;
+
+import androidx.annotation.Nullable;
 
 /**
  * Created by jianyang on 2016/11/3.
@@ -16,6 +17,7 @@ import com.socks.library.KLog;
 public class TestActivity extends BaseActivity {
 
     @Override
+
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 

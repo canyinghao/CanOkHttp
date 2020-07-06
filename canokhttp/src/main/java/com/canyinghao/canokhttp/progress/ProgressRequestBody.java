@@ -1,7 +1,7 @@
 package com.canyinghao.canokhttp.progress;
 
 import android.os.Message;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.handler.OkHandler;

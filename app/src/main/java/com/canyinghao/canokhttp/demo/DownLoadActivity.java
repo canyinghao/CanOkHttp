@@ -1,7 +1,7 @@
 package com.canyinghao.canokhttp.demo;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -13,11 +13,13 @@ import com.canyinghao.canokhttp.annotation.DownloadStatus;
 import com.canyinghao.canokhttp.annotation.ResultType;
 import com.canyinghao.canokhttp.callback.CanFileCallBack;
 import com.canyinghao.canokhttp.queue.CanFileGlobalCallBack;
+import com.canyinghao.canokhttp.queue.DownFileUtils;
 import com.canyinghao.canokhttp.queue.DownloadManager;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+import java.io.File;
+
+import androidx.annotation.Nullable;
+
 
 /**
  * Created by canyinghao on 2016/10/13.
@@ -26,9 +28,9 @@ import butterknife.OnClick;
 public class DownLoadActivity extends BaseActivity {
 
 
-    @BindView(R.id.downloadProgress)
+
     ProgressBar downloadProgress;
-    @BindView(R.id.tvResult)
+
     TextView tvResult;
 
 //    private String url = "http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4";
@@ -44,11 +46,24 @@ public class DownLoadActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_download);
-        ButterKnife.bind(this);
+
+        tvResult = findViewById(R.id.tvResult);
+        downloadProgress = findViewById(R.id.downloadProgress);
+        View.OnClickListener onClickListener= new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+                click(view);
+            }
+        };
+
+        findViewById(R.id.btn_1).setOnClickListener(onClickListener);
+        findViewById(R.id.btn_2).setOnClickListener(onClickListener);
+        findViewById(R.id.btn_3).setOnClickListener(onClickListener);
     }
 
 
-    @OnClick({R.id.btn_1,R.id.btn_2,R.id.btn_3})
+
     public void click(View v){
 
 
@@ -183,6 +198,13 @@ public class DownLoadActivity extends BaseActivity {
 
             @Override
             public void onDownedLocal(String url, String filePath) {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(downloadManager.getFileUri(DownLoadActivity.this,new File(filePath)), DownFileUtils.getMimeType(DownLoadActivity.this,filePath));
+
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+                startActivity(intent);
 
             }
         });

@@ -1,10 +1,10 @@
 package com.canyinghao.canokhttp.annotation;
 
-import android.support.annotation.IntDef;
-import android.support.annotation.StringDef;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
+import androidx.annotation.IntDef;
 
 /**
  * 下载状态
