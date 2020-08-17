@@ -92,7 +92,7 @@ public final class CanOkHttp {
     //    当前持有的OkHttpClient
     private OkHttpClient mCurrentHttpClient;
     //   传入所有参数后得到的请求体
-    private Request mRequest;
+    public Request mRequest;
     //  请求参数
     private Map<String, String> paramMap = new LinkedHashMap<>();
     //    请求头参数
