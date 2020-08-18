@@ -86,44 +86,44 @@ public final class CanOkHttp {
     private static Map<String, ArrayList<String>> linesMap;
     private static long userId = 0;
     //  当前CanOkHttp持有的config，默认从globalConfig克隆得到
-    private CanConfig mCurrentConfig;
+    public CanConfig mCurrentConfig;
     //    应用Application
-    private Application mApplication;
+    public Application mApplication;
     //    当前持有的OkHttpClient
-    private OkHttpClient mCurrentHttpClient;
+    public OkHttpClient mCurrentHttpClient;
     //   传入所有参数后得到的请求体
     public Request mRequest;
     //  请求参数
-    private Map<String, String> paramMap = new LinkedHashMap<>();
+    public Map<String, String> paramMap = new LinkedHashMap<>();
     //    请求头参数
-    private Map<String, String> headerMap = new LinkedHashMap<>();
+    public Map<String, String> headerMap = new LinkedHashMap<>();
     //  可重复请求参数
-    private Map<String, String> repeatMap = new IdentityHashMap<>();
+    public Map<String, String> repeatMap = new IdentityHashMap<>();
     //  json请求参数
-    private JSONObject jsonMap = new JSONObject();
+    public JSONObject jsonMap = new JSONObject();
     //  请求地址
-    private String url = "";
-    private String host = "";
+    public String url = "";
+    public String host = "";
     //  缓存的key，由url和参数得到
-    private String cache_key = "";
+    public String cache_key = "";
     //  回调ui线程中
-    private CanCallBack mCanCallBack;
+    public CanCallBack mCanCallBack;
     //  是否是下载或上传
-    private boolean isDownOrUpLoad;
+    public boolean isDownOrUpLoad;
     //  已下载的文件大小
-    private long completedSize;
+    public long completedSize;
 
     //下载状态
-    private int downloadStatus = DownloadStatus.INIT;
+    public int downloadStatus = DownloadStatus.INIT;
 
     //是否已经初始化OkClient
-    private boolean isInitOkClient;
+    public boolean isInitOkClient;
     //是否是post方法
-    private boolean isPost;
+    public boolean isPost;
 
-    private boolean isChangeLine;
+    public boolean isChangeLine;
 
-    private int tempPublicType;
+    public int tempPublicType;
 
     public static CanOkHttp getInstance() {
 
