@@ -63,6 +63,7 @@ public class ACache {
     private static Map<String, ACache> mInstanceMap = new HashMap<String, ACache>();
     private ACacheManager mCache;
     private boolean isHashCode = true;
+    private  static  boolean isAutoCalculate = true;
 
     public static ACache get(Context ctx) throws Exception {
         return get(ctx, "ACache");
@@ -115,6 +116,10 @@ public class ACache {
         }
         manager.isHashCode = isHashCode;
         return manager;
+    }
+
+    public static void setAutoCalculate(boolean autoCalculate) {
+        isAutoCalculate = autoCalculate;
     }
 
     private static String myPid() {
@@ -610,6 +615,16 @@ public class ACache {
         mCache.clear();
     }
 
+
+    /**
+     * 计算缓存大小
+     */
+    public void initCacheSize(){
+        if(mCache!=null){
+            mCache.calculateCacheSizeAndCacheCount();
+        }
+    }
+
     /**
      *  缓存管理器
      * @author 杨福海（michael） www.yangfuhai.com
@@ -630,7 +645,15 @@ public class ACache {
             this.countLimit = countLimit;
             cacheSize = new AtomicLong();
             cacheCount = new AtomicInteger();
-            calculateCacheSizeAndCacheCount();
+            if(isAutoCalculate){
+                ThreadPool.getInstance().submit(new Job<Object>() {
+                    @Override
+                    public Object run() {
+                        calculateCacheSizeAndCacheCount();
+                        return null;
+                    }
+                },null, Schedulers.io());
+            }
         }
 
         /**
@@ -638,28 +661,19 @@ public class ACache {
          */
         private void calculateCacheSizeAndCacheCount() {
 
-            ThreadPool.getInstance().submit(new Job<Object>() {
-                @Override
-                public Object run() {
-
-                    int size = 0;
-                    int count = 0;
-                    File[] cachedFiles = cacheDir.listFiles();
-                    if (cachedFiles != null) {
-                        for (File cachedFile : cachedFiles) {
-                            size += calculateSize(cachedFile);
-                            count += 1;
-                            lastUsageDates.put(cachedFile,
-                                    cachedFile.lastModified());
-                        }
-                        cacheSize.set(size);
-                        cacheCount.set(count);
-                    }
-
-
-                    return null;
+            int size = 0;
+            int count = 0;
+            File[] cachedFiles = cacheDir.listFiles();
+            if (cachedFiles != null) {
+                for (File cachedFile : cachedFiles) {
+                    size += calculateSize(cachedFile);
+                    count += 1;
+                    lastUsageDates.put(cachedFile,
+                            cachedFile.lastModified());
                 }
-            },null, Schedulers.io());
+                cacheSize.set(size);
+                cacheCount.set(count);
+            }
 
         }
 
