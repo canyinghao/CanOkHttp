@@ -35,7 +35,7 @@ public class DownLoadActivity extends BaseActivity {
 
 //    private String url = "http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4";
 //    private String url = "http://d.yx934.com/yx934/425YX/JUEZHANPINGANJINGJHJC/JUEZHANPINGANJINGJHJC_1074033.apk";
-    private String url = "http://ecyapk.oss-cn-hangzhou.aliyuncs.com/apk/com.comic.iyouman/1.7.6/com.comic.iyouman_1906062233_1.7.6_tencent.apk";
+    private String url = "https://ecyapk.zymk.cn/apk/com.comic.shenmanhua/2.5.0/com.comic.shenmanhua_2011112233_2.5.0_baidu.apk";
 
 
 
@@ -129,10 +129,13 @@ public class DownLoadActivity extends BaseActivity {
                     .setReadTimeout(600)
                     .setWriteTimeout(600)
                     .setTag(this)
+                    .setDownAccessFile(true)
+//                    .addHeader("If-Match","A4C3F40F6AABED2DFB657FB5219BC108")
                     .setDownloadFileDir(getExternalFilesDir("download").getAbsolutePath())
                     .setDownCoverFile(true)
                     .startDownload(url, callBack, "canyinghao.apk");
         }else{
+//            okHttp.addHeader("If-Match","A4C3F40F6AABED2DFB657FB5219BC108");
             okHttp.startDownload(url,callBack,"canyinghao.apk");
         }
 
@@ -158,7 +161,7 @@ public class DownLoadActivity extends BaseActivity {
                 "http://www.canyinghao.com/assets/work/cancalc/cancalc.apk",
                 "http://www.canyinghao.com/assets/work/canyinghao/canyinghao.apk"};
 
-        String url = "http://ecyapk.oss-cn-hangzhou.aliyuncs.com/apk/com.comic.iyouman/1.7.6/com.comic.iyouman_1906062233_1.7.6_tencent.apk?t=5";
+        String url = "https://ecyapk.zymk.cn/apk/com.comic.shenmanhua/2.5.0/com.comic.shenmanhua_2011112233_2.5.0_baidu.apk";
 //        String url = "https://20bcd96ad202702427d824bd0564da6c.dd.cdntips.com/wxz.myapp.com/16891/026FF4E7DE007D4E7DD1657DC2939498.apk?mkey=5d1705fe7671b558&f=0c6d&fsname=com.wbxm.icartoon_2.5.6_1906272233.apk&hsr=4d5s&cip=118.113.147.173&proto=https";
 
         DownloadManager.Request request = new DownloadManager.Request(url, downDir);

@@ -105,7 +105,7 @@ public class HttpActivity extends BaseActivity {
                         .add("sign", "b59bc3ef6191eb9f747dd4e83c99f2a4")
                         .add("format", "json")
                         .add(String.valueOf("format"), "json")
-                        .url(url)
+                        .url("https://testhttps.samanlehua.com/")
                         .setTag(this)
                         .setCacheType(CacheType.NETWORK)
                         .get()

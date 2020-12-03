@@ -28,21 +28,21 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <android.support.v7.widget.AppCompatButton
+        <Button
             android:id="@+id/btn_1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="下载" />
 
-        <android.support.v7.widget.AppCompatButton
+        <Button
             android:id="@+id/btn_2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="暂停" />
 
-        <android.support.v7.widget.AppCompatButton
+        <Button
             android:id="@+id/btn_3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

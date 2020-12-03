@@ -703,6 +703,11 @@ public final class CanOkHttp {
         return this;
     }
 
+    public CanOkHttp setDownAccessFile(boolean downAccessFile) {
+        mCurrentConfig.setDownAccessFile(downAccessFile);
+        return this;
+    }
+
     /**
      * 设置tag，用来取消请求的标识，一般用当前的activity
      *
