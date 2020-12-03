@@ -41,20 +41,11 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.UnknownServiceException;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import androidx.annotation.NonNull;
 import okhttp3.CacheControl;
@@ -189,44 +180,44 @@ public final class CanOkHttp {
 
     }
 
-    /**
-     * 主机名验证
-     */
-    private final HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
-        public boolean verify(String hostname, SSLSession session) {
-            return true;
-        }
-    };
-
-    /**
-     * 设置HTTPS认证
-     *
-     * @param clientBuilder builder
-     */
-    private void setSslSocketFactory(OkHttpClient.Builder clientBuilder) {
-        clientBuilder.hostnameVerifier(DO_NOT_VERIFY);
-        try {
-            SSLContext sc = SSLContext.getInstance("TLS");
-            X509TrustManager trustManager = new X509TrustManager() {
-                @Override
-                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                }
-
-                @Override
-                public X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[0];
-                }
-            };
-            sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
-            clientBuilder.sslSocketFactory(sc.getSocketFactory(), trustManager);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
+//    /**
+//     * 主机名验证
+//     */
+//    private final HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+//        public boolean verify(String hostname, SSLSession session) {
+//            return true;
+//        }
+//    };
+//
+//    /**
+//     * 设置HTTPS认证
+//     *
+//     * @param clientBuilder builder
+//     */
+//    private void setSslSocketFactory(OkHttpClient.Builder clientBuilder) {
+//        clientBuilder.hostnameVerifier(DO_NOT_VERIFY);
+//        try {
+//            SSLContext sc = SSLContext.getInstance("TLS");
+//            X509TrustManager trustManager = new X509TrustManager() {
+//                @Override
+//                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+//                }
+//
+//                @Override
+//                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+//                }
+//
+//                @Override
+//                public X509Certificate[] getAcceptedIssuers() {
+//                    return new X509Certificate[0];
+//                }
+//            };
+//            sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
+//            clientBuilder.sslSocketFactory(sc.getSocketFactory(), trustManager);
+//        } catch (Throwable e) {
+//            e.printStackTrace();
+//        }
+//    }
 
 
     private Interceptor RETRY_INTERCEPTOR = new Interceptor() {
@@ -379,7 +370,7 @@ public final class CanOkHttp {
             clientBuilder.retryOnConnectionFailure(false);
         }
 
-        setSslSocketFactory(clientBuilder);
+//        setSslSocketFactory(clientBuilder);
 
         if (null != mCurrentConfig.getCookieJar()) {
             clientBuilder.cookieJar(mCurrentConfig.getCookieJar());
