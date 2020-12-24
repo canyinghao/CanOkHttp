@@ -483,6 +483,7 @@ public final class CanOkHttp {
 
         return this;
     }
+
     /**
      * 添加json参数
      *
@@ -490,9 +491,9 @@ public final class CanOkHttp {
      * @param value 值
      * @return CanOkHttp
      */
-    public CanOkHttp addJSON(@NonNull String key, @NonNull Object value){
+    public CanOkHttp addJSON(@NonNull String key, @NonNull Object value) {
 
-        jsonMap.put(key,value);
+        jsonMap.put(key, value);
 
         return this;
     }
@@ -713,8 +714,6 @@ public final class CanOkHttp {
     }
 
     /**
-     *
-     *
      * @param isApplicationJson 是否是Application/Json
      * @return CanOkHttp
      */
@@ -727,11 +726,10 @@ public final class CanOkHttp {
 
 
     /**
-     *
      * @param otherMethod 设置请求方式
      * @return CanOkHttp
      */
-    public CanOkHttp setOtherMethod(String  otherMethod) {
+    public CanOkHttp setOtherMethod(String otherMethod) {
 
         mCurrentConfig.setOtherMethod(otherMethod);
 
@@ -934,7 +932,7 @@ public final class CanOkHttp {
         return this;
     }
 
-    public CanOkHttp putJsonMap(Map<String,Object> map) {
+    public CanOkHttp putJsonMap(Map<String, Object> map) {
         jsonMap.putAll(map);
         return this;
     }
@@ -1221,43 +1219,47 @@ public final class CanOkHttp {
             public void onResponse(Call call, Response res) throws IOException {
 
 
-                if (res.isSuccessful() && null != res.body()) {
+                try {
+                    if (res.isSuccessful() && null != res.body()) {
 
 
-                    if (isDownOrUpLoad) {
+                        if (isDownOrUpLoad) {
 
-                        if (fileInfo != null && fileInfo.isUpLoad) {
+                            if (fileInfo != null && fileInfo.isUpLoad) {
 
-                            String str = dealWithRes(res);
+                                String str = dealWithRes(res);
 
 
-                            sendResponseMsg(str);
+                                sendResponseMsg(str);
+
+                            } else {
+
+                                dealDownloadFile(res, fileInfo);
+                            }
+
 
                         } else {
 
-                            dealDownloadFile(res, fileInfo);
+
+                            String str = dealWithRes(res);
+
+                            dealWithCache(1, str);
+                            sendResponseMsg(str);
+
                         }
 
+                        if (!TextUtils.isEmpty(mCurrentConfig.getTag()) && call != null) {
+                            CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
+                        }
 
                     } else {
 
-
-                        String str = dealWithRes(res);
-
-                        dealWithCache(1, str);
-                        sendResponseMsg(str);
+                        changeLineTryAgain(call, res, null);
 
                     }
-
-                    if (!TextUtils.isEmpty(mCurrentConfig.getTag()) && call != null) {
-                        CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
-                    }
-
-                } else {
-
-//                    httpsTryAgain(call, res, null);
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
                     changeLineTryAgain(call, res, null);
-
                 }
 
 
@@ -1423,18 +1425,14 @@ public final class CanOkHttp {
      * @return String
      */
     @NonNull
-    private String dealWithRes(Response res) {
+    private String dealWithRes(Response res) throws Throwable {
         String str = "";
 
         try {
             str = res.body().string();
         } catch (Throwable e) {
             e.printStackTrace();
-            try {
-                str = new String(res.body().bytes(), "utf-8");
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
+            str = new String(res.body().bytes(), "utf-8");
 
         }
         return str;
@@ -2161,7 +2159,7 @@ public final class CanOkHttp {
             Map<String, String> globalHeaderMap = mCurrentConfig.getGlobalHeaderMap();
             if (globalHeaderMap != null && !globalHeaderMap.isEmpty()) {
                 for (String key : globalHeaderMap.keySet()) {
-                    if(!headerMap.containsKey(key)){
+                    if (!headerMap.containsKey(key)) {
                         requestBuilder.addHeader(key, globalHeaderMap.get(key));
                     }
                 }
