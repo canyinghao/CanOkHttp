@@ -1,11 +1,14 @@
 package com.canyinghao.canokhttp.progress;
 
+import android.text.TextUtils;
+
 import com.canyinghao.canokhttp.CanOkHttp;
 
 import java.io.IOException;
 
 import androidx.annotation.NonNull;
 import okhttp3.MediaType;
+import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.BufferedSource;
@@ -19,7 +22,7 @@ import okio.Source;
  * @author canyinghao
  */
 
-public  class ProgressResponseBody extends ResponseBody {
+public class ProgressResponseBody extends ResponseBody {
 
     private final ResponseBody responseBody;
 
@@ -28,9 +31,27 @@ public  class ProgressResponseBody extends ResponseBody {
 
     private CanOkHttp okHttp;
 
-    public ProgressResponseBody(@NonNull ResponseBody responseBody, @NonNull  CanOkHttp okHttp) {
-        this.responseBody = responseBody;
+
+    private long firstLength;
+    private long totalLength;
+
+    public ProgressResponseBody(@NonNull Response originalResponse, @NonNull CanOkHttp okHttp) {
+
+        this.responseBody = originalResponse.body();
         this.okHttp = okHttp;
+        try {
+            String length = originalResponse.header("Content-Length");
+            String range = originalResponse.header("Content-Range");
+            if (!TextUtils.isEmpty(length) && !TextUtils.isEmpty(range)) {
+                firstLength = okHttp.getCompletedSize();
+                totalLength = firstLength + contentLength();
+            } else {
+                totalLength = contentLength();
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            totalLength = contentLength();
+        }
 
     }
 
@@ -40,12 +61,12 @@ public  class ProgressResponseBody extends ResponseBody {
     }
 
     @Override
-    public long contentLength()  {
+    public long contentLength() {
         return responseBody.contentLength();
     }
 
     @Override
-    public BufferedSource source()  {
+    public BufferedSource source() {
         if (bufferedSource == null) {
             bufferedSource = Okio.buffer(source(responseBody.source()));
         }
@@ -59,12 +80,12 @@ public  class ProgressResponseBody extends ResponseBody {
             @Override
             public long read(Buffer sink, long byteCount) throws IOException {
                 long bytesRead = super.read(sink, byteCount);
-                if(totalBytesRead == 0) {
-                    totalBytesRead = okHttp.getCompletedSize();
+                if (totalBytesRead == 0) {
+                    totalBytesRead = firstLength;
                 }
                 totalBytesRead += bytesRead != -1 ? bytesRead : 0;
 
-                okHttp.sendProgressMsg(totalBytesRead,contentLength(),bytesRead==-1);
+                okHttp.sendProgressMsg(totalBytesRead, totalLength, bytesRead == -1);
 
                 return bytesRead;
             }

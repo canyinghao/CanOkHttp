@@ -269,7 +269,7 @@ public final class CanOkHttp {
             Response originalResponse = chain.proceed(chain.request());
 
             return originalResponse.newBuilder()
-                    .body(new ProgressResponseBody(originalResponse.body(), CanOkHttp.this))
+                    .body(new ProgressResponseBody(originalResponse, CanOkHttp.this))
                     .build();
         }
     };

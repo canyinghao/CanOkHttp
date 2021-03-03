@@ -15,6 +15,7 @@ import com.canyinghao.canokhttp.callback.CanFileCallBack;
 import com.canyinghao.canokhttp.queue.CanFileGlobalCallBack;
 import com.canyinghao.canokhttp.queue.DownFileUtils;
 import com.canyinghao.canokhttp.queue.DownloadManager;
+import com.socks.library.KLog;
 
 import java.io.File;
 
@@ -191,6 +192,12 @@ public class DownLoadActivity extends BaseActivity {
             @Override
             public void onProgress(String url, long bytesRead, long contentLength, boolean done) {
 
+                try {
+                    KLog.e("bytesRead"+bytesRead);
+                    KLog.e("bytesRead:"+((bytesRead/contentLength)*100)+"%");
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
