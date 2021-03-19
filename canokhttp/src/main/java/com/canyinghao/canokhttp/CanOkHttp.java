@@ -2384,14 +2384,14 @@ public final class CanOkHttp {
         String saveFileDir = fileInfo.saveFileDir;
         String saveFileName = fileInfo.saveFileName;
         String url = fileInfo.url;
-        String extension = "";
-        if (url.contains(".")) {
-            extension = url.substring(url.lastIndexOf(".") + 1);//扩展名
-            extension = "." + extension;
-        }
+//        String extension = "";
+//        if (url.contains(".")) {
+//            extension = url.substring(url.lastIndexOf(".") + 1);//扩展名
+//            extension = "." + extension;
+//        }
 
 
-        String saveFileNameCopy = saveFileName + "_copy" + extension;
+        String saveFileNameCopy = saveFileName + "_copy";
 
         saveFileDir = TextUtils.isEmpty(saveFileDir) ? mCurrentConfig.getDownloadFileDir() : saveFileDir;
         mkDirNotExists(saveFileDir);
@@ -2401,7 +2401,7 @@ public final class CanOkHttp {
         String saveFileNameEncrypt = url;
         try {
             saveFileNameEncrypt = CanOkHttpUtil.MD5StringTo32Bit(url, true);
-            saveFileNameEncrypt += extension;
+//            saveFileNameEncrypt += extension;
             fileInfo.saveFileNameEncrypt = saveFileNameEncrypt;
         } catch (Exception e) {
             e.printStackTrace();
