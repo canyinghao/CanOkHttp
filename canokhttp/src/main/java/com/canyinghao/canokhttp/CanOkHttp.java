@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.ConnectException;
 import java.net.HttpRetryException;
+import java.net.Proxy;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -378,6 +379,9 @@ public final class CanOkHttp {
 
         if (null != mCurrentConfig.getDns()) {
             clientBuilder.dns(mCurrentConfig.getDns());
+        }
+        if(!mCurrentConfig.isProxy()){
+            clientBuilder.proxy(Proxy.NO_PROXY);
         }
 
         OkHttpClient okHttpClient = clientBuilder.build();
@@ -2586,6 +2590,7 @@ public final class CanOkHttp {
                 .setHttpsTry(true)
                 .setPublicType(0)
                 .setUpLoadProgress(false)
+                .setProxy(true)
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(application)));
 
         return config;

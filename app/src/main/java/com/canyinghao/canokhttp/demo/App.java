@@ -40,6 +40,7 @@ public class App extends Application implements
                 .setDownAccessFile(true)
                 .setGlobalParamMap(some)
                 .setGlobalGetParamMap(someget)
+                .setProxy(false)
                 .setMaxRetry(2).setHttpsTry(true));
 
         KLog.init(true,"Canyinghao");

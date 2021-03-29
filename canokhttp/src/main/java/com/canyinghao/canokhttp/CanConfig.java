@@ -75,6 +75,7 @@ public final class CanConfig {
     private Map<String, String> globalHeaderMap ;  //全局请求头
 
     private OkHttpClient okHttpClient;
+    private boolean isProxy = true;
 
     private Dns dns;
 
@@ -447,8 +448,18 @@ public final class CanConfig {
         return this;
     }
 
+    public boolean isProxy() {
+        return isProxy;
+    }
+
+    public CanConfig setProxy(boolean proxy) {
+        isProxy = proxy;
+        return this;
+    }
+
     public CanConfig() {
     }
+
 
     private CanConfig(CanConfig config) {
 
@@ -486,6 +497,7 @@ public final class CanConfig {
         this.isUpLoadProgress = config.isUpLoadProgress;
         this.timeStamp = config.timeStamp;
         this.isApplicationJson = config.isApplicationJson;
+        this.isProxy = config.isProxy;
 
 
 
