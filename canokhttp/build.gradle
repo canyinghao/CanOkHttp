@@ -32,14 +32,17 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.2.48'
 }
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1"
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
-    }
-}
-apply from: 'bintray.gradle'
+//buildscript {
+//    repositories {
+//        jcenter()
+//    }
+//    dependencies {
+//        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+//        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1"
+//        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
+//    }
+//}
+//apply from: 'bintray.gradle'
+
+apply plugin: 'com.github.dcendents.android-maven' //this way we can find the android-maven in jcenter
+group='com.github.canyinghao'
