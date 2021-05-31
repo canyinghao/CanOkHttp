@@ -6,7 +6,7 @@
 
 ## 添加依赖
 ```
-compile 'com.canyinghao:canokhttp:1.6.9'
+compile 'com.github.canyinghao:CanOkHttp:5.1.0'
 ```
 
 ## 使用方式 

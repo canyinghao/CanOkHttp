@@ -44,5 +44,4 @@ dependencies {
 //}
 //apply from: 'bintray.gradle'
 
-apply plugin: 'com.github.dcendents.android-maven' //this way we can find the android-maven in jcenter
-group='com.github.canyinghao'
+
