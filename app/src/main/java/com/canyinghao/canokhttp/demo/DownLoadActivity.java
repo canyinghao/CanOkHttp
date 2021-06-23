@@ -80,10 +80,11 @@ public class DownLoadActivity extends BaseActivity {
 
             case R.id.btn_2:
 
-                if(okHttp!=null){
-
-                    okHttp.setDownloadStatus(DownloadStatus.PAUSE);
-                }
+//                if(okHttp!=null){
+//
+//                    okHttp.setDownloadStatus(DownloadStatus.PAUSE);
+//                }
+                sendBroadcast(new Intent("com.ACTION_NOTIFICATION_CLICK"));
 
                 break;
 
@@ -170,7 +171,7 @@ public class DownLoadActivity extends BaseActivity {
 
 
         if(downloadManager==null){
-            downloadManager = new DownloadManager(getApplicationContext());
+            downloadManager = DownloadManager.getInstance(getApplicationContext());
         }
 
         downloadManager.enqueue(request, new CanFileGlobalCallBack() {

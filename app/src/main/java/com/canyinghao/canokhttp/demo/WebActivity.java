@@ -46,7 +46,7 @@ public class WebActivity extends BaseActivity  {
         });
 
 
-        final DownloadManager downloadManager = new DownloadManager(getApplicationContext());
+        final DownloadManager downloadManager = DownloadManager.getInstance(getApplicationContext());
 
         webView.setDownloadListener(new DownloadListener() {
             @Override

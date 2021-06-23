@@ -6,10 +6,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
+import android.widget.RemoteViews;
 
 import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.R;
@@ -37,6 +39,7 @@ public class DownloadManager {
 
     public static final String PUSH_CHANNEL_ID = "PUSH_NOTIFY_ID";
     public static final String PUSH_CHANNEL_NAME = "PUSH_NOTIFY_NAME";
+    public static final String PUSH_CHANNEL_CLICK = "com.ACTION_NOTIFICATION_CLICK";
 
     private Context context;
     private NotificationManager notificationMrg;
@@ -45,13 +48,36 @@ public class DownloadManager {
     private Map<String, Long> downIdMap = new ArrayMap<>();
 
     private CanFileGlobalCallBack globalCallBack;
-
-
+    private static  DownloadManager instance;
+    private CanOkHttp canOkHttp;
+    private NotificationBroadcast receiver;
     private int count;
 
-    public DownloadManager(Context context) {
+    public static DownloadManager getInstance(Context context) {
+        if(instance==null){
+            instance = new DownloadManager(context);
+        }
+        return instance;
+    }
+
+    private DownloadManager(Context context) {
         this.context = context;
 
+        try {
+            receiver = new NotificationBroadcast();
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(PUSH_CHANNEL_CLICK);
+            context.registerReceiver(receiver, filter);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void cancelDownLoad(){
+        if(canOkHttp!=null){
+            canOkHttp.setDownloadStatus(DownloadStatus.PAUSE);
+        }
     }
 
     public void setGlobalCallBack(CanFileGlobalCallBack globalCallBack) {
@@ -143,22 +169,23 @@ public class DownloadManager {
 
         final String finalFileName = fileName;
 
-        CanOkHttp okHttp = CanOkHttp.getInstance();
 
+        if(canOkHttp==null){
+            canOkHttp = CanOkHttp.getInstance();
+        }
         if (request.getRequestHeader() != null && !request.getRequestHeader().isEmpty()) {
 
             Set<String> set = request.getRequestHeader().keySet();
 
             for (String key : set) {
 
-                okHttp.addHeader(key, request.getRequestHeader().get(key));
+                canOkHttp.addHeader(key, request.getRequestHeader().get(key));
             }
         }
         if(!TextUtils.isEmpty(downPath)){
-            okHttp.setDownloadFileDir(downPath);
+            canOkHttp.setDownloadFileDir(downPath);
         }
-
-        okHttp.setDownCoverFile(true)
+        canOkHttp.setDownCoverFile(true)
                 .setTag(url)
                 .startDownload(request.url, new CanFileCallBack() {
 
@@ -195,7 +222,6 @@ public class DownloadManager {
 
                     @Override
                     public void onFileSuccess(@DownloadStatus int status, String msg, String filePath) {
-
 
                         if (request.isGlobal()&&globalCallBack != null) {
                             globalCallBack.onFileSuccess(url, status, msg, filePath);
@@ -403,13 +429,29 @@ public class DownloadManager {
                                                                 int smallIcon, Class contentclass, int max, int progress,
                                                                 boolean indeterminate,
                                                                 PendingIntent deleteIntent, int defaults, boolean autoCancel, boolean onGo) {
-        NotificationCompat.Builder builder = getNotifyBuilder(context, contentTitle, contentText,
-                contentInfo, largeIcon, smallIcon, contentclass, deleteIntent, defaults, autoCancel, onGo);
 
-        builder.setProgress(max, progress, indeterminate);
+        RemoteViews views = new RemoteViews(context.getPackageName(),R.layout.layout_download_nitification);
+        views.setProgressBar(R.id.progress,max,progress,indeterminate);
+        views.setTextViewText(R.id.tv_des,contentTitle+"  "+contentText+"  "+contentInfo);
+        PendingIntent cancelIntent = PendingIntent.getBroadcast(context,1,new Intent(PUSH_CHANNEL_CLICK),PendingIntent.FLAG_UPDATE_CURRENT);
+
+        views.setOnClickPendingIntent(R.id.btn_cancel,cancelIntent);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,
+                new Intent(), 0);
 
 
-        return builder;
+        return new NotificationCompat.Builder(context,PUSH_CHANNEL_ID)
+                .setContent(views)
+                .setLargeIcon(largeIcon).setSmallIcon(smallIcon)
+                .setContentInfo(contentInfo).setContentTitle(contentTitle)
+                .setContentText(contentText).setAutoCancel(autoCancel)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setOngoing(onGo)
+                .setContentIntent(pendingIntent).setDeleteIntent(deleteIntent)
+                .setDefaults(defaults);
+
+
 
     }
 
