@@ -195,27 +195,43 @@ public class DownloadManager {
                     public void onFailure(@ResultType int type, int code, String e) {
 
 
-                        if (request.isGlobal()&&globalCallBack != null) {
-                            globalCallBack.onFailure(url, type, code, e);
-                        }
-
-
-                        if (downMap.containsKey(url)) {
-
-                            CanFileGlobalCallBack callBack = downMap.get(url);
-
-                            if (callBack != null) {
-                                callBack.onFailure(url, type, code, e);
+                        try {
+                            if (request.isGlobal()&&globalCallBack != null) {
+                                globalCallBack.onFailure(url, type, code, e);
                             }
-                            downMap.remove(url);
+                        } catch (Throwable exception) {
+                            exception.printStackTrace();
                         }
 
-                        if (request.isNotificationVisibility()) {
-                            showDownFailNotify(context, finalFileName, request);
+
+                        try {
+                            if (downMap.containsKey(url)) {
+
+                                CanFileGlobalCallBack callBack = downMap.get(url);
+
+                                if (callBack != null) {
+                                    callBack.onFailure(url, type, code, e);
+                                }
+                                downMap.remove(url);
+                            }
+                        } catch (Throwable exception) {
+                            exception.printStackTrace();
                         }
 
-                        if (downIdMap.containsKey(url)) {
-                            downIdMap.remove(url);
+                        try {
+                            if (request.isNotificationVisibility()) {
+                                showDownFailNotify(context, finalFileName, request);
+                            }
+                        } catch (Throwable exception) {
+                            exception.printStackTrace();
+                        }
+
+                        try {
+                            if (downIdMap.containsKey(url)) {
+                                downIdMap.remove(url);
+                            }
+                        } catch (Throwable exception) {
+                            exception.printStackTrace();
                         }
 
                     }
@@ -223,18 +239,26 @@ public class DownloadManager {
                     @Override
                     public void onFileSuccess(@DownloadStatus int status, String msg, String filePath) {
 
-                        if (request.isGlobal()&&globalCallBack != null) {
-                            globalCallBack.onFileSuccess(url, status, msg, filePath);
+                        try {
+                            if (request.isGlobal()&&globalCallBack != null) {
+                                globalCallBack.onFileSuccess(url, status, msg, filePath);
+                            }
+                        } catch (Throwable e) {
+                            e.printStackTrace();
                         }
 
-                        if (downMap.containsKey(url)) {
+                        try {
+                            if (downMap.containsKey(url)) {
 
-                            CanFileGlobalCallBack callBack = downMap.get(url);
+                                CanFileGlobalCallBack callBack = downMap.get(url);
 
-                            if (callBack != null) {
-                                callBack.onFileSuccess(url, status, msg, filePath);
+                                if (callBack != null) {
+                                    callBack.onFileSuccess(url, status, msg, filePath);
+                                }
+                                downMap.remove(url);
                             }
-                            downMap.remove(url);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
                         }
 
 
@@ -256,8 +280,12 @@ public class DownloadManager {
                         }
 
 
-                        if (downIdMap.containsKey(url)) {
-                            downIdMap.remove(url);
+                        try {
+                            if (downIdMap.containsKey(url)) {
+                                downIdMap.remove(url);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
 
                     }
@@ -265,35 +293,48 @@ public class DownloadManager {
                     @Override
                     public void onProgress(long bytesRead, long contentLength, boolean done) {
 
-                        if (request.isGlobal()&&globalCallBack != null) {
-                            globalCallBack.onProgress(url, bytesRead, contentLength, done);
-                        }
-
-                        if (downMap.containsKey(url)) {
-
-                            CanFileGlobalCallBack callBack = downMap.get(url);
-
-                            if (callBack != null) {
-                                callBack.onProgress(url, bytesRead, contentLength, done);
+                        try {
+                            if (request.isGlobal()&&globalCallBack != null) {
+                                globalCallBack.onProgress(url, bytesRead, contentLength, done);
                             }
-                        }
 
-                        if (request.isNotificationVisibility()) {
-                            if (System.currentTimeMillis() - showTime > 500) {
+                            if (downMap.containsKey(url)) {
 
-                                int progress = (int) (bytesRead / (double) contentLength * 100);
+                                CanFileGlobalCallBack callBack = downMap.get(url);
 
-
-                                showDownProgressNotify(progress, context, finalFileName, request);
-                                showTime = System.currentTimeMillis();
-
+                                if (callBack != null) {
+                                    callBack.onProgress(url, bytesRead, contentLength, done);
+                                }
                             }
+
+                            if (request.isNotificationVisibility()) {
+                                if (System.currentTimeMillis() - showTime > 500) {
+
+                                    int progress = (int) (bytesRead / (double) contentLength * 100);
+
+
+                                    showDownProgressNotify(progress, context, finalFileName, request);
+                                    showTime = System.currentTimeMillis();
+
+                                }
+                            }
+                        } catch (Throwable e) {
+                            e.printStackTrace();
                         }
 
                     }
                 }, fileName);
 
 
+    }
+
+    public void removeKey(String key){
+        try {
+            downIdMap.remove(key);
+            downMap.remove(key);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     /**
