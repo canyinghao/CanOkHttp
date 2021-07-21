@@ -2439,7 +2439,7 @@ public final class CanOkHttp {
      * @param str  失败信息
      */
     private void sendFailMsg(int failCode, int code, String str) {
-
+        downloadStatus = DownloadStatus.INIT;
         okHttpLog("FailCode:" + code + "  FailMessage:" + str, false);
         Message msg = new OkMessage(OkHandler.RESPONSE_FAIL_CALLBACK,
                 mCanCallBack,url,
