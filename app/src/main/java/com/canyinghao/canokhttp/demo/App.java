@@ -4,6 +4,7 @@ import android.app.Application;
 import android.util.Log;
 
 import com.canyinghao.canokhttp.CanOkHttp;
+import com.canyinghao.canokhttp.threadpool.ThreadPool;
 import com.socks.library.KLog;
 
 import java.io.File;
@@ -45,6 +46,7 @@ public class App extends Application implements
 
         KLog.init(true,"Canyinghao");
 
+        ThreadPool.initIoSchedulerHandler();
         Thread.setDefaultUncaughtExceptionHandler(this);
     }
 

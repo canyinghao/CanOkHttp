@@ -4,6 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.canyinghao.canokhttp.cache.ACache;
+import com.canyinghao.canokhttp.threadpool.FutureListener;
+import com.canyinghao.canokhttp.threadpool.Job;
+import com.canyinghao.canokhttp.threadpool.ThreadPool;
 import com.socks.library.KLog;
 
 import java.io.IOException;
@@ -49,6 +53,23 @@ public class MainActivity extends BaseActivity {
         findViewById(R.id.btn_3).setOnClickListener(clickListener);
         findViewById(R.id.btn_4).setOnClickListener(clickListener);
         findViewById(R.id.btn_5).setOnClickListener(clickListener);
+
+        ThreadPool.getInstance().submit(new Job<Object>() {
+            @Override
+            public Object run() {
+                try {
+                    ACache.get(getApplication()).put("xxx","xxx");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }, new FutureListener<Object>() {
+            @Override
+            public void onFutureDone(Object future) {
+                KLog.e("onFutureDone");
+            }
+        });
     }
 
     public void click(View v){

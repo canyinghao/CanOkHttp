@@ -98,25 +98,6 @@ public class DownloadManager {
         }
 
 
-        if (downIdMap.containsKey(url)) {
-
-            if (request.isGlobal()&&globalCallBack != null) {
-                globalCallBack.onDowning(url);
-            }
-
-            if (downMap.containsKey(url)) {
-
-                CanFileGlobalCallBack callBack = downMap.get(url);
-
-                if (callBack != null) {
-                    callBack.onDowning(url);
-                }
-            }
-
-            return;
-        }
-
-
         if(request.isSaveXml()){
             String filePath = CanPreferenceUtil.getString(secureHashKey(url), "", context);
 
@@ -141,6 +122,29 @@ public class DownloadManager {
             }
         }
 
+        if (downIdMap.containsKey(url)) {
+            long time = 0;
+            Long urlTime =downIdMap.get(url);
+            if(urlTime!=null){
+                time = urlTime;
+            }
+            if(System.currentTimeMillis()-time<60*1000){
+                if (request.isGlobal()&&globalCallBack != null) {
+                    globalCallBack.onDowning(url);
+                }
+                if (downMap.containsKey(url)) {
+
+                    CanFileGlobalCallBack callBack = downMap.get(url);
+
+                    if (callBack != null) {
+                        callBack.onDowning(url);
+                    }
+                }
+
+                return;
+            }
+
+        }
 
         String fileName = request.getFileName();
 

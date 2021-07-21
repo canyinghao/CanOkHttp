@@ -1,6 +1,14 @@
 package com.canyinghao.canokhttp.threadpool;
 
 
+import android.annotation.SuppressLint;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import androidx.annotation.NonNull;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -10,6 +18,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.Schedulers;
 
 public class ThreadPool {
@@ -20,6 +29,19 @@ public class ThreadPool {
 
     public static void init(int defaultSchedule) {
         ThreadPool.defaultSchedule = defaultSchedule;
+    }
+
+    public static void initIoSchedulerHandler(){
+        RxJavaPlugins.setInitIoSchedulerHandler(new Function<Callable<Scheduler>, Scheduler>() {
+            @Override
+            public Scheduler apply(@NonNull Callable<Scheduler> schedulerCallable) throws Exception {
+                int processors =Runtime.getRuntime().availableProcessors();
+                ThreadPoolExecutor executor =new ThreadPoolExecutor(processors * 2,
+                        processors * 10, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(processors*10),new ThreadPoolExecutor.DiscardPolicy());
+
+                return Schedulers.from(executor);
+            }
+        });
     }
 
     public static ThreadPool getInstance() {
@@ -37,7 +59,7 @@ public class ThreadPool {
     private ThreadPool() {
 
     }
-
+    @SuppressLint("CheckResult")
     public <T, O> void single(O o, final SingleJob<O,T> job, final FutureListener<T> listener, Scheduler schedule, Scheduler observe) {
 
         Single.just(o)
@@ -97,10 +119,6 @@ public class ThreadPool {
                 scheduler = Schedulers.computation();
                 break;
 
-            case 2:
-                scheduler = Schedulers.io();
-                break;
-
             case 3:
                 scheduler = Schedulers.trampoline();
                 break;
@@ -108,9 +126,9 @@ public class ThreadPool {
             case 4:
                 scheduler = Schedulers.newThread();
                 break;
-
+            case 2:
             default:
-                scheduler = Schedulers.single();
+                scheduler = Schedulers.io();
                 break;
         }
 
@@ -125,6 +143,7 @@ public class ThreadPool {
     }
 
 
+    @SuppressLint("CheckResult")
     public <T> void submit(final Job<T> job, final FutureListener<T> listener, Scheduler schedule, Scheduler observe) {
 
         Observable.create(new ObservableOnSubscribe<T>() {
@@ -184,13 +203,8 @@ public class ThreadPool {
         Scheduler scheduler = null;
         switch (defaultSchedule) {
 
-
             case 1:
                 scheduler = Schedulers.computation();
-                break;
-
-            case 2:
-                scheduler = Schedulers.io();
                 break;
 
             case 3:
@@ -200,9 +214,12 @@ public class ThreadPool {
             case 4:
                 scheduler = Schedulers.newThread();
                 break;
-
-            default:
+            case 5:
                 scheduler = Schedulers.single();
+                break;
+            case 2:
+            default:
+                scheduler = Schedulers.io();
                 break;
         }
 
