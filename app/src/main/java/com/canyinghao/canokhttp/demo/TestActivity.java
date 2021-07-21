@@ -63,7 +63,7 @@ public class TestActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onFailure(int failCode,int code, String e) {
+                    public void onFailure(String url,int failCode,int code, String e) {
 
                         KLog.e("onFailure");
 

@@ -16,11 +16,11 @@ public interface CanCallBack {
 
     void onResponse(Object result);
 
-    void onFailure(@ResultType int type, int code, String e);
+    void onFailure(String url ,@ResultType int type, int code, String e);
 
-    void onFileSuccess(@DownloadStatus int status,String msg, String filePath);
+    void onFileSuccess(String url ,@DownloadStatus int status,String msg, String filePath);
 
-    void onProgress(long bytesRead, long contentLength, boolean done);
+    void onProgress(String url ,long bytesRead, long contentLength, boolean done);
 
 
 }

@@ -102,20 +102,20 @@ public class DownLoadActivity extends BaseActivity {
 
         CanFileCallBack callBack = new CanFileCallBack() {
             @Override
-            public void onFailure(@ResultType int type,int code, String e) {
+            public void onFailure(String url, @ResultType int type,int code, String e) {
 
 
 
             }
 
             @Override
-            public void onFileSuccess(@DownloadStatus int status, String msg, String filePath) {
+            public void onFileSuccess(String url, @DownloadStatus int status, String msg, String filePath) {
 
                 tvResult.setText(msg+"  "+filePath);
             }
 
             @Override
-            public void onProgress(long bytesRead, long contentLength, boolean done) {
+            public void onProgress(String url, long bytesRead, long contentLength, boolean done) {
 
                 int percent = (int) (bytesRead/(float)contentLength *100);
                 downloadProgress.setProgress(percent);
@@ -195,7 +195,7 @@ public class DownLoadActivity extends BaseActivity {
 
                 try {
                     KLog.e("bytesRead"+bytesRead);
-                    KLog.e("bytesRead:"+((bytesRead/contentLength)*100)+"%");
+                    KLog.e("bytesRead:"+((bytesRead/(float)contentLength)*100)+"%");
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }

@@ -18,6 +18,7 @@ public class OkMessage implements Serializable {
     public CanCallBack canCallBack;
     public String resStr;
     public String filePath;
+    public String url;
 
     public int failCode;
 
@@ -33,11 +34,11 @@ public class OkMessage implements Serializable {
     public CanOkHttp okHttp;
 
 
-    public OkMessage(int what, CanCallBack canCallBack,
+    public OkMessage(int what, CanCallBack canCallBack,String url,
                      long bytesWritten, long contentLength, boolean done) {
         this.what = what;
         this.canCallBack = canCallBack;
-
+        this.url = url;
         this.bytesWritten = bytesWritten;
         this.contentLength = contentLength;
         this.done = done;
@@ -55,10 +56,10 @@ public class OkMessage implements Serializable {
     }
 
 
-    public OkMessage(int what, CanCallBack canCallBack, int failCode,int code, String failMsg) {
+    public OkMessage(int what, CanCallBack canCallBack, String url,int failCode,int code, String failMsg) {
         this.what = what;
         this.canCallBack = canCallBack;
-
+        this.url = url;
         this.failCode = failCode;
         this.code = code;
         this.failMsg = failMsg;
@@ -66,10 +67,10 @@ public class OkMessage implements Serializable {
     }
 
 
-    public OkMessage(int what, CanCallBack canCallBack, int failCode, String failMsg,String filePath) {
+    public OkMessage(int what, CanCallBack canCallBack,String url, int failCode, String failMsg,String filePath) {
         this.what = what;
         this.canCallBack = canCallBack;
-
+        this.url = url;
         this.failCode = failCode;
         this.failMsg = failMsg;
         this.filePath =filePath;

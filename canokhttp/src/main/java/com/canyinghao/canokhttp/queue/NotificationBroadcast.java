@@ -14,7 +14,11 @@ public class NotificationBroadcast extends BroadcastReceiver {
             if (!TextUtils.isEmpty(action)) {
                 switch (action) {
                     case "com.ACTION_NOTIFICATION_CLICK":
-                        DownloadManager.getInstance(context).cancelDownLoad();
+                        if(intent.hasExtra("url")){
+                            String url =intent.getStringExtra("url");
+                            DownloadManager.getInstance(context).cancelDownLoad(url);
+                        }
+
                         break;
                 }
             }

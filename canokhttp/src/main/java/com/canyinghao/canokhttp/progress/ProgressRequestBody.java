@@ -1,7 +1,6 @@
 package com.canyinghao.canokhttp.progress;
 
 import android.os.Message;
-import androidx.annotation.NonNull;
 
 import com.canyinghao.canokhttp.CanOkHttp;
 import com.canyinghao.canokhttp.handler.OkHandler;
@@ -9,6 +8,7 @@ import com.canyinghao.canokhttp.handler.OkMessage;
 
 import java.io.IOException;
 
+import androidx.annotation.NonNull;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okio.Buffer;
@@ -29,12 +29,14 @@ public class ProgressRequestBody extends RequestBody {
     private BufferedSink bufferedSink;
 
     private CanOkHttp okHttp;
+    private String url;
 
     public ProgressRequestBody(@NonNull RequestBody originalRequestBody, @NonNull CanOkHttp okHttp) {
 
         this.originalRequestBody = originalRequestBody;
 
         this.okHttp = okHttp;
+        this.url = okHttp.url;
     }
 
     @Override
@@ -79,7 +81,7 @@ public class ProgressRequestBody extends RequestBody {
                     //主线程回调
 
                     Message msg = new OkMessage(OkHandler.PROGRESS_CALLBACK,
-                            okHttp.getCanCallBack(),
+                            okHttp.getCanCallBack(),url,
                             bytesWritten,
                             contentLength,
                             bytesWritten == contentLength)

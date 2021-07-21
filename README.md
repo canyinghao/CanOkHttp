@@ -51,7 +51,7 @@ CanOkHttp.getInstance()
                             }
 
                             @Override
-                            public void onFailure(@ResultType int type, String e) {
+                            public void onFailure(String url, @ResultType int type, String e) {
 
 
                             }

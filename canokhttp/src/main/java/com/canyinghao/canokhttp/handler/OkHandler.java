@@ -4,8 +4,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
-import com.socks.library.KLog;
-
 
 public class OkHandler extends Handler {
 
@@ -52,7 +50,7 @@ public class OkHandler extends Handler {
 
                     callMsg = (OkMessage) msg.obj;
                     if (null != callMsg.canCallBack) {
-                        callMsg.canCallBack.onProgress(callMsg.bytesWritten, callMsg.contentLength, callMsg.done);
+                        callMsg.canCallBack.onProgress(callMsg.url,callMsg.bytesWritten, callMsg.contentLength, callMsg.done);
                     }
 
                     break;
@@ -60,7 +58,7 @@ public class OkHandler extends Handler {
 
                     callMsg = (OkMessage) msg.obj;
                     if (null != callMsg.canCallBack) {
-                        callMsg.canCallBack.onFileSuccess(callMsg.failCode, callMsg.failMsg, callMsg.filePath);
+                        callMsg.canCallBack.onFileSuccess(callMsg.url,callMsg.failCode, callMsg.failMsg, callMsg.filePath);
                     }
 
                     break;
@@ -68,7 +66,7 @@ public class OkHandler extends Handler {
                 case RESPONSE_FAIL_CALLBACK:
                     callMsg = (OkMessage) msg.obj;
                     if (null != callMsg.canCallBack) {
-                        callMsg.canCallBack.onFailure(callMsg.failCode,callMsg.code, callMsg.failMsg);
+                        callMsg.canCallBack.onFailure(callMsg.url,callMsg.failCode,callMsg.code, callMsg.failMsg);
                     }
                     break;
 

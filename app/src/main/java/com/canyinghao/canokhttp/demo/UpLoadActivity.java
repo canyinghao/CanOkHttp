@@ -81,13 +81,13 @@ public class UpLoadActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onFailure(@ResultType int type, int code, String e) {
+                    public void onFailure(String url,@ResultType int type, int code, String e) {
 
                     }
 
 
                     @Override
-                    public void onProgress(long bytesRead, long contentLength, boolean done) {
+                    public void onProgress(String url,long bytesRead, long contentLength, boolean done) {
 
                     }
 

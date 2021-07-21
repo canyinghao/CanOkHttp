@@ -1719,7 +1719,7 @@ public final class CanOkHttp {
 
             if (DownloadStatus.PAUSE == downloadStatus) {
 
-                sendFileMsg(DownloadStatus.PAUSE, "暂停下载", filePath);
+                sendFailMsg(-1, -1, "暂停下载");
                 return;
             }
             //下载完成
@@ -2442,7 +2442,7 @@ public final class CanOkHttp {
 
         okHttpLog("FailCode:" + code + "  FailMessage:" + str, false);
         Message msg = new OkMessage(OkHandler.RESPONSE_FAIL_CALLBACK,
-                mCanCallBack,
+                mCanCallBack,url,
                 failCode, code, str)
                 .build();
         OkHandler.getInstance().sendMessage(msg);
@@ -2484,7 +2484,7 @@ public final class CanOkHttp {
     private void sendFileMsg(@DownloadStatus int code, String msgStr, String filePath) {
         okHttpLog("DownloadStatus:" + code + "  Msg:" + msgStr + "  filePath:" + filePath, false);
         Message msg = new OkMessage(OkHandler.RESPONSE_FILE_CALLBACK,
-                mCanCallBack,
+                mCanCallBack,url,
                 code, msgStr, filePath)
                 .build();
         OkHandler.getInstance().sendMessageDelayed(msg, mCurrentConfig.getDownloadDelayTime());
@@ -2501,7 +2501,7 @@ public final class CanOkHttp {
     public void sendProgressMsg(long totalBytesRead, long contentLength, boolean isDone) {
         okHttpLog("totalBytesRead:" + totalBytesRead + "  contentLength:" + contentLength + "  isDone:" + isDone, false);
         Message msg = new OkMessage(OkHandler.PROGRESS_CALLBACK,
-                mCanCallBack,
+                mCanCallBack,url,
                 totalBytesRead,
                 contentLength,
                 isDone)

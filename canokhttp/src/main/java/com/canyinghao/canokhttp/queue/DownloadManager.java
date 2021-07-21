@@ -46,15 +46,16 @@ public class DownloadManager {
 
     private Map<String, CanFileGlobalCallBack> downMap = new ArrayMap<>();
     private Map<String, Long> downIdMap = new ArrayMap<>();
+    private Map<String, CanOkHttp> downOkHttp = new ArrayMap<>();
 
     private CanFileGlobalCallBack globalCallBack;
-    private static  DownloadManager instance;
-    private CanOkHttp canOkHttp;
+    private static DownloadManager instance;
+
     private NotificationBroadcast receiver;
-    private int count;
+
 
     public static DownloadManager getInstance(Context context) {
-        if(instance==null){
+        if (instance == null) {
             instance = new DownloadManager(context);
         }
         return instance;
@@ -74,11 +75,24 @@ public class DownloadManager {
 
     }
 
-    public void cancelDownLoad(){
-        if(canOkHttp!=null){
-            canOkHttp.setDownloadStatus(DownloadStatus.PAUSE);
+    public void cancelDownLoad(String url) {
+        try {
+            hideDownNotify(context, url);
+            if (downOkHttp != null && downOkHttp.containsKey(url)) {
+                CanOkHttp canOkHttp = downOkHttp.get(url);
+                if (canOkHttp != null) {
+                    canOkHttp.setDownloadStatus(DownloadStatus.PAUSE);
+                }
+                downOkHttp.remove(url);
+            }
+            downMap.remove(url);
+            downIdMap.remove(url);
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
+
     }
+
 
     public void setGlobalCallBack(CanFileGlobalCallBack globalCallBack) {
         this.globalCallBack = globalCallBack;
@@ -98,14 +112,14 @@ public class DownloadManager {
         }
 
 
-        if(request.isSaveXml()){
+        if (request.isSaveXml()) {
             String filePath = CanPreferenceUtil.getString(secureHashKey(url), "", context);
 
             File file = new File(filePath);
 
             if (file.isFile() && file.exists()) {
 
-                if (request.isGlobal()&&globalCallBack != null) {
+                if (request.isGlobal() && globalCallBack != null) {
                     globalCallBack.onDownedLocal(url, filePath);
                 }
 
@@ -124,12 +138,19 @@ public class DownloadManager {
 
         if (downIdMap.containsKey(url)) {
             long time = 0;
-            Long urlTime =downIdMap.get(url);
-            if(urlTime!=null){
+            Long urlTime = downIdMap.get(url);
+            if (urlTime != null) {
                 time = urlTime;
             }
-            if(System.currentTimeMillis()-time<60*1000){
-                if (request.isGlobal()&&globalCallBack != null) {
+            boolean isDowning = false;
+            if (downOkHttp.containsKey(url)) {
+                CanOkHttp canOkHttp = downOkHttp.get(url);
+                if (canOkHttp != null && canOkHttp.downloadStatus == DownloadStatus.DOWNLOADING) {
+                    isDowning = true;
+                }
+            }
+            if (isDowning || System.currentTimeMillis() - time < 60 * 1000) {
+                if (request.isGlobal() && globalCallBack != null) {
                     globalCallBack.onDowning(url);
                 }
                 if (downMap.containsKey(url)) {
@@ -140,7 +161,6 @@ public class DownloadManager {
                         callBack.onDowning(url);
                     }
                 }
-
                 return;
             }
 
@@ -148,12 +168,12 @@ public class DownloadManager {
 
         String fileName = request.getFileName();
 
-        if(TextUtils.isEmpty(fileName)){
+        if (TextUtils.isEmpty(fileName)) {
             fileName = System.currentTimeMillis() + "";
             String tempUrl = url;
-            if(url.contains("?")){
-                String[] splits =  url.split("\\?");
-                if(splits.length>0){
+            if (url.contains("?")) {
+                String[] splits = url.split("\\?");
+                if (splits.length > 0) {
                     tempUrl = splits[0];
                 }
             }
@@ -174,9 +194,9 @@ public class DownloadManager {
         final String finalFileName = fileName;
 
 
-        if(canOkHttp==null){
-            canOkHttp = CanOkHttp.getInstance();
-        }
+        CanOkHttp canOkHttp = CanOkHttp.getInstance();
+        downOkHttp.put(url, canOkHttp);
+
         if (request.getRequestHeader() != null && !request.getRequestHeader().isEmpty()) {
 
             Set<String> set = request.getRequestHeader().keySet();
@@ -186,7 +206,7 @@ public class DownloadManager {
                 canOkHttp.addHeader(key, request.getRequestHeader().get(key));
             }
         }
-        if(!TextUtils.isEmpty(downPath)){
+        if (!TextUtils.isEmpty(downPath)) {
             canOkHttp.setDownloadFileDir(downPath);
         }
         canOkHttp.setDownCoverFile(true)
@@ -196,11 +216,11 @@ public class DownloadManager {
                     private long showTime;
 
                     @Override
-                    public void onFailure(@ResultType int type, int code, String e) {
+                    public void onFailure(String url, @ResultType int type, int code, String e) {
 
 
                         try {
-                            if (request.isGlobal()&&globalCallBack != null) {
+                            if (request.isGlobal() && globalCallBack != null) {
                                 globalCallBack.onFailure(url, type, code, e);
                             }
                         } catch (Throwable exception) {
@@ -223,28 +243,32 @@ public class DownloadManager {
                         }
 
                         try {
-                            if (request.isNotificationVisibility()) {
-                                showDownFailNotify(context, finalFileName, request);
+                            if (type == -1 && code == -1) {
+                                hideDownNotify(context, url);
+                            } else {
+
+                                if (request.isNotificationVisibility()) {
+                                    showDownFailNotify(url, context, finalFileName);
+                                }
+
                             }
                         } catch (Throwable exception) {
                             exception.printStackTrace();
                         }
-
                         try {
-                            if (downIdMap.containsKey(url)) {
-                                downIdMap.remove(url);
-                            }
-                        } catch (Throwable exception) {
-                            exception.printStackTrace();
+                            downIdMap.remove(url);
+                            downOkHttp.remove(url);
+                        } catch (Exception ee) {
+                            ee.printStackTrace();
                         }
 
                     }
 
                     @Override
-                    public void onFileSuccess(@DownloadStatus int status, String msg, String filePath) {
+                    public void onFileSuccess(String url, @DownloadStatus int status, String msg, String filePath) {
 
                         try {
-                            if (request.isGlobal()&&globalCallBack != null) {
+                            if (request.isGlobal() && globalCallBack != null) {
                                 globalCallBack.onFileSuccess(url, status, msg, filePath);
                             }
                         } catch (Throwable e) {
@@ -266,28 +290,28 @@ public class DownloadManager {
                         }
 
 
-                        try{
-                            if(request.isSaveXml()){
+
+
+                        try {
+                            if (request.isSaveXml()) {
                                 CanPreferenceUtil.putString(secureHashKey(url), filePath, context);
                             }
 
                             if (request.isNotificationVisibility()) {
                                 File file = new File(filePath);
                                 if (file.isFile() && file.exists()) {
-                                    showDownSuccessNotify(context, finalFileName, filePath, request);
+                                    showDownSuccessNotify(url, context, finalFileName, filePath);
                                 } else {
-                                    hideDownNotify(context, request);
+                                    hideDownNotify(context, url);
                                 }
                             }
-                        }catch (Throwable e){
+                        } catch (Throwable e) {
                             e.printStackTrace();
                         }
 
-
                         try {
-                            if (downIdMap.containsKey(url)) {
-                                downIdMap.remove(url);
-                            }
+                            downIdMap.remove(url);
+                            downOkHttp.remove(url);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -295,10 +319,10 @@ public class DownloadManager {
                     }
 
                     @Override
-                    public void onProgress(long bytesRead, long contentLength, boolean done) {
+                    public void onProgress(String url, long bytesRead, long contentLength, boolean done) {
 
                         try {
-                            if (request.isGlobal()&&globalCallBack != null) {
+                            if (request.isGlobal() && globalCallBack != null) {
                                 globalCallBack.onProgress(url, bytesRead, contentLength, done);
                             }
 
@@ -317,7 +341,7 @@ public class DownloadManager {
                                     int progress = (int) (bytesRead / (double) contentLength * 100);
 
 
-                                    showDownProgressNotify(progress, context, finalFileName, request);
+                                    showDownProgressNotify(url, progress, context, finalFileName);
                                     showTime = System.currentTimeMillis();
 
                                 }
@@ -332,10 +356,11 @@ public class DownloadManager {
 
     }
 
-    public void removeKey(String key){
+    public void removeKey(String key) {
         try {
             downIdMap.remove(key);
             downMap.remove(key);
+            downOkHttp.remove(key);
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -344,31 +369,31 @@ public class DownloadManager {
     /**
      * 取消通知
      */
-    private void hideDownNotify(Context context, Request request) {
+    private void hideDownNotify(Context context, String url) {
 
 
         notificationMrg = getNotificationManager(context);
 
-        notificationMrg.cancel(getNotifyId(request));
+        notificationMrg.cancel(getNotifyId(url));
     }
 
     /**
      * 下载进度显示
      */
-    private void showDownProgressNotify(int progress, Context context, String fileName, Request request) {
+    private void showDownProgressNotify(String url, int progress, Context context, String fileName) {
 
-        NotificationCompat.Builder builder = getNotifyBuilderProgress(context, fileName,
+        NotificationCompat.Builder builder = getNotifyBuilderProgress(url, context, fileName,
                 context.getString(R.string.can_downing), progress + "%", null,
                 R.mipmap.icon, null, 100, progress,
                 false,
                 null, Notification.DEFAULT_LIGHTS, true, false);
 
-        builder.setWhen(getNotifyTime(request));
+        builder.setWhen(getNotifyTime(url));
 
         notificationMrg = getNotificationManager(context);
 
 
-        notificationMrg.notify(getNotifyId(request), builder.build());
+        notificationMrg.notify(getNotifyId(url), builder.build());
     }
 
     private NotificationManager getNotificationManager(Context context) {
@@ -389,12 +414,12 @@ public class DownloadManager {
     /**
      * 下载完成
      */
-    private void showDownSuccessNotify(Context context, String fileName, String filePath, Request request) {
+    private void showDownSuccessNotify(String url, Context context, String fileName, String filePath) {
 
 
         String contentText = context.getString(R.string.can_down_open);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(getFileUri(context,new File(filePath)), DownFileUtils.getMimeType(context,filePath));
+        intent.setDataAndType(getFileUri(context, new File(filePath)), DownFileUtils.getMimeType(context, filePath));
 
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -403,7 +428,7 @@ public class DownloadManager {
                 intent, 0);
 
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context,PUSH_CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, PUSH_CHANNEL_ID)
                 .setSmallIcon(R.mipmap.icon)
                 .setContentTitle(fileName)
                 .setContentText(contentText).setAutoCancel(true)
@@ -413,14 +438,14 @@ public class DownloadManager {
 
         notificationMrg = getNotificationManager(context);
 
-        notificationMrg.notify(getNotifyId(request), builder.build());
+        notificationMrg.notify(getNotifyId(url), builder.build());
     }
 
 
     /**
      * 下载失败
      */
-    private void showDownFailNotify(Context context, String fileName, Request request) {
+    private void showDownFailNotify(String url, Context context, String fileName) {
 
 
         String contentText = context.getString(R.string.can_down_fail);
@@ -429,7 +454,7 @@ public class DownloadManager {
                 new Intent(), 0);
 
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context,PUSH_CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, PUSH_CHANNEL_ID)
                 .setSmallIcon(R.mipmap.icon)
                 .setContentTitle(fileName)
                 .setContentText(contentText).setAutoCancel(true)
@@ -439,26 +464,31 @@ public class DownloadManager {
 
         notificationMrg = getNotificationManager(context);
 
-        notificationMrg.notify(getNotifyId(request), builder.build());
+        notificationMrg.notify(getNotifyId(url), builder.build());
     }
 
-    private int getNotifyId(Request request) {
-        String key = request.url;
+    private int getNotifyId(String key) {
+
         int id = 10000;
         if (downIdMap.containsKey(key)) {
-           long time = downIdMap.get(key);
-            id = (int) (time%10000);
+            Long time = downIdMap.get(key);
+            if (time != null) {
+                id = (int) (time % 10000);
+            }
         }
 
         return id;
     }
 
 
-    private long getNotifyTime(Request request) {
-        String key = request.url;
+    private long getNotifyTime(String key) {
+
         long id = System.currentTimeMillis();
         if (downIdMap.containsKey(key)) {
-            id = downIdMap.get(key);
+            Long timeId = downIdMap.get(key);
+            if (timeId != null) {
+                id = timeId;
+            }
         }
 
         return id;
@@ -469,24 +499,24 @@ public class DownloadManager {
      *
      * @return NotificationCompat.Builder
      */
-    private NotificationCompat.Builder getNotifyBuilderProgress(Context context, String contentTitle,
+    private NotificationCompat.Builder getNotifyBuilderProgress(String url, Context context, String contentTitle,
                                                                 String contentText, String contentInfo, Bitmap largeIcon,
                                                                 int smallIcon, Class contentclass, int max, int progress,
                                                                 boolean indeterminate,
                                                                 PendingIntent deleteIntent, int defaults, boolean autoCancel, boolean onGo) {
 
-        RemoteViews views = new RemoteViews(context.getPackageName(),R.layout.layout_download_nitification);
-        views.setProgressBar(R.id.progress,max,progress,indeterminate);
-        views.setTextViewText(R.id.tv_des,contentTitle+"  "+contentText+"  "+contentInfo);
-        PendingIntent cancelIntent = PendingIntent.getBroadcast(context,1,new Intent(PUSH_CHANNEL_CLICK),PendingIntent.FLAG_UPDATE_CURRENT);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.layout_download_nitification);
+        views.setProgressBar(R.id.progress, max, progress, indeterminate);
+        views.setTextViewText(R.id.tv_des, contentTitle + "  " + contentText + "  " + contentInfo);
+        PendingIntent cancelIntent = PendingIntent.getBroadcast(context, 1, new Intent(PUSH_CHANNEL_CLICK).putExtra("url", url), PendingIntent.FLAG_UPDATE_CURRENT);
 
-        views.setOnClickPendingIntent(R.id.btn_cancel,cancelIntent);
+        views.setOnClickPendingIntent(R.id.btn_cancel, cancelIntent);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,
                 new Intent(), 0);
 
 
-        return new NotificationCompat.Builder(context,PUSH_CHANNEL_ID)
+        return new NotificationCompat.Builder(context, PUSH_CHANNEL_ID)
                 .setContent(views)
                 .setLargeIcon(largeIcon).setSmallIcon(smallIcon)
                 .setContentInfo(contentInfo).setContentTitle(contentTitle)
@@ -495,7 +525,6 @@ public class DownloadManager {
                 .setOngoing(onGo)
                 .setContentIntent(pendingIntent).setDeleteIntent(deleteIntent)
                 .setDefaults(defaults);
-
 
 
     }
@@ -515,7 +544,7 @@ public class DownloadManager {
                 new Intent(), 0);
 
 
-        return new NotificationCompat.Builder(context,PUSH_CHANNEL_ID)
+        return new NotificationCompat.Builder(context, PUSH_CHANNEL_ID)
                 .setLargeIcon(largeIcon).setSmallIcon(smallIcon)
                 .setContentInfo(contentInfo).setContentTitle(contentTitle)
                 .setContentText(contentText).setAutoCancel(autoCancel)
@@ -555,7 +584,7 @@ public class DownloadManager {
 
         private Map<String, String> requestHeader = new ArrayMap<>();
 
-        public Request(String url,String downPath) {
+        public Request(String url, String downPath) {
             this.url = url;
             this.downPath = downPath;
         }
@@ -610,8 +639,7 @@ public class DownloadManager {
     }
 
 
-
-    public Uri getFileUri(Context context,File file) {
+    public Uri getFileUri(Context context, File file) {
 
         if (Build.VERSION.SDK_INT >= 24) {
 
