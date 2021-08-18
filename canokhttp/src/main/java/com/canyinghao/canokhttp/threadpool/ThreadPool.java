@@ -27,8 +27,12 @@ public class ThreadPool {
 
     private static ThreadPool instance;
 
-    public static void init(int defaultSchedule) {
+    private static boolean isSingle;
+
+    public static void initSet(int defaultSchedule,boolean isSingle) {
         ThreadPool.defaultSchedule = defaultSchedule;
+        ThreadPool.isSingle = isSingle;
+
     }
 
     public static void initIoSchedulerHandler(){
@@ -36,8 +40,8 @@ public class ThreadPool {
             @Override
             public Scheduler apply(@NonNull Callable<Scheduler> schedulerCallable) throws Exception {
                 int processors =Runtime.getRuntime().availableProcessors();
-                ThreadPoolExecutor executor =new ThreadPoolExecutor(processors * 2,
-                        processors * 10, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(processors*10),new ThreadPoolExecutor.DiscardPolicy());
+                ThreadPoolExecutor executor =new ThreadPoolExecutor(processors +1,
+                        processors * 3, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(processors*3),new ThreadPoolExecutor.DiscardPolicy());
 
                 return Schedulers.from(executor);
             }
@@ -60,44 +64,88 @@ public class ThreadPool {
 
     }
     @SuppressLint("CheckResult")
-    public <T, O> void single(O o, final SingleJob<O,T> job, final FutureListener<T> listener, Scheduler schedule, Scheduler observe) {
+    public <T, O> void single(final O o, final SingleJob<O,T> job, final FutureListener<T> listener, Scheduler schedule, Scheduler observe) {
+        if(isSingle){
+            Single.just(o)
+                    .map(new Function<O, T>() {
 
-        Single.just(o)
-                .map(new Function<O, T>() {
+                        @Override
+                        public T apply(O o) throws Exception {
 
-                    @Override
-                    public T apply(O o) throws Exception {
+                            return job.run(o);
+                        }
+                    }).observeOn(observe)
+                    .subscribeOn(schedule)
+                    .subscribeWith(new DisposableSingleObserver<T>() {
+                        @Override
+                        public void onSuccess(T t) {
 
-                        return job.run(o);
-                    }
-                }).observeOn(observe)
-                .subscribeOn(schedule)
-                .subscribeWith(new DisposableSingleObserver<T>() {
-                    @Override
-                    public void onSuccess(T t) {
-
-                        try {
-                            if (listener != null) {
-                                listener.onFutureDone(t);
+                            try {
+                                if (listener != null) {
+                                    listener.onFutureDone(t);
+                                }
+                            } catch (Throwable e) {
+                                e.printStackTrace();
                             }
-                        } catch (Throwable e) {
-                            e.printStackTrace();
+
                         }
 
-                    }
+                        @Override
+                        public void onError(Throwable e) {
 
-                    @Override
-                    public void onError(Throwable e) {
-
-                        try {
-                            if (listener != null) {
-                                listener.onFutureDone(null);
+                            try {
+                                if (listener != null) {
+                                    listener.onFutureDone(null);
+                                }
+                            } catch (Throwable t) {
+                                t.printStackTrace();
                             }
-                        } catch (Throwable t) {
-                            t.printStackTrace();
                         }
-                    }
-                });
+                    });
+        }else{
+            Observable.create(new ObservableOnSubscribe<T>() {
+                @Override
+                public void subscribe(ObservableEmitter<T> e) throws Exception {
+
+                    T t = job.run(o);
+                    e.onNext(t);
+                    e.onComplete();
+
+                }
+            }).subscribeOn(schedule)
+                    .observeOn(observe)
+                    .subscribeWith(new DisposableObserver<T>() {
+                        @Override
+                        public void onNext(T value) {
+
+                            try {
+                                if (listener != null) {
+                                    listener.onFutureDone(value);
+                                }
+                            } catch (Throwable e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            try {
+                                if (listener != null) {
+                                    listener.onFutureDone(null);
+                                }
+                            } catch (Throwable t) {
+                                t.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onComplete() {
+
+                        }
+                    });
+        }
+
 
 
     }
@@ -111,7 +159,7 @@ public class ThreadPool {
 
 
     public <T, O> void single(O o, SingleJob<O,T> job, final FutureListener<T> listener) {
-        Scheduler scheduler = null;
+        Scheduler scheduler;
         switch (defaultSchedule) {
 
 
@@ -200,7 +248,7 @@ public class ThreadPool {
 
 
     public <T> void submit(Job<T> job, final FutureListener<T> listener) {
-        Scheduler scheduler = null;
+        Scheduler scheduler;
         switch (defaultSchedule) {
 
             case 1:
