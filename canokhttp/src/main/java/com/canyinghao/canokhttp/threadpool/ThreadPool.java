@@ -40,8 +40,8 @@ public class ThreadPool {
             @Override
             public Scheduler apply(@NonNull Callable<Scheduler> schedulerCallable) throws Exception {
                 int processors =Runtime.getRuntime().availableProcessors();
-                ThreadPoolExecutor executor =new ThreadPoolExecutor(processors +1,
-                        processors * 3, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(processors*3),new ThreadPoolExecutor.DiscardPolicy());
+                ThreadPoolExecutor executor =new ThreadPoolExecutor(processors * 2,
+                        processors * 10, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(processors*10),new ThreadPoolExecutor.DiscardPolicy());
 
                 return Schedulers.from(executor);
             }
