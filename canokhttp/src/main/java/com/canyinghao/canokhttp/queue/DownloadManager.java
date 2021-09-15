@@ -402,7 +402,7 @@ public class DownloadManager {
                     context.getSystemService(Context.NOTIFICATION_SERVICE);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                NotificationChannel channel = new NotificationChannel(PUSH_CHANNEL_ID, PUSH_CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
+                NotificationChannel channel = new NotificationChannel(PUSH_CHANNEL_ID, PUSH_CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
                 if (notificationMrg != null) {
                     notificationMrg.createNotificationChannel(channel);
                 }
@@ -521,7 +521,7 @@ public class DownloadManager {
                 .setLargeIcon(largeIcon).setSmallIcon(smallIcon)
                 .setContentInfo(contentInfo).setContentTitle(contentTitle)
                 .setContentText(contentText).setAutoCancel(autoCancel)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+//                .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setOngoing(onGo)
                 .setContentIntent(pendingIntent).setDeleteIntent(deleteIntent)
                 .setDefaults(defaults);
@@ -548,7 +548,7 @@ public class DownloadManager {
                 .setLargeIcon(largeIcon).setSmallIcon(smallIcon)
                 .setContentInfo(contentInfo).setContentTitle(contentTitle)
                 .setContentText(contentText).setAutoCancel(autoCancel)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+//                .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setOngoing(onGo)
                 .setContentIntent(pendingIntent).setDeleteIntent(deleteIntent)
                 .setDefaults(defaults);
