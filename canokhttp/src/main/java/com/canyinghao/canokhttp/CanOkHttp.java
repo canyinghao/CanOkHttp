@@ -1214,7 +1214,9 @@ public final class CanOkHttp {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-
+                if(mCurrentConfig.getReportError()!=null){
+                    mCurrentConfig.getReportError().report(url,e,0,null);
+                }
 //                httpsTryAgain(call, null, e);
                 changeLineTryAgain(call, null, e);
             }
@@ -1257,12 +1259,17 @@ public final class CanOkHttp {
                         }
 
                     } else {
-
+                        if(mCurrentConfig.getReportError()!=null){
+                            mCurrentConfig.getReportError().report(url,null,res.code(),res.message());
+                        }
                         changeLineTryAgain(call, res, null);
 
                     }
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
+                    if(mCurrentConfig.getReportError()!=null){
+                        mCurrentConfig.getReportError().report(url,throwable,0,null);
+                    }
                     changeLineTryAgain(call, res, null);
                 }
 

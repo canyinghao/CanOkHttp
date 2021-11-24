@@ -3,6 +3,7 @@ package com.canyinghao.canokhttp;
 import android.app.Application;
 
 import com.canyinghao.canokhttp.annotation.CacheType;
+import com.canyinghao.canokhttp.callback.CanReportError;
 
 import java.io.File;
 import java.util.List;
@@ -82,6 +83,8 @@ public final class CanConfig {
     private String timeStamp;//时间戳
     //    其它请求方式，delete 、put 等
     private String otherMethod;
+
+    private CanReportError reportError;
 
     public Application getApplication() {
         return application;
@@ -448,6 +451,14 @@ public final class CanConfig {
         return this;
     }
 
+    public void setReportError(CanReportError reportError) {
+        this.reportError = reportError;
+    }
+
+    public CanReportError getReportError() {
+        return reportError;
+    }
+
     public boolean isProxy() {
         return isProxy;
     }
@@ -498,6 +509,7 @@ public final class CanConfig {
         this.timeStamp = config.timeStamp;
         this.isApplicationJson = config.isApplicationJson;
         this.isProxy = config.isProxy;
+        this.reportError = config.reportError;
 
 
 
