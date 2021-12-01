@@ -63,6 +63,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okio.Buffer;
 
 /**
  * CanOkHttp
@@ -1214,8 +1215,14 @@ public final class CanOkHttp {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                if(mCurrentConfig.getReportError()!=null){
-                    mCurrentConfig.getReportError().report(url,e,0,null);
+                try {
+
+                    if(mCurrentConfig.getReportError()!=null){
+
+                        mCurrentConfig.getReportError().report(getReportInfo(call),e,0,null);
+                    }
+                } catch (Throwable exception) {
+                    exception.printStackTrace();
                 }
 //                httpsTryAgain(call, null, e);
                 changeLineTryAgain(call, null, e);
@@ -1259,16 +1266,24 @@ public final class CanOkHttp {
                         }
 
                     } else {
-                        if(mCurrentConfig.getReportError()!=null){
-                            mCurrentConfig.getReportError().report(url,null,res.code(),res.message());
+                        try {
+                            if(mCurrentConfig.getReportError()!=null){
+                                mCurrentConfig.getReportError().report(getReportInfo(call),null,res.code(),res.message());
+                            }
+                        } catch (Throwable e) {
+                            e.printStackTrace();
                         }
                         changeLineTryAgain(call, res, null);
 
                     }
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
-                    if(mCurrentConfig.getReportError()!=null){
-                        mCurrentConfig.getReportError().report(url,throwable,0,null);
+                    try {
+                        if(mCurrentConfig.getReportError()!=null){
+                            mCurrentConfig.getReportError().report(getReportInfo(call),throwable,0,null);
+                        }
+                    } catch (Throwable e) {
+                        e.printStackTrace();
                     }
                     changeLineTryAgain(call, res, null);
                 }
@@ -2514,6 +2529,35 @@ public final class CanOkHttp {
                 isDone)
                 .build();
         OkHandler.getInstance().sendMessage(msg);
+    }
+
+
+    public String getReportInfo(Call call){
+        String method = call.request().method();
+        String url = call.request().url().toString();
+        String headers = call.request().headers().toString();
+        if(!TextUtils.isEmpty(headers)){
+            headers =headers.replace("\n","&");
+        }
+
+        RequestBody requestBody = call.request().body();
+        if(!"GET".equals(method)&&requestBody!=null){
+            String body = requestBodyToString(requestBody);
+            return "method="+method+",url="+url+",headers="+headers+",body:"+body;
+        }else{
+            return "method="+method+",url="+url+",headers="+headers;
+        }
+
+    }
+
+    private String requestBodyToString(RequestBody requestBody) {
+        Buffer buffer = new Buffer();
+        try {
+            requestBody.writeTo(buffer);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return buffer.readUtf8();
     }
 
     /**
