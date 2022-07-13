@@ -326,11 +326,9 @@ public final class CanOkHttp {
 
         if (mCurrentConfig.isRetryOnConnectionFailure()) {
             clientBuilder.retryOnConnectionFailure(true);
-
             if (mCurrentConfig.getMaxRetry() > 0) {
                 clientBuilder.addInterceptor(RETRY_INTERCEPTOR);
             }
-
         } else {
             clientBuilder.retryOnConnectionFailure(false);
         }
