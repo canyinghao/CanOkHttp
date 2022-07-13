@@ -45,6 +45,7 @@ import java.net.UnknownServiceException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -307,7 +308,6 @@ public final class CanOkHttp {
 
         }
 
-        KLog.e("getHttpClient");
 
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .connectTimeout(mCurrentConfig.getConnectTimeout(), TimeUnit.SECONDS)
@@ -407,6 +407,19 @@ public final class CanOkHttp {
         return this;
     }
 
+    public CanOkHttp setNetworkInterceptors(List<Interceptor> networkInterceptors) {
+        if(mCurrentConfig!= null){
+            mCurrentConfig.setNetworkInterceptors(networkInterceptors);
+        }
+        return this;
+    }
+
+    public CanOkHttp setInterceptors(List<Interceptor> interceptors) {
+        if(mCurrentConfig!= null){
+            mCurrentConfig.setInterceptors(interceptors);
+        }
+        return this;
+    }
 
     /**
      * @param str String

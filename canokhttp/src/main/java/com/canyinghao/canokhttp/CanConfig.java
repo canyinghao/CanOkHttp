@@ -183,8 +183,8 @@ public final class CanConfig {
     }
 
     public CanConfig setNetworkInterceptors(List<Interceptor> networkInterceptors) {
-        if (null != networkInterceptors)
-            this.networkInterceptors = networkInterceptors;
+
+       this.networkInterceptors = networkInterceptors;
         return this;
     }
 
@@ -193,8 +193,8 @@ public final class CanConfig {
     }
 
     public CanConfig setInterceptors(List<Interceptor> interceptors) {
-        if (null != interceptors)
-            this.interceptors = interceptors;
+
+        this.interceptors = interceptors;
         return this;
     }
 
