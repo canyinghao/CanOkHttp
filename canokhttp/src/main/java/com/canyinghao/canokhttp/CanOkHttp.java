@@ -172,57 +172,20 @@ public final class CanOkHttp {
      * @param msg 日志信息
      */
     private void okHttpLog(String msg, boolean isResult) {
-
-        if (!isDownOrUpLoad && isResult && mCurrentConfig.isJson()) {
-            KLog.json(msg);
-        } else {
-            KLog.d(msg);
+        if(mCurrentConfig.isOpenLog()){
+            if (!isDownOrUpLoad && isResult && mCurrentConfig.isJson()) {
+                KLog.json(msg);
+            } else {
+                KLog.d(msg);
+            }
         }
-
 
     }
 
-//    /**
-//     * 主机名验证
-//     */
-//    private final HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
-//        public boolean verify(String hostname, SSLSession session) {
-//            return true;
-//        }
-//    };
-//
-//    /**
-//     * 设置HTTPS认证
-//     *
-//     * @param clientBuilder builder
-//     */
-//    private void setSslSocketFactory(OkHttpClient.Builder clientBuilder) {
-//        clientBuilder.hostnameVerifier(DO_NOT_VERIFY);
-//        try {
-//            SSLContext sc = SSLContext.getInstance("TLS");
-//            X509TrustManager trustManager = new X509TrustManager() {
-//                @Override
-//                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-//                }
-//
-//                @Override
-//                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-//                }
-//
-//                @Override
-//                public X509Certificate[] getAcceptedIssuers() {
-//                    return new X509Certificate[0];
-//                }
-//            };
-//            sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
-//            clientBuilder.sslSocketFactory(sc.getSocketFactory(), trustManager);
-//        } catch (Throwable e) {
-//            e.printStackTrace();
-//        }
-//    }
 
 
-    private Interceptor RETRY_INTERCEPTOR = new Interceptor() {
+
+    private final Interceptor RETRY_INTERCEPTOR = new Interceptor() {
 
 
         @Override
@@ -245,7 +208,7 @@ public final class CanOkHttp {
     /**
      * 日志拦截器
      */
-    private Interceptor LOG_INTERCEPTOR = new Interceptor() {
+    private final Interceptor LOG_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Response res = null;
@@ -265,7 +228,7 @@ public final class CanOkHttp {
     /**
      * 进度拦截器
      */
-    private Interceptor PROGRESS_INTERCEPTOR = new Interceptor() {
+    private final Interceptor PROGRESS_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Response originalResponse = chain.proceed(chain.request());
@@ -358,7 +321,7 @@ public final class CanOkHttp {
             clientBuilder.networkInterceptors().addAll(mCurrentConfig.getNetworkInterceptors());
         if (null != mCurrentConfig.getInterceptors() && !mCurrentConfig.getInterceptors().isEmpty())
             clientBuilder.interceptors().addAll(mCurrentConfig.getInterceptors());
-        if (mCurrentConfig.isOpenLog())
+        if (mCurrentConfig.isOpenLog()&& BuildConfig.DEBUG)
             clientBuilder.addInterceptor(LOG_INTERCEPTOR);
 
         if (mCurrentConfig.isRetryOnConnectionFailure()) {
