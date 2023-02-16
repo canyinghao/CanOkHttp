@@ -48,6 +48,7 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
@@ -2059,7 +2060,16 @@ public final class CanOkHttp {
                     if(paramMap==null){
                         paramMap = new HashMap<>();
                     }
-                    paramMap.putAll(map);
+                    Set<String> set = map.keySet();
+                    for(String key:set){
+                        if(!paramMap.containsKey(key)){
+                            String value = map.get(key);
+                            if(value!=null){
+                                paramMap.put(key,value);
+                            }
+
+                        }
+                    }
                 }
             }
 
@@ -2279,6 +2289,32 @@ public final class CanOkHttp {
 
         } else {
 
+
+            if (isGlobal) {
+
+                Map<String, String> map = mCurrentConfig.getGlobalGetParamMap();
+
+                if (map == null) {
+                    map = mCurrentConfig.getGlobalParamMap();
+                }
+                if (map != null && !map.isEmpty()) {
+                    if(paramMap==null){
+                        paramMap = new HashMap<>();
+                    }
+                    Set<String> set = map.keySet();
+                    for(String key:set){
+                        if(!paramMap.containsKey(key)){
+                            String value = map.get(key);
+                            if(value!=null){
+                                paramMap.put(key,value);
+                            }
+
+                        }
+                    }
+                }
+            }
+
+
             StringBuilder params = new StringBuilder();
             if (!paramMap.isEmpty()) {
                 String logInfo;
@@ -2316,31 +2352,6 @@ public final class CanOkHttp {
             }
 
 
-            if (isGlobal) {
-
-                Map<String, String> map = mCurrentConfig.getGlobalGetParamMap();
-
-                if (map == null) {
-                    map = mCurrentConfig.getGlobalParamMap();
-                }
-                if (map != null && !map.isEmpty()) {
-                    String logInfo;
-                    for (String name : map.keySet()) {
-                        if (!TextUtils.isEmpty(url) && url.contains("?")) {
-                            logInfo = "&" + name + "=" + map.get(name);
-                        } else {
-                            if (TextUtils.isEmpty(params.toString())) {
-                                logInfo = "?" + name + "=" + map.get(name);
-                            } else {
-                                logInfo = "&" + name + "=" + map.get(name);
-                            }
-                        }
-
-                        params.append(logInfo);
-                    }
-
-                }
-            }
 
             paramsUrl.append(params);
 
