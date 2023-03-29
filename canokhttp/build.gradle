@@ -21,6 +21,17 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == 'com.squareup.okhttp3') {
+            if ("okhttp" == requested.name) {
+                details.useVersion '4.9.1'
+            }
+        }
+    }
+}
+
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.2.0'
@@ -28,7 +39,7 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.8'
 
-    implementation 'com.squareup.okhttp3:okhttp:4.7.2'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.1'
     implementation 'com.alibaba:fastjson:1.2.48'
 }
 

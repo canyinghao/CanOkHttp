@@ -1293,11 +1293,13 @@ public final class CanOkHttp {
                         if (isPost) {
                             changeLine = true;
                             isChangeLine = true;
+                            close(res);
                             post(tempPublicType);
                             setCallBack(mCanCallBack);
                         } else {
                             changeLine = true;
                             isChangeLine = true;
+                            close(res);
                             get(tempPublicType);
                             setCallBack(mCanCallBack);
                         }
@@ -1309,6 +1311,7 @@ public final class CanOkHttp {
                         if (!isPost) {
                             changeLine = true;
                             isChangeLine = true;
+                            close(res);
                             get(tempPublicType);
                             setCallBack(mCanCallBack);
                         }
@@ -1320,6 +1323,7 @@ public final class CanOkHttp {
                         if (isPost) {
                             changeLine = true;
                             isChangeLine = true;
+                            close(res);
                             post(tempPublicType);
                             setCallBack(mCanCallBack);
                         }
@@ -1360,10 +1364,12 @@ public final class CanOkHttp {
                     case 0:
 
                         if (isPost) {
+                            close(res);
                             post(tempPublicType);
                             setCallBack(mCanCallBack);
                             isHttpsTry = true;
                         } else {
+                            close(res);
                             get(tempPublicType);
                             setCallBack(mCanCallBack);
                             isHttpsTry = true;
@@ -1374,6 +1380,7 @@ public final class CanOkHttp {
                     case 1:
 
                         if (!isPost) {
+                            close(res);
                             get(tempPublicType);
                             setCallBack(mCanCallBack);
                             isHttpsTry = true;
@@ -1384,6 +1391,7 @@ public final class CanOkHttp {
                     case 2:
 
                         if (isPost) {
+                            close(res);
                             post(tempPublicType);
                             setCallBack(mCanCallBack);
                             isHttpsTry = true;
@@ -1409,13 +1417,22 @@ public final class CanOkHttp {
                 } else {
                     dealWithException(e);
                 }
-
+            }else{
+                close(res);
             }
 
             if (!TextUtils.isEmpty(mCurrentConfig.getTag()) && call != null) {
                 CanCallManager.cancelCall(mCurrentConfig.getTag(), call);
             }
 
+        }
+    }
+
+    private void close(Response res){
+        try {
+            res.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
